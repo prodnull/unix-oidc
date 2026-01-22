@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>unix-oidc: Passwordless SSH with Cryptographic Token Binding</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .slide {
+      min-height: 100vh;
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .slide-title {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a365d 100%);
+    }
+
+    h1 { font-size: 3.5rem; font-weight: 700; margin-bottom: 1rem; }
+    h2 { font-size: 2.5rem; font-weight: 600; margin-bottom: 2rem; color: var(--accent-light); }
+    h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-secondary); }
+
+    .subtitle { font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem; }
+    .tagline { font-size: 1.25rem; color: var(--accent); font-weight: 500; }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      background: var(--accent);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+    }
+
+    .grid { display: grid; gap: 2rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .card-accent {
+      border-left: 4px solid var(--accent);
+    }
+
+    .stat {
+      text-align: center;
+      padding: 2rem;
+    }
+    .stat-value { font-size: 3rem; font-weight: 700; color: var(--accent-light); }
+    .stat-label { font-size: 1rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+    .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+    ul { list-style: none; }
+    ul li { padding: 0.75rem 0; padding-left: 2rem; position: relative; }
+    ul li::before {
+      content: ">";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .check-list li::before { content: "✓"; color: var(--success); }
+    .x-list li::before { content: "✗"; color: var(--danger); }
+
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    th, td { padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .badge-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+    .code-block {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .diagram {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 2rem;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.85rem;
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem 0;
+    }
+    .flow-number {
+      width: 48px;
+      height: 48px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .cta {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 2rem;
+      transition: background 0.2s;
+    }
+    .cta:hover { background: var(--accent-light); }
+
+    .nav {
+      position: fixed;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .nav a {
+      width: 12px;
+      height: 12px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .nav a:hover { background: var(--accent); }
+
+    .highlight { color: var(--accent-light); }
+    .muted { color: var(--text-secondary); }
+
+    @media (max-width: 1024px) {
+      .slide { padding: 40px; }
+      h1 { font-size: 2.5rem; }
+      h2 { font-size: 2rem; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation dots -->
+<nav class="nav">
+  <a href="#title"></a>
+  <a href="#problem"></a>
+  <a href="#solution"></a>
+  <a href="#how-it-works"></a>
+  <a href="#security"></a>
+  <a href="#features"></a>
+  <a href="#comparison"></a>
+  <a href="#collaboration"></a>
+  <a href="#get-started"></a>
+</nav>
+
+<!-- Slide 1: Title -->
+<section class="slide slide-title" id="title">
+  <div class="logo">uo</div>
+  <h1>unix-oidc</h1>
+  <p class="subtitle">Passwordless SSH Authentication with Cryptographic Token Binding</p>
+  <p class="tagline">Open Source | Apache-2.0/MIT</p>
+</section>
+
+<!-- Slide 2: The Problem -->
+<section class="slide" id="problem">
+  <h2>SSH Authentication is Broken</h2>
+
+  <div class="grid grid-2" style="margin-top: 2rem;">
+    <div class="card">
+      <h3>The Reality Today</h3>
+      <ul class="x-list">
+        <li>SSH keys scattered everywhere with no visibility</li>
+        <li>No expiration, no rotation, no revocation</li>
+        <li>Employee leaves? Keys remain on servers for months</li>
+        <li>Enterprise MFA stops at the browser</li>
+        <li>Terminals are the last unprotected frontier</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>The Business Impact</h3>
+      <div class="grid grid-2" style="margin-top: 1rem;">
+        <div class="stat">
+          <div class="stat-value">$4.5M</div>
+          <div class="stat-label">Avg. credential breach cost</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">80%</div>
+          <div class="stat-label">Breaches involve stolen credentials</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">Weeks</div>
+          <div class="stat-label">To prepare for audits</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">Days</div>
+          <div class="stat-label">To fully offboard one person</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 3: The Solution -->
+<section class="slide" id="solution">
+  <h2>DPoP-Bound OIDC Authentication</h2>
+  <h3>Tokens that are useless if stolen</h3>
+
+  <div class="grid grid-2" style="margin-top: 2rem;">
+    <div>
+      <p style="font-size: 1.25rem; margin-bottom: 2rem;">
+        We implemented <span class="highlight">RFC 9449 (DPoP)</span> for cryptographic token binding.
+        Each token is mathematically bound to your device's private key.
+      </p>
+
+      <div class="card card-accent">
+        <h3>Why This Matters</h3>
+        <ul class="check-list">
+          <li>Token intercepted in transit? <strong>Useless.</strong></li>
+          <li>Token extracted from memory? <strong>Useless.</strong></li>
+          <li>Token found in logs? <strong>Useless.</strong></li>
+          <li>Each proof expires in 60 seconds</li>
+          <li>Each proof is bound to one specific server</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="diagram">
+┌─────────────────┐
+│   Your Device   │
+│  ┌───────────┐  │
+│  │ Private   │  │◄── Never leaves device
+│  │ Key       │  │
+│  └─────┬─────┘  │
+│        │        │
+│        ▼        │
+│  ┌───────────┐  │
+│  │ DPoP      │  │
+│  │ Proof     │──┼──► Bound to this key
+│  └───────────┘  │    + target server
+│        +        │    + timestamp
+│  ┌───────────┐  │
+│  │ Token     │  │
+│  └───────────┘  │
+└─────────────────┘
+        │
+        ▼
+   If intercepted:
+   Attacker has token + proof
+   but NOT the private key
+   = Cannot generate new proofs
+   = Cannot authenticate
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: How It Works -->
+<section class="slide" id="how-it-works">
+  <h2>Simple User Experience</h2>
+  <h3>No new passwords. No hardware tokens. No training.</h3>
+
+  <div class="grid grid-2" style="margin-top: 2rem;">
+    <div>
+      <div class="flow-step">
+        <div class="flow-number">1</div>
+        <div>
+          <strong>User SSHs to server</strong>
+          <p class="muted">ssh user@server.example.com</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">2</div>
+        <div>
+          <strong>Browser opens for authentication</strong>
+          <p class="muted">Your existing IdP login page</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">3</div>
+        <div>
+          <strong>User signs in with SSO + MFA</strong>
+          <p class="muted">Same flow they use for web apps</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">4</div>
+        <div>
+          <strong>Connection established</strong>
+          <p class="muted">Automatic, seamless access</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="diagram" style="font-size: 0.8rem;">
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│    User      │      │   Linux      │      │  Identity    │
+│   Device     │      │   Server     │      │  Provider    │
+└──────┬───────┘      └──────┬───────┘      └──────┬───────┘
+       │                     │                     │
+       │  1. SSH connect     │                     │
+       │────────────────────>│                     │
+       │                     │                     │
+       │  2. Auth required   │                     │
+       │<────────────────────│                     │
+       │                     │                     │
+       │  3. Browser SSO ────────────────────────>│
+       │                     │                     │
+       │  4. MFA challenge   │                     │
+       │<─────────────────────────────────────────│
+       │                     │                     │
+       │  5. MFA response    │                     │
+       │─────────────────────────────────────────>│
+       │                     │                     │
+       │  6. Token + DPoP proof                   │
+       │────────────────────>│  7. Validate ─────>│
+       │                     │<──── JWKS ─────────│
+       │                     │                     │
+       │  8. Session granted │                     │
+       │<────────────────────│                     │
+    </div>
+  </div>
+</section>
+
+<!-- Slide 5: Security -->
+<section class="slide" id="security">
+  <h2>Defense in Depth</h2>
+
+  <div class="grid grid-3" style="margin-top: 2rem;">
+    <div class="card">
+      <div class="icon">🔐</div>
+      <h3>Token Binding</h3>
+      <ul>
+        <li>DPoP proof-of-possession</li>
+        <li>60-second proof lifetime</li>
+        <li>Server-specific binding</li>
+        <li>JTI replay protection</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">🛡️</div>
+      <h3>Rate Limiting</h3>
+      <ul>
+        <li>Per-user sliding window</li>
+        <li>Exponential backoff</li>
+        <li>60s to 3600s lockout</li>
+        <li>Brute force prevention</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="icon">📋</div>
+      <h3>Audit Trail</h3>
+      <ul>
+        <li>Structured JSON logs</li>
+        <li>Session correlation IDs</li>
+        <li>SIEM integration ready</li>
+        <li>Compliance evidence</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 2rem;">
+    <h3>Compliance Alignment</h3>
+    <table>
+      <tr>
+        <th>Framework</th>
+        <th>Requirement</th>
+        <th>How unix-oidc Addresses</th>
+      </tr>
+      <tr>
+        <td>NIST 800-63B</td>
+        <td>AAL2/AAL3</td>
+        <td>MFA via OIDC, DPoP binding</td>
+      </tr>
+      <tr>
+        <td>SOC 2</td>
+        <td>CC6.1, CC6.2, CC7.2</td>
+        <td>Access controls, audit logging</td>
+      </tr>
+      <tr>
+        <td>PCI DSS</td>
+        <td>Req 8.3</td>
+        <td>Strong authentication for sensitive systems</td>
+      </tr>
+      <tr>
+        <td>Zero Trust</td>
+        <td>Continuous verification</td>
+        <td>Short-lived tokens, per-request binding</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- Slide 6: Features -->
+<section class="slide" id="features">
+  <h2>What's Included</h2>
+
+  <div class="grid grid-2" style="margin-top: 2rem;">
+    <div class="card">
+      <h3>PAM Module</h3>
+      <ul class="check-list">
+        <li>Drop-in SSH authentication</li>
+        <li>Works with any OIDC provider</li>
+        <li>SSSD/LDAP user mapping</li>
+        <li>Policy-based authorization</li>
+        <li>Memory-safe Rust implementation</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Sudo Step-Up</h3>
+      <ul class="check-list">
+        <li>MFA for privileged commands</li>
+        <li>Device flow (approve on phone)</li>
+        <li>Command pattern matching</li>
+        <li>Host classification rules</li>
+        <li>Time-based policies</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Agent</h3>
+      <ul class="check-list">
+        <li>DPoP key management</li>
+        <li>Secure credential storage</li>
+        <li>SSH agent forwarding</li>
+        <li>Cross-platform support</li>
+        <li>Keychain integration</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>DPoP Libraries</h3>
+      <ul class="check-list">
+        <li>Rust, Go, Python, Java</li>
+        <li>100% cross-language interop</li>
+        <li>RFC 9449 compliant</li>
+        <li>Use in your own projects</li>
+        <li>Standalone packages</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid grid-4" style="margin-top: 2rem;">
+    <div class="stat">
+      <div class="stat-value">4</div>
+      <div class="stat-label">Platforms</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">130+</div>
+      <div class="stat-label">Unit Tests</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">16/16</div>
+      <div class="stat-label">Cross-lang Tests</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">5</div>
+      <div class="stat-label">IdP Providers Tested</div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 7: Comparison -->
+<section class="slide" id="comparison">
+  <h2>How We Compare</h2>
+
+  <table style="margin-top: 2rem;">
+    <tr>
+      <th>Feature</th>
+      <th>unix-oidc</th>
+      <th>Teleport</th>
+      <th>Smallstep</th>
+      <th>pam_oidc</th>
+    </tr>
+    <tr>
+      <td>DPoP Token Binding</td>
+      <td><span class="badge badge-success">Yes</span></td>
+      <td><span class="badge badge-danger">No</span></td>
+      <td><span class="badge badge-warning">N/A</span></td>
+      <td><span class="badge badge-danger">No</span></td>
+    </tr>
+    <tr>
+      <td>Sudo Step-Up MFA</td>
+      <td><span class="badge badge-success">Yes</span></td>
+      <td><span class="badge badge-danger">No</span></td>
+      <td><span class="badge badge-danger">No</span></td>
+      <td><span class="badge badge-danger">No</span></td>
+    </tr>
+    <tr>
+      <td>Fully Open Source</td>
+      <td><span class="badge badge-success">Yes</span></td>
+      <td><span class="badge badge-warning">Partial</span></td>
+      <td><span class="badge badge-warning">Partial</span></td>
+      <td><span class="badge badge-success">Yes</span></td>
+    </tr>
+    <tr>
+      <td>Infrastructure Required</td>
+      <td>PAM only</td>
+      <td>Proxy cluster</td>
+      <td>CA infrastructure</td>
+      <td>PAM only</td>
+    </tr>
+    <tr>
+      <td>License Cost</td>
+      <td><span class="badge badge-success">Free</span></td>
+      <td>$$$$</td>
+      <td>$$</td>
+      <td><span class="badge badge-success">Free</span></td>
+    </tr>
+  </table>
+
+  <div class="card card-accent" style="margin-top: 2rem;">
+    <p style="font-size: 1.25rem;">
+      <strong>The missing piece:</strong> Cryptographically-bound tokens that are useless if stolen,
+      without requiring new infrastructure, certificate authorities, or enterprise contracts.
+    </p>
+  </div>
+</section>
+
+<!-- Slide 8: Human-AI Collaboration -->
+<section class="slide" id="collaboration">
+  <h2>Built with Human-AI Collaboration</h2>
+
+  <div class="grid grid-2" style="margin-top: 2rem;">
+    <div>
+      <div class="card" style="margin-bottom: 2rem;">
+        <h3>Human Contribution</h3>
+        <ul>
+          <li><strong>Security Architecture</strong> from years of PAM/LDAP/SSO experience</li>
+          <li><strong>Threat Modeling</strong> based on real enterprise requirements</li>
+          <li><strong>Strategic Direction</strong> knowing what to build and why</li>
+          <li><strong>Judgment Calls</strong> on security vs. usability tradeoffs</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>AI Contribution</h3>
+        <ul>
+          <li><strong>4,500+ lines</strong> of memory-safe Rust</li>
+          <li><strong>Comprehensive tests</strong> (unit, integration, fuzz, E2E)</li>
+          <li><strong>CI/CD pipelines</strong> with Sigstore signing</li>
+          <li><strong>Documentation</strong> and security analysis</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="grid grid-2">
+        <div class="stat card">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Days of Development</div>
+        </div>
+        <div class="stat card">
+          <div class="stat-value">~$700</div>
+          <div class="stat-label">AI Compute Cost</div>
+        </div>
+        <div class="stat card">
+          <div class="stat-value">$15-25K</div>
+          <div class="stat-label">Equivalent Human Cost</div>
+        </div>
+        <div class="stat card">
+          <div class="stat-value">20-35x</div>
+          <div class="stat-label">Cost Efficiency</div>
+        </div>
+      </div>
+
+      <div class="card card-accent" style="margin-top: 2rem;">
+        <p>
+          Human-AI collaboration isn't about replacement -- it's about <strong>amplification</strong>.
+          Domain expertise plus AI implementation speed equals capabilities neither could achieve alone.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 9: Get Started -->
+<section class="slide" id="get-started">
+  <h2>Get Started</h2>
+
+  <div class="grid grid-2" style="margin-top: 2rem;">
+    <div>
+      <h3>Download Latest Release</h3>
+      <pre class="code-block" style="font-size: 0.8rem;"><span style="color: #6b7280;"># 1. Download (tarball + signature + certificate)</span>
+export V=$(curl -s https://api.github.com/repos/prodnull/unix-oidc/releases/latest | grep tag_name | cut -d'"' -f4)
+export P=linux-x86_64
+curl -LO https://github.com/prodnull/unix-oidc/releases/download/$V/unix-oidc-$V-$P.tar.gz
+curl -LO https://github.com/prodnull/unix-oidc/releases/download/$V/unix-oidc-$V-$P.tar.gz.sig
+curl -LO https://github.com/prodnull/unix-oidc/releases/download/$V/unix-oidc-$V-$P.tar.gz.pem</pre>
+
+      <pre class="code-block" style="font-size: 0.8rem; margin-top: 1rem;"><span style="color: #6b7280;"># 2. Verify signature (optional but recommended)</span>
+cosign verify-blob \
+  --certificate unix-oidc-$V-$P.tar.gz.pem \
+  --signature unix-oidc-$V-$P.tar.gz.sig \
+  --certificate-identity-regexp 'https://github.com/prodnull/unix-oidc' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  unix-oidc-$V-$P.tar.gz</pre>
+
+      <pre class="code-block" style="font-size: 0.8rem; margin-top: 1rem;"><span style="color: #6b7280;"># 3. Install</span>
+tar -xzf unix-oidc-$V-$P.tar.gz
+sudo cp libpam_unix_oidc.so /usr/lib/security/</pre>
+
+      <div style="margin-top: 2rem;">
+        <h3>Resources</h3>
+        <ul>
+          <li><strong>Installation Guide</strong> - Complete deployment instructions</li>
+          <li><strong>Security Guide</strong> - Hardening and compliance</li>
+          <li><strong>Threat Model</strong> - NIST CSF and MITRE ATT&CK analysis</li>
+          <li><strong>User Guide</strong> - End-user documentation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="text-align: center; padding: 2rem;">
+        <div class="logo" style="margin: 0 auto 1.5rem;">uo</div>
+        <h3>unix-oidc</h3>
+        <p class="muted" style="margin: 0.5rem 0;">Latest Release</p>
+        <p style="margin: 0.5rem 0; font-size: 0.9rem;">Apache-2.0 / MIT Dual License</p>
+        <p style="margin: 1rem 0; font-size: 0.85rem; color: var(--text-secondary);">
+          Signed with Sigstore | SBOM included
+        </p>
+        <a class="cta" href="https://github.com/prodnull/unix-oidc/releases/latest" target="_blank">
+          Download Release
+        </a>
+      </div>
+
+      <div class="card" style="margin-top: 1.5rem;">
+        <h3>Available Packages</h3>
+        <table>
+          <tr>
+            <td>Linux x86_64</td>
+            <td><span class="badge badge-success">PAM + Agent</span></td>
+          </tr>
+          <tr>
+            <td>Linux aarch64</td>
+            <td><span class="badge badge-success">PAM + Agent</span></td>
+          </tr>
+          <tr>
+            <td>macOS x86_64</td>
+            <td><span class="badge badge-success">Agent</span></td>
+          </tr>
+          <tr>
+            <td>macOS aarch64</td>
+            <td><span class="badge badge-success">Agent</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
