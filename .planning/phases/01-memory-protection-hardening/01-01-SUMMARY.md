@@ -34,6 +34,7 @@ metrics:
   tasks_total: 2
   files_modified: 4
   files_created: 1
+requirements_completed: [MEM-01, MEM-02, MEM-04]
 ---
 
 # Phase 1 Plan 1: ProtectedSigningKey Foundation Summary
