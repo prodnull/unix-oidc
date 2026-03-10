@@ -79,4 +79,4 @@ Phases execute in strict dependency order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Memory Protection Hardening | 4/4 | Complete   | 2026-03-10 |
 | 2. Storage Backend Wiring | 3/3 | Complete   | 2026-03-10 |
-| 3. Hardware Signer Backends | 1/3 | In Progress|  |
+| 3. Hardware Signer Backends | 2/3 | In Progress|  |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 03-01-PLAN.md"
-last_updated: "2026-03-10T16:35:00Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-10T17:22:31.286Z"
 last_activity: "2026-03-10 — Phase 03 Plan 01 complete: DPoP build/assemble refactor + YubiKeySigner via cryptoki PKCS#11"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 53
 ---
 
@@ -58,6 +58,7 @@ Progress: [█████░░░░░] 53%
 | Phase 02-storage-backend-wiring P02 | 13 | 2 tasks | 3 files |
 | Phase 02-storage-backend-wiring P03 | 5m | 2 tasks | 7 files |
 | Phase 03-hardware-signer-backends P01 | 35m | 2 tasks | 10 files |
+| Phase 03-hardware-signer-backends P02 | 45m | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 03-01]: tpm feature = ["dep:rpassword"] only — tss-esapi added in Plan 03-02 when TPM backend is implemented
 - [Phase 03-01]: EccKeyPairGen mechanism used for C_GenerateKeyPair (maps to CKM_EC_KEY_PAIR_GEN); provision() adopts existing compatible P-256 key
 - [Phase 03-01]: PKCS#11 CKA_EC_POINT for YubiKey = DER OCTET STRING [0x04, 0x41, uncompressed_point]; extract_ec_point() strips DER wrapper
+- [Phase 03-hardware-signer-backends]: tss-esapi dep gated to Linux only — aarch64-darwin not supported by tss-esapi-sys 0.5.0 pre-built bindings; module split keeps pad_to_32 unit tests cross-platform
+- [Phase 03-hardware-signer-backends]: TpmSigner::sign_proof() uses pre-computed SHA-256 digest + null HashcheckTicket — correct for unrestricted TPM signing keys per TCG spec
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T16:35:00Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-hardware-signer-backends/03-02-PLAN.md
+Last session: 2026-03-10T17:22:31.284Z
+Stopped at: Completed 03-02-PLAN.md
+Resume file: None
