@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An OAuth token (access, refresh, client secret) printed via `tracing::debug!` or `{:?}` appears as `[REDACTED]` rather than the raw value, because tokens are wrapped in `secrecy::Secret<String>`
   4. Running `unix-oidc-agent` on a system with existing file-stored credentials and then deleting them produces a random-overwrite + fsync + unlink sequence (not a simple file remove), and the agent logs a CoW advisory warning on btrfs/APFS
   5. The security rationale for memory protection decisions (mlock semantics, zeroize limitations, secrecy wrapper) is present in CLAUDE.md security invariants and the README security section
-**Plans**: TBD
+**Plans**: 3 plans (2 waves)
 
 Plans:
 - [ ] 01-01: Add `zeroize` + `secrecy` to workspace; enable `p256` `zeroize` feature; wrap `SigningKey` in `ProtectedSigningKey` with `ZeroizeOnDrop` and `Option<MlockGuard>`
