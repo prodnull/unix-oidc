@@ -28,10 +28,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Hardware Key Backends
 
-- [ ] **HW-01**: `YubiKeySigner` implementing `DPoPSigner` trait via `cryptoki` 0.12 (PKCS#11) with P-256 ECDSA signing
+- [x] **HW-01**: `YubiKeySigner` implementing `DPoPSigner` trait via `cryptoki` 0.12 (PKCS#11) with P-256 ECDSA signing
 - [ ] **HW-02**: `TpmSigner` implementing `DPoPSigner` trait via `tss-esapi` 7.6 with P-256 ECDSA signing
-- [ ] **HW-03**: Both backends gated behind optional cargo features (`yubikey`, `tpm`) to avoid bloating base build
-- [ ] **HW-04**: YubiKey uses open-sign-close PCSC pattern (no persistent handle) to avoid blocking other applications
+- [x] **HW-03**: Both backends gated behind optional cargo features (`yubikey`, `tpm`) to avoid bloating base build
+- [x] **HW-04**: YubiKey uses open-sign-close PCSC pattern (no persistent handle) to avoid blocking other applications
 - [ ] **HW-05**: TPM probes P-256 capability at provisioning time with clear error if unsupported
 - [ ] **HW-06**: `unix-oidc-agent login --signer yubikey|tpm|software` CLI flag for backend selection
 - [ ] **HW-07**: Documentation updated with hardware key setup guides (YubiKey PIV provisioning, TPM enrollment), PCSC daemon requirements, and troubleshooting
@@ -85,10 +85,10 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | STOR-05 | Phase 2 | Complete |
 | STOR-06 | Phase 2 | Complete |
 | STOR-07 | Phase 2 | Complete |
-| HW-01 | Phase 3 | Pending |
+| HW-01 | Phase 3 | Complete |
 | HW-02 | Phase 3 | Pending |
-| HW-03 | Phase 3 | Pending |
-| HW-04 | Phase 3 | Pending |
+| HW-03 | Phase 3 | Complete |
+| HW-04 | Phase 3 | Complete |
 | HW-05 | Phase 3 | Pending |
 | HW-06 | Phase 3 | Pending |
 | HW-07 | Phase 3 | Pending |

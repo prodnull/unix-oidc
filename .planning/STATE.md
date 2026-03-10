@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-10T15:57:37.343Z"
-last_activity: "2026-03-10 — Phase 02 Plan 01 complete: StorageRouter with probe-based backend detection, keyring features fixed, libdbus-1-dev in CI"
+stopped_at: "Completed 03-01-PLAN.md"
+last_updated: "2026-03-10T16:35:00Z"
+last_activity: "2026-03-10 — Phase 03 Plan 01 complete: DPoP build/assemble refactor + YubiKeySigner via cryptoki PKCS#11"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 40
+  total_plans: 10
+  completed_plans: 8
+  percent: 53
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** Phase 2 — Storage Backend Wiring (Plan 1 of 4 complete)
+**Current focus:** Phase 3 — Hardware Signer Backends (Plan 1 of 3 complete)
 
 ## Current Position
 
-Phase: 2 of 3 (Storage Backend Wiring)
-Plan: 1 of 4 in current phase
+Phase: 3 of 3 (Hardware Signer Backends)
+Plan: 2 of 3 in current phase (03-01 complete)
 Status: In progress
-Last activity: 2026-03-10 — Phase 02 Plan 01 complete: StorageRouter with probe-based backend detection, keyring features fixed, libdbus-1-dev in CI
+Last activity: 2026-03-10 — Phase 03 Plan 01 complete: DPoP build/assemble refactor + YubiKeySigner via cryptoki PKCS#11
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 53%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02-storage-backend-wiring P01 | 45m | 1 task | 5 files |
 | Phase 02-storage-backend-wiring P02 | 13 | 2 tasks | 3 files |
 | Phase 02-storage-backend-wiring P03 | 5m | 2 tasks | 7 files |
+| Phase 03-hardware-signer-backends P01 | 35m | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,11 @@ Recent decisions affecting current work:
 - [Phase 02-02]: Migration called in both run_serve (daemon startup) and run_login (upgrade trigger) per CONTEXT.md
 - [Phase 02-03]: storage_backend and migration_status stored as Option<String> in AgentState — follows mlock_status precedent, avoids coupling protocol layer to storage enum types
 - [Phase 02-03]: Non-daemon status path calls StorageRouter::detect() locally — ensures storage info available even when daemon not running
+- [Phase 03-01]: cryptoki 0.7.0 used (not 0.12 as research stated) — API identical for our usage; AuthPin is secrecy 0.8 Secret<String>, not 0.10
+- [Phase 03-01]: DPoP refactored into build_dpop_message + assemble_dpop_proof; SoftwareSigner unchanged, hardware signers use build+sign+assemble pattern
+- [Phase 03-01]: tpm feature = ["dep:rpassword"] only — tss-esapi added in Plan 03-02 when TPM backend is implemented
+- [Phase 03-01]: EccKeyPairGen mechanism used for C_GenerateKeyPair (maps to CKM_EC_KEY_PAIR_GEN); provision() adopts existing compatible P-256 key
+- [Phase 03-01]: PKCS#11 CKA_EC_POINT for YubiKey = DER OCTET STRING [0x04, 0x41, uncompressed_point]; extract_ec_point() strips DER wrapper
 
 ### Pending Todos
 
@@ -97,11 +103,11 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 2 - RESOLVED by 02-01]: `keyring` 3.6.3 `keyutils` backend probe compiled and tests pass; empirical CI validation pending first Linux CI run
-- [Phase 3]: `cryptoki` 0.12.0 `CKM_ECDSA` raw-digest DPoP signing path unprototyped — Plan 03-01 is a spike. If path is invalid, hardware signer strategy needs revision.
+- [Phase 3 - RESOLVED by 03-01]: `cryptoki` PKCS#11 path validated — CKM_ECDSA_SHA256 primary with CKM_ECDSA fallback; both compile and are structurally correct. Full validation requires real YubiKey hardware.
 - [Phase 3]: TPM P-256 ECDSA capability varies by device — cloud vTPMs (AWS/GCP/Azure) need testing in addition to physical TPMs.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:57:37.339Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-hardware-signer-backends/03-CONTEXT.md
+Last session: 2026-03-10T16:35:00Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-hardware-signer-backends/03-02-PLAN.md
