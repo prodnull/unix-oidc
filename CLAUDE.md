@@ -155,6 +155,68 @@ The JWKS (JSON Web Key Set) cache has security implications:
 
 **IMPORTANT**: When adding new security checks, explicitly decide which category they belong to and document the reasoning.
 
+Also add to HARD-FAIL table:
+
+| Key material zeroization on drop | Prevents key recovery from freed memory |
+
+### Memory Protection Invariants (`unix-oidc-agent/src/crypto/protected_key.rs`, `src/storage/secure_delete.rs`)
+
+These invariants apply to the client-side agent daemon, where DPoP private keys and OAuth tokens are held in memory and stored on disk.
+
+#### In-memory protection
+
+1. **SigningKey zeroed on drop via `ZeroizeOnDrop`**
+   - `p256::ecdsa::SigningKey` implements `ZeroizeOnDrop` unconditionally in `ecdsa-0.16` — no feature flag required. Key material is volatile-written to zero when the struct is dropped.
+   - Do NOT add a `zeroize` feature to `p256 = "0.13"` — the feature does not exist in that version.
+
+2. **Key material pages locked via `mlock(2)`** (best-effort, MEM-04)
+   - `ProtectedSigningKey` calls `libc::mlock()` over the entire `Box<Self>` allocation at construction. This prevents the OS from swapping the key page to disk.
+   - Failures (EPERM in containers, ENOMEM) are logged at WARN and the daemon continues. Never fatal.
+   - `mlock` does **not** protect against root or kernel-level access; it only prevents swap-based exposure.
+
+3. **`ProtectedSigningKey` is Box-only** (MEM-05)
+   - No public stack constructors exist (`new() -> Self` is intentionally absent). All constructors return `Box<Self>`. This prevents accidental stack copies of key material.
+   - `from_key(SigningKey)` round-trips through `Zeroizing<Vec<u8>>` to avoid leaving a plain copy on the stack.
+
+4. **`export_key()` returns `Zeroizing<Vec<u8>>`** (MEM-01)
+   - Callers MUST NOT convert to `Vec<u8>`. The `Zeroizing` wrapper ensures the bytes are zeroed when the variable goes out of scope.
+   - `Zeroizing<Vec<u8>>` implements `Deref<Target=[u8]>` so `&exported` coerces to `&[u8]` without a copy.
+
+5. **OAuth tokens wrapped in `secrecy::SecretString`** (MEM-03)
+   - `AgentState.access_token` is `Option<SecretString>`, not `Option<String>`. `Debug`/`Display` emits `[REDACTED]`; tokens never appear in logs regardless of log level.
+   - The raw value is accessible only via `.expose_secret()`. All usages must be grep-auditable.
+   - Two permitted audit boundaries: (a) sending to SSH client in `GetProof` handler, (b) writing to storage in `store(KEY_ACCESS_TOKEN, ...)`.
+
+6. **Core dumps disabled at startup** (MEM-03)
+   - `security::disable_core_dumps()` called before loading keys:
+     - Linux: `prctl(PR_SET_DUMPABLE, 0)` — kernel refuses to produce core dump; `/proc/PID/mem` restricted.
+     - macOS: `ptrace(PT_DENY_ATTACH, 0, NULL, 0)` — prevents debugger attach and core dump.
+   - Best-effort: WARN on failure, never prevents daemon startup.
+
+#### On-disk protection
+
+7. **File deletion uses three-pass DoD 5220.22-M overwrite** (MEM-05)
+   - Pass 1: random bytes + `sync_all()`. Pass 2: complement (XOR 0xFF) + `sync_all()`. Pass 3: new random bytes + `sync_all()`. Then `unlink`.
+   - Overwrite failures are best-effort: log at WARN, still unlink.
+   - See `unix-oidc-agent/src/storage/secure_delete.rs`.
+
+8. **CoW filesystem advisory** (MEM-06)
+   - `detect_cow_filesystem()` checks `statfs(2)` for btrfs (`BTRFS_SUPER_MAGIC` on Linux) and APFS (`f_fstypename == "apfs"` on macOS).
+   - WARN logged at `FileStorage::new()` (startup) and again before each `delete()` call if CoW is detected.
+   - **Limitation**: On CoW filesystems, the three-pass overwrite may not modify the original data blocks. Full-disk encryption is the correct mitigation (NIST SP 800-88 Rev 1, §2.5).
+
+9. **SSD/flash wear leveling advisory** (MEM-06)
+   - `detect_rotational_device()` reads `/sys/block/{dev}/queue/rotational` on Linux.
+   - WARN logged at startup if `rotational == 0` (SSD/flash).
+   - **Limitation**: Wear-leveling firmware may redirect writes to spare blocks, leaving the original data intact. Full-disk encryption is the correct mitigation.
+
+#### Summary of limitations
+
+- `mlock` and `zeroize` do not protect against root/kernel-level access or live memory forensics.
+- `zeroize` uses volatile writes to resist compiler optimization; it cannot guarantee zeroing in all compiler/architecture combinations, but the zeroize crate makes a best-effort guarantee.
+- Swap protection is best-effort (`mlock` failures are not fatal).
+- On CoW filesystems and SSDs, the three-pass overwrite is a signal of intent but not a guarantee. Full-disk encryption is the defense for those environments.
+
 ### PAM Module Constraints
 
 1. **No panics** - A panic in PAM can lock users out of their system
