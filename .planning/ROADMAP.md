@@ -77,6 +77,6 @@ Phases execute in strict dependency order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Memory Protection Hardening | 3/4 | Gap closure | - |
+| 1. Memory Protection Hardening | 4/4 | Complete   | 2026-03-10 |
 | 2. Storage Backend Wiring | 0/3 | Not started | - |
 | 3. Hardware Signer Backends | 0/3 | Not started | - |

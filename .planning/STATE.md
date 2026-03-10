@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-10T13:39:15.572Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-03-10T13:56:08.413Z"
 last_activity: "2026-03-10 — Plan 02 complete: SecretString token wrapping, process hardening (prctl/PT_DENY_ATTACH), mlock status in status command"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 4
+  completed_plans: 4
   percent: 33
 ---
 
@@ -53,6 +53,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01 P01 | 7m | 2 tasks | 4 files |
 | Phase 01 P02 | 9m | 1 task | 6 files |
 | Phase 01-memory-protection-hardening P03 | 11m | 2 tasks | 5 files |
+| Phase 01-memory-protection-hardening P04 | 10m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01-02]: mlock_status stored as Option<String> in AgentState — avoids coupling protocol to MlockStatus enum
 - [Phase 01-03]: DoD 5220.22-M three-pass overwrite (random, complement, random) with best-effort semantics: overwrite failure logs but still unlinks
 - [Phase 01-03]: secure_delete uses p256 rand_core OsRng re-export — no new crate dependency needed
+- [Phase 01-04]: CLI client_secret kept as Option<String> parameter; SecretString wrapping inside run_login() body — avoids invasive clap CLI signature change
+- [Phase 01-04]: expose_secret() bound to typed &str local variable — str::as_str() is unstable on this toolchain (issue #130366); Deref coercion via binding is the stable equivalent
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:39:15.570Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-03-10T13:56:08.411Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
