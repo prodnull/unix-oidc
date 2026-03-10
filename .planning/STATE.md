@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-10T13:24:22.847Z"
-last_activity: 2026-03-10 — Roadmap created, requirements defined, research complete
+status: in-progress
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-10T13:35:00Z"
+last_activity: "2026-03-10 — Phase 1 Plan 2 complete: SecretString wrapping, process hardening, mlock status reporting"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -21,36 +21,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** Phase 1 — Memory Protection Hardening
+**Current focus:** Phase 1 — Memory Protection Hardening (Plan 2 of 3 complete)
 
 ## Current Position
 
 Phase: 1 of 3 (Memory Protection Hardening)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-03-10 — Roadmap created, requirements defined, research complete
+Plan: 2 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-10 — Plan 02 complete: SecretString token wrapping, process hardening (prctl/PT_DENY_ATTACH), mlock status in status command
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: -
+- Total plans completed: 2
+- Average duration: 8m
+- Total execution time: 16m
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| Phase 01 | 2 | 16m | 8m |
 
 **Recent Trend:**
-- Last 5 plans: n/a
-- Trend: n/a
+- Last 5 plans: 7m, 9m
+- Trend: stable
 
 *Updated after each plan completion*
 | Phase 01 P01 | 7m | 2 tasks | 4 files |
+| Phase 01 P02 | 9m | 1 task | 6 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [Phase 01]: p256 0.13 has no zeroize feature flag; ZeroizeOnDrop is unconditional in ecdsa-0.16 for SigningKey
 - [Phase 01]: mlock covers entire Box<ProtectedSigningKey> allocation rather than computing pointer to opaque SigningKey internals
 - [Phase 01]: from_key(SigningKey) round-trips through Zeroizing bytes to prevent stack key copies in SoftwareSigner
+- [Phase 01-02]: SecretString (type alias) used over Secret<String> directly — linter preference, semantically identical
+- [Phase 01-02]: Manual Debug for AgentState — Arc<dyn DPoPSigner> is not Debug; manual impl shows thumbprint, access_token shows [REDACTED]
+- [Phase 01-02]: mlock_status stored as Option<String> in AgentState — avoids coupling protocol to MlockStatus enum
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:24:22.844Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-03-10T13:35:00Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

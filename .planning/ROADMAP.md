@@ -31,8 +31,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans (2 waves)
 
 Plans:
-- [ ] 01-01: Add `zeroize` + `secrecy` to workspace; enable `p256` `zeroize` feature; wrap `SigningKey` in `ProtectedSigningKey` with `ZeroizeOnDrop` and `Option<MlockGuard>`
-- [ ] 01-02: Wrap all `export_key()` return paths in `Zeroizing<Vec<u8>>`; wrap access/refresh/client-secret fields in `secrecy::Secret<String>`; add `secmem-proc` call at daemon startup
+- [x] 01-01: Add `zeroize` + `secrecy` to workspace; enable `p256` `zeroize` feature; wrap `SigningKey` in `ProtectedSigningKey` with `ZeroizeOnDrop` and `Option<MlockGuard>`
+- [x] 01-02: Wrap all `export_key()` return paths in `Zeroizing<Vec<u8>>`; wrap access/refresh/client-secret fields in `secrecy::Secret<String>`; add `secmem-proc` call at daemon startup
 - [ ] 01-03: Replace `FileStorage::delete()` with random-overwrite + fsync + unlink; add CoW advisory log; update CLAUDE.md and README security sections
 
 ### Phase 2: Storage Backend Wiring
@@ -76,6 +76,6 @@ Phases execute in strict dependency order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Memory Protection Hardening | 1/3 | In Progress|  |
+| 1. Memory Protection Hardening | 2/3 | In Progress |  |
 | 2. Storage Backend Wiring | 0/3 | Not started | - |
 | 3. Hardware Signer Backends | 0/3 | Not started | - |

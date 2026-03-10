@@ -11,7 +11,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **MEM-01**: All key export paths return `Zeroizing<Vec<u8>>` instead of raw `Vec<u8>`
 - [x] **MEM-02**: `p256` crate built with `zeroize` feature enabling `ZeroizeOnDrop` on `SigningKey`
-- [ ] **MEM-03**: In-memory OAuth tokens wrapped in `secrecy::Secret<String>` (access token, refresh token, client secret)
+- [x] **MEM-03**: In-memory OAuth tokens wrapped in `secrecy::Secret<String>` (access token, refresh token, client secret)
 - [x] **MEM-04**: Key material pages locked via `libc::mlock` with best-effort semantics (warn on `EPERM`/`ENOMEM`, never fatal)
 - [x] **MEM-05**: Key material allocated on heap only (`Box`/`Arc`), never passed by value across function boundaries, to prevent unzeroized stack copies
 - [ ] **MEM-06**: Documentation updated with memory protection design rationale and limitations (CLAUDE.md security invariants, README security section)
