@@ -46,7 +46,7 @@ Plans:
   3. An existing installation with file-stored credentials (`~/.local/share/unix-oidc-agent/unix-oidc-dpop-key` etc.) starts the agent, which transparently migrates credentials to keyring on first successful probe and logs "migrated N credentials from file storage to keyring" — the original files are securely deleted using the Phase 1 overwrite path
   4. `unix-oidc-agent status` outputs the active storage backend ("keyring (Secret Service)", "keyring (keyutils @u)", or "file (fallback)") and migration status ("migrated", "not migrated", "n/a")
   5. CI passes a headless integration test that simulates absent D-Bus and verifies the fallback path activates and credentials persist across a simulated restart
-**Plans**: TBD
+**Plans**: 3 plans (3 waves)
 
 Plans:
 - [ ] 02-01: Validate `keyring` 3.6.3 `keyutils` backend stores to `@u` not `@s` (empirical spike); document finding; implement `StorageRouter::detect()` with probe write/read/delete
