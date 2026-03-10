@@ -14,7 +14,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **MEM-03**: In-memory OAuth tokens wrapped in `secrecy::Secret<String>` (access token, refresh token, client secret)
 - [x] **MEM-04**: Key material pages locked via `libc::mlock` with best-effort semantics (warn on `EPERM`/`ENOMEM`, never fatal)
 - [x] **MEM-05**: Key material allocated on heap only (`Box`/`Arc`), never passed by value across function boundaries, to prevent unzeroized stack copies
-- [ ] **MEM-06**: Documentation updated with memory protection design rationale and limitations (CLAUDE.md security invariants, README security section)
+- [x] **MEM-06**: Documentation updated with memory protection design rationale and limitations (CLAUDE.md security invariants, README security section)
 
 ### Secure Storage
 
@@ -77,7 +77,7 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | MEM-03 | Phase 1 | Pending |
 | MEM-04 | Phase 1 | Complete |
 | MEM-05 | Phase 1 | Complete |
-| MEM-06 | Phase 1 | Pending |
+| MEM-06 | Phase 1 | Complete |
 | STOR-01 | Phase 2 | Pending |
 | STOR-02 | Phase 2 | Pending |
 | STOR-03 | Phase 2 | Pending |
