@@ -23,8 +23,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **STOR-03**: File-to-keyring migration for existing file-stored credentials (detect on startup, migrate transparently, log migration event)
 - [x] **STOR-04**: Linux headless support via `keyutils` user keyring (`@u`, not session `@s`) when D-Bus Secret Service is unavailable
 - [x] **STOR-05**: File deletion uses random-overwrite + unlink, with documented limitation that CoW/SSD filesystems may retain copies
-- [ ] **STOR-06**: `unix-oidc-agent status` reports active storage backend (keyring vs file) and migration status
-- [ ] **STOR-07**: Documentation updated with storage architecture, backend selection logic, migration instructions, and headless deployment guide
+- [x] **STOR-06**: `unix-oidc-agent status` reports active storage backend (keyring vs file) and migration status
+- [x] **STOR-07**: Documentation updated with storage architecture, backend selection logic, migration instructions, and headless deployment guide
 
 ### Hardware Key Backends
 
@@ -83,8 +83,8 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | STOR-03 | Phase 2 | Complete |
 | STOR-04 | Phase 2 | Complete |
 | STOR-05 | Phase 2 | Complete |
-| STOR-06 | Phase 2 | Pending |
-| STOR-07 | Phase 2 | Pending |
+| STOR-06 | Phase 2 | Complete |
+| STOR-07 | Phase 2 | Complete |
 | HW-01 | Phase 3 | Pending |
 | HW-02 | Phase 3 | Pending |
 | HW-03 | Phase 3 | Pending |

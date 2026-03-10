@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 02 Plan 02 — StorageRouter wired, migration implemented
-last_updated: "2026-03-10T15:03:17.273Z"
+stopped_at: Completed Phase 02 Plan 03 — storage status reporting, headless tests, architecture docs
+last_updated: "2026-03-10T15:10:19.837Z"
 last_activity: "2026-03-10 — Phase 02 Plan 01 complete: StorageRouter with probe-based backend detection, keyring features fixed, libdbus-1-dev in CI"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 40
 ---
 
@@ -56,6 +56,7 @@ Progress: [████░░░░░░] 40%
 | Phase 01-memory-protection-hardening P04 | 10m | 2 tasks | 3 files |
 | Phase 02-storage-backend-wiring P01 | 45m | 1 task | 5 files |
 | Phase 02-storage-backend-wiring P02 | 13 | 2 tasks | 3 files |
+| Phase 02-storage-backend-wiring P03 | 5m | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 02-01]: detect_auto() tests marked #[ignore] on macOS — prevent interactive Keychain prompt; delegation tests use detect_forced("file")
 - [Phase 02-02]: maybe_migrate_from(&FileStorage) takes explicit source for two-tempdir test isolation without interactive keychain
 - [Phase 02-02]: Migration called in both run_serve (daemon startup) and run_login (upgrade trigger) per CONTEXT.md
+- [Phase 02-03]: storage_backend and migration_status stored as Option<String> in AgentState — follows mlock_status precedent, avoids coupling protocol layer to storage enum types
+- [Phase 02-03]: Non-daemon status path calls StorageRouter::detect() locally — ensures storage info available even when daemon not running
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:03:17.271Z
-Stopped at: Completed Phase 02 Plan 02 — StorageRouter wired, migration implemented
+Last session: 2026-03-10T15:10:19.835Z
+Stopped at: Completed Phase 02 Plan 03 — storage status reporting, headless tests, architecture docs
 Resume file: None
