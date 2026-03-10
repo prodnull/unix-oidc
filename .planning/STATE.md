@@ -5,9 +5,9 @@ milestone_name: Production Hardening & Enterprise Readiness
 status: active
 stopped_at: null
 last_updated: "2026-03-10T00:00:00.000Z"
-last_activity: "2026-03-10 — Milestone v2.0 started"
+last_activity: "2026-03-10 — v2.0 roadmap created (Phases 6-11)"
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,47 +21,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** v2.0 Production Hardening & Enterprise Readiness
+**Current focus:** v2.0 — Phase 6: PAM Panic Elimination + Security Mode Infrastructure
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-10 — Milestone v2.0 started
+Phase: 6 of 11 (PAM Panic Elimination + Security Mode Infrastructure)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 8m
-- Total execution time: 16m
+- Total plans completed: 12
+- Average duration: ~15m
+- Total execution time: ~3h (v1.0)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| Phase 01 | 2 | 16m | 8m |
+| v1.0 Phases 1-5 | 12 | ~3h | ~15m |
 
 **Recent Trend:**
-- Last 5 plans: 7m, 9m
-- Trend: stable
+- Last 5 plans: 35m, 45m, 10m, 2m, 1m
+- Trend: variable (hardware backend work was heavier)
 
 *Updated after each plan completion*
-| Phase 01 P01 | 7m | 2 tasks | 4 files |
-| Phase 01 P02 | 9m | 1 task | 6 files |
-| Phase 01-memory-protection-hardening P03 | 11m | 2 tasks | 5 files |
-| Phase 01-memory-protection-hardening P04 | 10m | 2 tasks | 3 files |
-| Phase 02-storage-backend-wiring P01 | 45m | 1 task | 5 files |
-| Phase 02-storage-backend-wiring P02 | 13 | 2 tasks | 3 files |
-| Phase 02-storage-backend-wiring P03 | 5m | 2 tasks | 7 files |
-| Phase 03-hardware-signer-backends P01 | 35m | 2 tasks | 10 files |
-| Phase 03-hardware-signer-backends P02 | 45m | 1 tasks | 3 files |
-| Phase 03-hardware-signer-backends P03 | 10m | 2 tasks | 5 files |
-| Phase 04 P01 | 2m | 1 tasks | 2 files |
-| Phase 05 P01 | 1m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -70,55 +58,24 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Pre-roadmap]: Keyring as default, file as fallback — headless servers may lack D-Bus; graceful degradation needed
-- [Pre-roadmap]: `zeroize` for memory + deletion — RustCrypto standard, derives work with existing types
-- [Pre-roadmap]: Hardware keys as optional cargo features — avoids requiring YubiKey/TPM libs for all users
-- [Pre-roadmap]: mlock via `libc::mlock` directly — already a workspace dependency, zero new deps
-- [Research]: `yubikey` 0.8.0 crate rejected — unaudited, experimental warning, stale 18 months; use `cryptoki` 0.12.0 (PKCS#11) instead
-- [Research]: `p256` must stay on 0.13 — 0.14.x removes `jwk` feature required by `public_key_jwk()`
-- [Phase 01]: p256 0.13 has no zeroize feature flag; ZeroizeOnDrop is unconditional in ecdsa-0.16 for SigningKey
-- [Phase 01]: mlock covers entire Box<ProtectedSigningKey> allocation rather than computing pointer to opaque SigningKey internals
-- [Phase 01]: from_key(SigningKey) round-trips through Zeroizing bytes to prevent stack key copies in SoftwareSigner
-- [Phase 01-02]: SecretString (type alias) used over Secret<String> directly — linter preference, semantically identical
-- [Phase 01-02]: Manual Debug for AgentState — Arc<dyn DPoPSigner> is not Debug; manual impl shows thumbprint, access_token shows [REDACTED]
-- [Phase 01-02]: mlock_status stored as Option<String> in AgentState — avoids coupling protocol to MlockStatus enum
-- [Phase 01-03]: DoD 5220.22-M three-pass overwrite (random, complement, random) with best-effort semantics: overwrite failure logs but still unlinks
-- [Phase 01-03]: secure_delete uses p256 rand_core OsRng re-export — no new crate dependency needed
-- [Phase 01-04]: CLI client_secret kept as Option<String> parameter; SecretString wrapping inside run_login() body — avoids invasive clap CLI signature change
-- [Phase 01-04]: expose_secret() bound to typed &str local variable — str::as_str() is unstable on this toolchain (issue #130366); Deref coercion via binding is the stable equivalent
-- [Phase 02-01]: #[cfg(target_os)] used instead of #[cfg(feature)] for keyring backend gating — features are unconditionally enabled in Cargo.toml, target_os is correct discriminator
-- [Phase 02-01]: Probe key uses PID + AtomicU64 counter (unix-oidc-probe-{pid}-{seq}) — prevents collision between parallel test threads and concurrent daemon starts
-- [Phase 02-01]: keyring mock backend cannot round-trip via KeyringStorage (per-Entry-instance storage, no global map); probe tests use FileStorage with tempdir
-- [Phase 02-01]: detect_auto() tests marked #[ignore] on macOS — prevent interactive Keychain prompt; delegation tests use detect_forced("file")
-- [Phase 02-02]: maybe_migrate_from(&FileStorage) takes explicit source for two-tempdir test isolation without interactive keychain
-- [Phase 02-02]: Migration called in both run_serve (daemon startup) and run_login (upgrade trigger) per CONTEXT.md
-- [Phase 02-03]: storage_backend and migration_status stored as Option<String> in AgentState — follows mlock_status precedent, avoids coupling protocol layer to storage enum types
-- [Phase 02-03]: Non-daemon status path calls StorageRouter::detect() locally — ensures storage info available even when daemon not running
-- [Phase 03-01]: cryptoki 0.7.0 used (not 0.12 as research stated) — API identical for our usage; AuthPin is secrecy 0.8 Secret<String>, not 0.10
-- [Phase 03-01]: DPoP refactored into build_dpop_message + assemble_dpop_proof; SoftwareSigner unchanged, hardware signers use build+sign+assemble pattern
-- [Phase 03-01]: tpm feature = ["dep:rpassword"] only — tss-esapi added in Plan 03-02 when TPM backend is implemented
-- [Phase 03-01]: EccKeyPairGen mechanism used for C_GenerateKeyPair (maps to CKM_EC_KEY_PAIR_GEN); provision() adopts existing compatible P-256 key
-- [Phase 03-01]: PKCS#11 CKA_EC_POINT for YubiKey = DER OCTET STRING [0x04, 0x41, uncompressed_point]; extract_ec_point() strips DER wrapper
-- [Phase 03-hardware-signer-backends]: tss-esapi dep gated to Linux only — aarch64-darwin not supported by tss-esapi-sys 0.5.0 pre-built bindings; module split keeps pad_to_32 unit tests cross-platform
-- [Phase 03-hardware-signer-backends]: TpmSigner::sign_proof() uses pre-computed SHA-256 digest + null HashcheckTicket — correct for unrestricted TPM signing keys per TCG spec
-- [Phase 03-03]: build_signer takes config param with #[allow(unused_variables)] — base builds have no hardware features so config is unused; hardware feature branches use it
-- [Phase 03-03]: Hardware login skips KEY_DPOP_PRIVATE — key lives on device, storage write intentionally omitted for hardware signer types
-- [Phase 03-03]: load_agent_state() is single source of truth for signer backend selection — reads signer_type from metadata, no silent fallback to software for hardware specs
-- [Phase 04]: Test helper mirrors production metadata construction pattern -- correct granularity for JSON field-forwarding bug
-- [Phase 05]: ROADMAP checkboxes already correct -- no edits needed; coverage jumped from 14 to 20 (not 17) since HW reqs already Complete
+- [v2.0 roadmap]: figment 0.10.19 replaces serde_yaml for config loading — enables Issue #10 security mode config shape
+- [v2.0 roadmap]: moka 0.12.14 chosen for all TTL caches (JTI replay, DPoP nonce, introspection results)
+- [v2.0 roadmap]: CIBA polling must live in agent daemon, not PAM thread — avoids sshd LoginGraceTime timeout
+- [v2.0 roadmap]: PAM session store uses tmpfs files under /run/unix-oidc/sessions/ — pam_sm_open_session and pam_sm_close_session run in different sshd worker processes
+- [v2.0 roadmap]: FIDO2 step-up via CIBA ACR delegation only — no libfido2/webauthn-rs in PAM crate; direct CTAP2 deferred to v2.1+
+- [v2.0 roadmap]: reqwest stays on 0.11 — 0.11→0.12 TLS layer change requires full ClientBuilder audit; separate hardening item
 
 ### Pending Todos
 
-None yet.
+- [Global]: Every phase must include adversarial/negative tests (malformed tokens, replayed nonces, forged claims, timing attacks, resource exhaustion) — not just happy-path tests
 
 ### Blockers/Concerns
 
-- [Phase 2 - RESOLVED by 02-01]: `keyring` 3.6.3 `keyutils` backend probe compiled and tests pass; empirical CI validation pending first Linux CI run
-- [Phase 3 - RESOLVED by 03-01]: `cryptoki` PKCS#11 path validated — CKM_ECDSA_SHA256 primary with CKM_ECDSA fallback; both compile and are structurally correct. Full validation requires real YubiKey hardware.
-- [Phase 3]: TPM P-256 ECDSA capability varies by device — cloud vTPMs (AWS/GCP/Azure) need testing in addition to physical TPMs.
+- [Phase 10 - pre-planning flag]: Okta CIBA supports PUSH mode only, not POLL — detect via backchannel_token_delivery_modes_supported from OIDC discovery; verify current Okta docs during Phase 10 planning (may have changed since research 2026-03-10)
+- [Phase 11 - pre-planning flag]: PAM stack order fix for RHEL 9 (pam_systemd.so before pam_unix_oidc.so) needs platform verification; socket activation has known ordering race on RHEL 9
 
 ## Session Continuity
 
-Last session: 2026-03-10T18:14:21.715Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-10T00:00:00.000Z
+Stopped at: v2.0 roadmap created — ready to begin Phase 6 planning
 Resume file: None

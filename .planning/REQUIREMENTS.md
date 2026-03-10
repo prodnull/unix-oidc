@@ -103,54 +103,54 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| SEC-03 | — | Pending |
-| SEC-04 | — | Pending |
-| SEC-05 | — | Pending |
-| SEC-06 | — | Pending |
-| SEC-07 | — | Pending |
-| IDN-01 | — | Pending |
-| IDN-02 | — | Pending |
-| IDN-03 | — | Pending |
-| IDN-04 | — | Pending |
-| IDN-05 | — | Pending |
-| IDN-06 | — | Pending |
-| IDN-07 | — | Pending |
-| SES-01 | — | Pending |
-| SES-02 | — | Pending |
-| SES-03 | — | Pending |
-| SES-04 | — | Pending |
-| SES-05 | — | Pending |
-| SES-06 | — | Pending |
-| SES-07 | — | Pending |
-| SES-08 | — | Pending |
-| STP-01 | — | Pending |
-| STP-02 | — | Pending |
-| STP-03 | — | Pending |
-| STP-04 | — | Pending |
-| STP-05 | — | Pending |
-| STP-06 | — | Pending |
-| STP-07 | — | Pending |
-| OPS-01 | — | Pending |
-| OPS-02 | — | Pending |
-| OPS-03 | — | Pending |
-| OPS-04 | — | Pending |
-| OPS-05 | — | Pending |
-| OPS-06 | — | Pending |
-| OPS-07 | — | Pending |
-| OPS-08 | — | Pending |
-| OPS-09 | — | Pending |
-| OPS-10 | — | Pending |
-| OPS-11 | — | Pending |
-| OPS-12 | — | Pending |
-| OPS-13 | — | Pending |
+| SEC-01 | Phase 6 | Pending |
+| SEC-02 | Phase 6 | Pending |
+| SEC-03 | Phase 6 | Pending |
+| SEC-04 | Phase 6 | Pending |
+| SEC-07 | Phase 6 | Pending |
+| SEC-05 | Phase 7 | Pending |
+| SEC-06 | Phase 7 | Pending |
+| IDN-01 | Phase 8 | Pending |
+| IDN-02 | Phase 8 | Pending |
+| IDN-03 | Phase 8 | Pending |
+| IDN-04 | Phase 8 | Pending |
+| IDN-05 | Phase 8 | Pending |
+| IDN-06 | Phase 8 | Pending |
+| IDN-07 | Phase 8 | Pending |
+| SES-01 | Phase 9 | Pending |
+| SES-02 | Phase 9 | Pending |
+| SES-03 | Phase 9 | Pending |
+| SES-04 | Phase 9 | Pending |
+| SES-05 | Phase 9 | Pending |
+| SES-06 | Phase 9 | Pending |
+| SES-07 | Phase 9 | Pending |
+| SES-08 | Phase 9 | Pending |
+| STP-01 | Phase 10 | Pending |
+| STP-02 | Phase 10 | Pending |
+| STP-03 | Phase 10 | Pending |
+| STP-04 | Phase 10 | Pending |
+| STP-05 | Phase 10 | Pending |
+| STP-06 | Phase 10 | Pending |
+| STP-07 | Phase 10 | Pending |
+| OPS-01 | Phase 11 | Pending |
+| OPS-02 | Phase 11 | Pending |
+| OPS-03 | Phase 11 | Pending |
+| OPS-04 | Phase 11 | Pending |
+| OPS-05 | Phase 11 | Pending |
+| OPS-06 | Phase 11 | Pending |
+| OPS-07 | Phase 11 | Pending |
+| OPS-08 | Phase 11 | Pending |
+| OPS-09 | Phase 11 | Pending |
+| OPS-10 | Phase 11 | Pending |
+| OPS-11 | Phase 11 | Pending |
+| OPS-12 | Phase 11 | Pending |
+| OPS-13 | Phase 11 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 37 total
-- Mapped to phases: 0
-- Unmapped: 37 ⚠️
+- v2.0 requirements: 42 total (note: original count of 37 was incorrect; full enumeration gives 42)
+- Mapped to phases: 42
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after initial definition*
+*Last updated: 2026-03-10 — traceability populated by v2.0 roadmap creation*
