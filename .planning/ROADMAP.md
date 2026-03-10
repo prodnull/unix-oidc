@@ -105,4 +105,4 @@ Phases execute in strict dependency order: 1 → 2 → 3
 | 2. Storage Backend Wiring | 3/3 | Complete   | 2026-03-10 |
 | 3. Hardware Signer Backends | 3/3 | Complete   | 2026-03-10 |
 | 4. Fix Hardware Signer Refresh Persistence | 1/1 | Complete   | 2026-03-10 |
-| 5. Audit Documentation Cleanup | 0/1 | Pending | — |
+| 5. Audit Documentation Cleanup | 1/1 | Complete   | 2026-03-10 |
