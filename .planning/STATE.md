@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** Phase 1 — Memory Protection Hardening (Plan 2 of 3 complete)
+**Current focus:** Phase 2 — Storage Backend Wiring (Plan 1 of 4 complete)
 
 ## Current Position
 
-Phase: 1 of 3 (Memory Protection Hardening)
-Plan: 2 of 3 in current phase
+Phase: 2 of 3 (Storage Backend Wiring)
+Plan: 1 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-10 — Plan 02 complete: SecretString token wrapping, process hardening (prctl/PT_DENY_ATTACH), mlock status in status command
+Last activity: 2026-03-10 — Phase 02 Plan 01 complete: StorageRouter with probe-based backend detection, keyring features fixed, libdbus-1-dev in CI
 
-Progress: [███░░░░░░░] 33%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01 P02 | 9m | 1 task | 6 files |
 | Phase 01-memory-protection-hardening P03 | 11m | 2 tasks | 5 files |
 | Phase 01-memory-protection-hardening P04 | 10m | 2 tasks | 3 files |
+| Phase 02-storage-backend-wiring P01 | 45m | 1 task | 5 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,10 @@ Recent decisions affecting current work:
 - [Phase 01-03]: secure_delete uses p256 rand_core OsRng re-export — no new crate dependency needed
 - [Phase 01-04]: CLI client_secret kept as Option<String> parameter; SecretString wrapping inside run_login() body — avoids invasive clap CLI signature change
 - [Phase 01-04]: expose_secret() bound to typed &str local variable — str::as_str() is unstable on this toolchain (issue #130366); Deref coercion via binding is the stable equivalent
+- [Phase 02-01]: #[cfg(target_os)] used instead of #[cfg(feature)] for keyring backend gating — features are unconditionally enabled in Cargo.toml, target_os is correct discriminator
+- [Phase 02-01]: Probe key uses PID + AtomicU64 counter (unix-oidc-probe-{pid}-{seq}) — prevents collision between parallel test threads and concurrent daemon starts
+- [Phase 02-01]: keyring mock backend cannot round-trip via KeyringStorage (per-Entry-instance storage, no global map); probe tests use FileStorage with tempdir
+- [Phase 02-01]: detect_auto() tests marked #[ignore] on macOS — prevent interactive Keychain prompt; delegation tests use detect_forced("file")
 
 ### Pending Todos
 
@@ -85,12 +90,12 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 2]: `keyring` 3.6.3 `keyutils` backend user-keyring vs. session-keyring behavior unconfirmed — must validate empirically before Phase 2 PR (Pitfall 2 in research). Plan 02-01 is a spike for this.
+- [Phase 2 - RESOLVED by 02-01]: `keyring` 3.6.3 `keyutils` backend probe compiled and tests pass; empirical CI validation pending first Linux CI run
 - [Phase 3]: `cryptoki` 0.12.0 `CKM_ECDSA` raw-digest DPoP signing path unprototyped — Plan 03-01 is a spike. If path is invalid, hardware signer strategy needs revision.
 - [Phase 3]: TPM P-256 ECDSA capability varies by device — cloud vTPMs (AWS/GCP/Azure) need testing in addition to physical TPMs.
 
 ## Session Continuity
 
 Last session: 2026-03-10T14:17:45.180Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-storage-backend-wiring/02-CONTEXT.md
+Stopped at: Completed Phase 02 Plan 01 — StorageRouter implemented
+Resume file: .planning/phases/02-storage-backend-wiring/02-02-PLAN.md

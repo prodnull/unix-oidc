@@ -18,11 +18,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Secure Storage
 
-- [ ] **STOR-01**: Runtime keyring backend detection via probe write/read/delete at daemon startup
-- [ ] **STOR-02**: `KeyringStorage` activated as default backend when keyring is available, `FileStorage` as automatic fallback
+- [x] **STOR-01**: Runtime keyring backend detection via probe write/read/delete at daemon startup
+- [x] **STOR-02**: `KeyringStorage` activated as default backend when keyring is available, `FileStorage` as automatic fallback
 - [ ] **STOR-03**: File-to-keyring migration for existing file-stored credentials (detect on startup, migrate transparently, log migration event)
-- [ ] **STOR-04**: Linux headless support via `keyutils` user keyring (`@u`, not session `@s`) when D-Bus Secret Service is unavailable
-- [ ] **STOR-05**: File deletion uses random-overwrite + unlink, with documented limitation that CoW/SSD filesystems may retain copies
+- [x] **STOR-04**: Linux headless support via `keyutils` user keyring (`@u`, not session `@s`) when D-Bus Secret Service is unavailable
+- [x] **STOR-05**: File deletion uses random-overwrite + unlink, with documented limitation that CoW/SSD filesystems may retain copies
 - [ ] **STOR-06**: `unix-oidc-agent status` reports active storage backend (keyring vs file) and migration status
 - [ ] **STOR-07**: Documentation updated with storage architecture, backend selection logic, migration instructions, and headless deployment guide
 
@@ -78,11 +78,11 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | MEM-04 | Phase 1 | Complete |
 | MEM-05 | Phase 1 | Complete |
 | MEM-06 | Phase 1 | Complete |
-| STOR-01 | Phase 2 | Pending |
-| STOR-02 | Phase 2 | Pending |
+| STOR-01 | Phase 2 | Complete |
+| STOR-02 | Phase 2 | Complete |
 | STOR-03 | Phase 2 | Pending |
-| STOR-04 | Phase 2 | Pending |
-| STOR-05 | Phase 2 | Pending |
+| STOR-04 | Phase 2 | Complete |
+| STOR-05 | Phase 2 | Complete |
 | STOR-06 | Phase 2 | Pending |
 | STOR-07 | Phase 2 | Pending |
 | HW-01 | Phase 3 | Pending |

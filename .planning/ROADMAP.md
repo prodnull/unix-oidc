@@ -49,7 +49,7 @@ Plans:
 **Plans**: 3 plans (3 waves)
 
 Plans:
-- [ ] 02-01: Validate `keyring` 3.6.3 `keyutils` backend stores to `@u` not `@s` (empirical spike); document finding; implement `StorageRouter::detect()` with probe write/read/delete
+- [x] 02-01: Validate `keyring` 3.6.3 `keyutils` backend stores to `@u` not `@s` (empirical spike); document finding; implement `StorageRouter::detect()` with probe write/read/delete
 - [ ] 02-02: Wire `StorageRouter` into all five `main.rs` command paths replacing hardcoded `FileStorage::new()` calls; implement file-to-keyring migration logic with secure deletion of migrated files
 - [ ] 02-03: Implement STOR-04 headless path (`keyutils` `@u` backend); add `unix-oidc-agent status` backend reporting (STOR-06); write headless CI integration test; update storage architecture docs (STOR-07)
 
