@@ -19,7 +19,7 @@ Requirements: SEC-01, SEC-02, SEC-03, SEC-04, SEC-07
 - Hybrid layout in policy.yaml: flat strings for simple checks, nested objects for checks needing extra config (ACR)
 - Four configurable checks: `jti_enforcement`, `dpop_required`, `amr_enforcement` (flat strings), `acr` (nested with `enforcement` + `minimum_level`)
 - Three enforcement levels: `strict` (reject), `warn` (log + allow), `disabled` (skip check)
-- Figment-based config loading with env var overrides: `UNIX_OIDC_JTI_ENFORCEMENT`, `UNIX_OIDC_DPoP_REQUIRED`, etc.
+- Figment-based config loading with env var overrides using double-underscore nesting: `UNIX_OIDC_SECURITY_MODES__JTI_ENFORCEMENT`, `UNIX_OIDC_SECURITY_MODES__DPOP_REQUIRED`, etc. (revised from flat names per RESEARCH.md — figment requires `__` split for nested struct fields)
 - Invalid enforcement mode values (e.g., `jti_enforcement: "yolo"`) cause the PAM module to refuse to load, with errors logged to both console and syslog
 - Config loaded from existing `/etc/unix-oidc/policy.yaml` path — no new file
 - Existing YAML field names preserved exactly — figment replaces parser, not schema
