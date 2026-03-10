@@ -74,7 +74,7 @@ Deferred to future milestones. Tracked but not in current roadmap.
 |-------------|-------|--------|
 | MEM-01 | Phase 1 | Complete |
 | MEM-02 | Phase 1 | Complete |
-| MEM-03 | Phase 1 | Pending |
+| MEM-03 | Phase 1 | Complete |
 | MEM-04 | Phase 1 | Complete |
 | MEM-05 | Phase 1 | Complete |
 | MEM-06 | Phase 1 | Complete |
