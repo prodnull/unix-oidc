@@ -92,7 +92,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01-PLAN.md — Fix SUMMARY frontmatter, ROADMAP checkboxes, and REQUIREMENTS.md statuses
+- [x] 05-01-PLAN.md — Fix SUMMARY frontmatter, ROADMAP checkboxes, and REQUIREMENTS.md statuses
 
 ## Progress
 
