@@ -60,7 +60,11 @@ Plans:
   1. A DPoP proof replayed after its nonce has been consumed is rejected with a distinct error, even if the proof's `iat`/`exp` and JTI are valid
   2. Each PAM authentication challenge carries a server-generated nonce that the client must include in its DPoP proof
   3. Nonces expire after 60 seconds; a proof bearing an expired nonce is rejected
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — DPoP nonce cache (moka-backed), nonce generation, CacheConfig extension, enforcement mode threading (SEC-05, SEC-06)
+- [ ] 07-02-PLAN.md — Two-round PAM conversation for nonce challenge/response + human verification (SEC-05)
 
 ### Phase 8: Username Mapping + Group Policy + Break-Glass
 **Goal**: Enterprise deployments can map IdP claim values to local Unix usernames, restrict login to specific OIDC groups, and rely on break-glass accounts being enforced with an audit trail
@@ -120,7 +124,7 @@ Plans:
 | 4. Fix Hardware Signer Refresh Persistence | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
-| 7. DPoP Nonce Issuance | v2.0 | 0/? | Not started | - |
+| 7. DPoP Nonce Issuance | v2.0 | 0/2 | Planned | - |
 | 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 0/? | Not started | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/? | Not started | - |
