@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-10T22:44:14.631Z"
+stopped_at: Completed 07-dpop-nonce-issuance-01-PLAN.md
+last_updated: "2026-03-10T23:17:44.043Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P01 | 20 | 2 tasks | 10 files |
 | Phase 06 P02 | 270 | 1 tasks | 2 files |
 | Phase 06 P03 | 803 | 2 tasks | 4 files |
+| Phase 07-dpop-nonce-issuance P01 | 45 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 06]: ValidationConfig.enforce_jti: bool replaced by jti_enforcement: EnforcementMode — removes UNIX_OIDC_DISABLE_JTI_CHECK env var in favour of policy.yaml enforcement
 - [Phase 06]: Replay detection hard-fail in all modes; missing JTI configurable but replayed JTI never configurable (CLAUDE.md invariant)
 - [Phase 06]: deny(clippy::unwrap_used, clippy::expect_used) activated crate-wide in lib.rs; test modules have allow attribute; ENV_MUTEX migrated to parking_lot::Mutex
+- [Phase 07-dpop-nonce-issuance]: moka Cache.remove() is atomic single-use primitive for nonce consume; no TOCTOU
+- [Phase 07-dpop-nonce-issuance]: validate_dpop_proof() returns DPoPProofResult{thumbprint,nonce} to decouple binding check from cache consumption
+- [Phase 07-dpop-nonce-issuance]: Nonce replay is always hard-fail; missing nonce enforcement respects dpop_required mode (strict/warn/disabled)
 
 ### Pending Todos
 
@@ -84,6 +88,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:44:14.629Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-dpop-nonce-issuance/07-CONTEXT.md
+Last session: 2026-03-10T23:17:44.041Z
+Stopped at: Completed 07-dpop-nonce-issuance-01-PLAN.md
+Resume file: None

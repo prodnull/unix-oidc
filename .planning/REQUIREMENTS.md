@@ -13,8 +13,8 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **SEC-02**: `#![deny(clippy::expect_used, clippy::unwrap_used)]` lint active in `pam-unix-oidc`
 - [x] **SEC-03**: Configurable enforcement modes (strict/warn/disabled) for JTI, DPoP requirement, ACR/AMR claims
 - [x] **SEC-04**: figment-based config loading with backward-compatible defaults matching v1.0 behavior
-- [ ] **SEC-05**: Server-side DPoP nonce issuance per RFC 9449 §8 with PAM challenge delivery
-- [ ] **SEC-06**: DPoP nonce single-use enforcement and TTL-bounded moka cache
+- [x] **SEC-05**: Server-side DPoP nonce issuance per RFC 9449 §8 with PAM challenge delivery
+- [x] **SEC-06**: DPoP nonce single-use enforcement and TTL-bounded moka cache
 - [x] **SEC-07**: JTI cache size aligned between code and documentation (resolve 10k vs 100k)
 
 ### Enterprise Identity
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-03 | Phase 6 | Complete |
 | SEC-04 | Phase 6 | Complete |
 | SEC-07 | Phase 6 | Complete |
-| SEC-05 | Phase 7 | Pending |
-| SEC-06 | Phase 7 | Pending |
+| SEC-05 | Phase 7 | Complete |
+| SEC-06 | Phase 7 | Complete |
 | IDN-01 | Phase 8 | Pending |
 | IDN-02 | Phase 8 | Pending |
 | IDN-03 | Phase 8 | Pending |

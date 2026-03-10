@@ -60,7 +60,7 @@ Plans:
   1. A DPoP proof replayed after its nonce has been consumed is rejected with a distinct error, even if the proof's `iat`/`exp` and JTI are valid
   2. Each PAM authentication challenge carries a server-generated nonce that the client must include in its DPoP proof
   3. Nonces expire after 60 seconds; a proof bearing an expired nonce is rejected
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 07-01-PLAN.md — DPoP nonce cache (moka-backed), nonce generation, CacheConfig extension, enforcement mode threading (SEC-05, SEC-06)
@@ -124,7 +124,7 @@ Plans:
 | 4. Fix Hardware Signer Refresh Persistence | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
-| 7. DPoP Nonce Issuance | v2.0 | 0/2 | Planned | - |
+| 7. DPoP Nonce Issuance | 1/2 | In Progress|  | - |
 | 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 0/? | Not started | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/? | Not started | - |
