@@ -33,8 +33,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **HW-03**: Both backends gated behind optional cargo features (`yubikey`, `tpm`) to avoid bloating base build
 - [x] **HW-04**: YubiKey uses open-sign-close PCSC pattern (no persistent handle) to avoid blocking other applications
 - [x] **HW-05**: TPM probes P-256 capability at provisioning time with clear error if unsupported
-- [ ] **HW-06**: `unix-oidc-agent login --signer yubikey|tpm|software` CLI flag for backend selection
-- [ ] **HW-07**: Documentation updated with hardware key setup guides (YubiKey PIV provisioning, TPM enrollment), PCSC daemon requirements, and troubleshooting
+- [x] **HW-06**: `unix-oidc-agent login --signer yubikey|tpm|software` CLI flag for backend selection
+- [x] **HW-07**: Documentation updated with hardware key setup guides (YubiKey PIV provisioning, TPM enrollment), PCSC daemon requirements, and troubleshooting
 
 ## v2 Requirements
 
@@ -90,8 +90,8 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | HW-03 | Phase 3 | Complete |
 | HW-04 | Phase 3 | Complete |
 | HW-05 | Phase 3 | Complete |
-| HW-06 | Phase 3 | Pending |
-| HW-07 | Phase 3 | Pending |
+| HW-06 | Phase 3 | Complete |
+| HW-07 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total

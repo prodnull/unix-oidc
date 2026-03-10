@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Memory Protection Hardening** - Wrap key material in zeroize/mlock/secrecy; replace naive file deletion with random-overwrite (completed 2026-03-10)
 - [x] **Phase 2: Storage Backend Wiring** - Activate keyring as default storage with headless fallback chain and file-to-keyring migration (completed 2026-03-10)
-- [ ] **Phase 3: Hardware Signer Backends** - Add YubiKey (PKCS#11) and TPM signer implementations behind optional Cargo features
+- [x] **Phase 3: Hardware Signer Backends** - Add YubiKey (PKCS#11) and TPM signer implementations behind optional Cargo features (completed 2026-03-10)
 
 ## Phase Details
 
@@ -79,4 +79,4 @@ Phases execute in strict dependency order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Memory Protection Hardening | 4/4 | Complete   | 2026-03-10 |
 | 2. Storage Backend Wiring | 3/3 | Complete   | 2026-03-10 |
-| 3. Hardware Signer Backends | 2/3 | In Progress|  |
+| 3. Hardware Signer Backends | 3/3 | Complete   | 2026-03-10 |
