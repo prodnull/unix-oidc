@@ -79,6 +79,10 @@ Plans:
   1. After `login --signer yubikey` → token refresh → daemon restart, the loaded metadata contains `signer_type: "yubikey"` and the daemon uses the hardware signer path
   2. Both `run_refresh()` in main.rs and `perform_token_refresh()` in socket.rs forward `signer_type` from original metadata to `updated_metadata`
   3. A regression test verifies signer_type survives a simulated refresh cycle
+**Plans**: 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — Forward signer_type in both refresh paths + regression test
 
 ### Phase 5: Audit Documentation Cleanup
 **Goal**: Resolve all documentation-only gaps identified by the v1.0 milestone audit — SUMMARY frontmatter, ROADMAP checkboxes, and requirement partial statuses
@@ -96,5 +100,5 @@ Phases execute in strict dependency order: 1 → 2 → 3
 | 1. Memory Protection Hardening | 4/4 | Complete   | 2026-03-10 |
 | 2. Storage Backend Wiring | 3/3 | Complete   | 2026-03-10 |
 | 3. Hardware Signer Backends | 3/3 | Complete   | 2026-03-10 |
-| 4. Fix Hardware Signer Refresh Persistence | 0/0 | Pending | — |
+| 4. Fix Hardware Signer Refresh Persistence | 0/1 | Pending | — |
 | 5. Audit Documentation Cleanup | 0/0 | Pending | — |
