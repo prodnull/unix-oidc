@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: "Checkpoint: human-verify 07-02 (Task 2)"
-last_updated: "2026-03-10T23:23:36.772Z"
+stopped_at: Completed 07-dpop-nonce-issuance Plan 02 (DPoP nonce issuance pipeline complete)
+last_updated: "2026-03-10T23:27:26.830Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P03 | 803 | 2 tasks | 4 files |
 | Phase 07-dpop-nonce-issuance P01 | 45 | 2 tasks | 7 files |
 | Phase 07-dpop-nonce-issuance P02 | 3 | 1 tasks | 1 files |
+| Phase 07-dpop-nonce-issuance P02 | 3 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,7 @@ Recent decisions affecting current work:
 - [Phase 07-dpop-nonce-issuance]: validate_dpop_proof() returns DPoPProofResult{thumbprint,nonce} to decouple binding check from cache consumption
 - [Phase 07-dpop-nonce-issuance]: Nonce replay is always hard-fail; missing nonce enforcement respects dpop_required mode (strict/warn/disabled)
 - [Phase 07-dpop-nonce-issuance]: Safe-default Strict enforcement when policy file absent; orphaned nonces expire via TTL; single auth dispatch routes both strict+no-proof and has-proof through authenticate_with_dpop()
+- [Phase 07-dpop-nonce-issuance]: issue_and_deliver_nonce() extracted as named helper in lib.rs; orphaned nonces handled by TTL eviction; dpop_proof.is_some() || mode==Strict routes both cases through authenticate_with_dpop()
 
 ### Pending Todos
 
@@ -90,6 +92,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-10T23:23:36.770Z
-Stopped at: Checkpoint: human-verify 07-02 (Task 2)
+Last session: 2026-03-10T23:27:26.828Z
+Stopped at: Completed 07-dpop-nonce-issuance Plan 02 (DPoP nonce issuance pipeline complete)
 Resume file: None
