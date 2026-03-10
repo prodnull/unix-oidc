@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
 stopped_at: Completed 07-dpop-nonce-issuance Plan 02 (DPoP nonce issuance pipeline complete)
-last_updated: "2026-03-10T23:27:26.830Z"
+last_updated: "2026-03-10T23:32:03.145Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
