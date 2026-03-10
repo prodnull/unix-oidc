@@ -41,14 +41,14 @@ created: 2026-03-10
 | 02-01-01 | 01 | 1 | STOR-01 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_probe_cycle` | ❌ W0 | ⬜ pending |
 | 02-01-02 | 01 | 1 | STOR-01 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_probe_failure` | ❌ W0 | ⬜ pending |
 | 02-01-03 | 01 | 1 | STOR-02 | unit (mock) | `cargo test -p unix-oidc-agent storage::router::tests::test_fallback_to_file` | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 1 | STOR-02 | compile | `cargo build -p unix-oidc-agent` | ✅ existing | ⬜ pending |
-| 02-02-02 | 02 | 1 | STOR-03 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_success` | ❌ W0 | ⬜ pending |
-| 02-02-03 | 02 | 1 | STOR-03 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_rollback` | ❌ W0 | ⬜ pending |
-| 02-02-04 | 02 | 1 | STOR-03 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_noop` | ❌ W0 | ⬜ pending |
-| 02-02-05 | 02 | 1 | STOR-05 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_uses_secure_delete` | ❌ W0 | ⬜ pending |
-| 02-03-01 | 03 | 2 | STOR-04 | integration | `cargo test -p unix-oidc-agent --test headless_storage -- --ignored` | ❌ W0 | ⬜ pending |
-| 02-03-02 | 03 | 2 | STOR-06 | unit | `cargo test -p unix-oidc-agent daemon::protocol::tests::test_status_storage_backend` | ❌ W0 | ⬜ pending |
-| 02-03-03 | 03 | 2 | STOR-07 | manual | inspect `docs/` | ❌ W0 | ⬜ pending |
+| 02-02-01 | 02 | 2 | STOR-02 | compile | `cargo build -p unix-oidc-agent` | ✅ existing | ⬜ pending |
+| 02-02-02 | 02 | 2 | STOR-03 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_success` | ❌ W0 | ⬜ pending |
+| 02-02-03 | 02 | 2 | STOR-03 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_rollback` | ❌ W0 | ⬜ pending |
+| 02-02-04 | 02 | 2 | STOR-03 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_noop` | ❌ W0 | ⬜ pending |
+| 02-02-05 | 02 | 2 | STOR-05 | unit | `cargo test -p unix-oidc-agent storage::router::tests::test_migration_uses_secure_delete` | ❌ W0 | ⬜ pending |
+| 02-03-01 | 03 | 3 | STOR-04 | integration | `cargo test -p unix-oidc-agent --test headless_storage -- --ignored` | ❌ W0 | ⬜ pending |
+| 02-03-02 | 03 | 3 | STOR-06 | unit | `cargo test -p unix-oidc-agent daemon::protocol::tests::test_status_storage_backend` | ❌ W0 | ⬜ pending |
+| 02-03-03 | 03 | 3 | STOR-07 | manual | inspect `docs/` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
