@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-10T20:35:54.991Z"
+stopped_at: Completed 06-02-PLAN.md (SecurityModes/CacheConfig/EnforcementMode with figment)
+last_updated: "2026-03-10T20:37:41.649Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 06 P01 | 20 | 2 tasks | 10 files |
+| Phase 06 P02 | 270 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,7 @@ Recent decisions affecting current work:
 - [v2.0 roadmap]: FIDO2 step-up via CIBA ACR delegation only — no libfido2/webauthn-rs in PAM crate; direct CTAP2 deferred to v2.1+
 - [v2.0 roadmap]: reqwest stays on 0.11 — 0.11→0.12 TLS layer change requires full ClientBuilder audit; separate hardening item
 - [Phase 06]: parking_lot is unconditional production dep (not feature flag); getrandom errors map to AuthError::Config; DeviceFlowClient constructors return Result
+- [Phase 06-02]: EnforcementMode uses hand-rolled Deserialize to reject invalid strings with clear error; Option<SecurityModes> in PolicyConfig preserves v1.0 backward compat; Env::prefixed().only() prevents UNIX_OIDC_TEST_MODE from polluting config parse
 
 ### Pending Todos
 
@@ -78,6 +80,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-10T20:35:54.989Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-10T20:37:41.647Z
+Stopped at: Completed 06-02-PLAN.md (SecurityModes/CacheConfig/EnforcementMode with figment)
 Resume file: None
