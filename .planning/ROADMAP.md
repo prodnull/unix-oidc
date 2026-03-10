@@ -34,7 +34,7 @@ Plans:
 - [x] 01-01: Add `zeroize` + `secrecy` to workspace; enable `p256` `zeroize` feature; wrap `SigningKey` in `ProtectedSigningKey` with `ZeroizeOnDrop` and `Option<MlockGuard>`
 - [x] 01-02: Wrap all `export_key()` return paths in `Zeroizing<Vec<u8>>`; wrap access/refresh/client-secret fields in `secrecy::Secret<String>`; add `secmem-proc` call at daemon startup
 - [x] 01-03: Replace `FileStorage::delete()` with random-overwrite + fsync + unlink; add CoW advisory log; update CLAUDE.md and README security sections
-- [ ] 01-04: (gap closure) Wrap remaining refresh_token and client_secret in SecretString in main.rs and socket.rs
+- [x] 01-04: (gap closure) Wrap remaining refresh_token and client_secret in SecretString in main.rs and socket.rs
 
 ### Phase 2: Storage Backend Wiring
 **Goal**: The agent defaults to OS keyring storage, falls back to kernel keyutils on headless Linux, migrates existing file-stored credentials transparently, and reports its active backend on status
@@ -50,8 +50,8 @@ Plans:
 
 Plans:
 - [x] 02-01: Validate `keyring` 3.6.3 `keyutils` backend stores to `@u` not `@s` (empirical spike); document finding; implement `StorageRouter::detect()` with probe write/read/delete
-- [ ] 02-02: Wire `StorageRouter` into all five `main.rs` command paths replacing hardcoded `FileStorage::new()` calls; implement file-to-keyring migration logic with secure deletion of migrated files
-- [ ] 02-03: Implement STOR-04 headless path (`keyutils` `@u` backend); add `unix-oidc-agent status` backend reporting (STOR-06); write headless CI integration test; update storage architecture docs (STOR-07)
+- [x] 02-02: Wire `StorageRouter` into all five `main.rs` command paths replacing hardcoded `FileStorage::new()` calls; implement file-to-keyring migration logic with secure deletion of migrated files
+- [x] 02-03: Implement STOR-04 headless path (`keyutils` `@u` backend); add `unix-oidc-agent status` backend reporting (STOR-06); write headless CI integration test; update storage architecture docs (STOR-07)
 
 ### Phase 3: Hardware Signer Backends
 **Goal**: Users who require non-exportable key storage can use a YubiKey (via PKCS#11) or TPM 2.0 as the DPoP signer, selected at login via a CLI flag, without affecting users who do not have hardware tokens
@@ -66,9 +66,9 @@ Plans:
 **Plans**: 3 plans (3 waves)
 
 Plans:
-- [ ] 03-01-PLAN.md — Refactor DPoP proof generation for external signers; implement YubiKeySigner via PKCS#11 behind --features yubikey
-- [ ] 03-02-PLAN.md — Implement TpmSigner via tss-esapi behind --features tpm with P-256 capability probe
-- [ ] 03-03-PLAN.md — Wire hardware signers into CLI (provision + --signer flag), persist signer type, write setup docs
+- [x] 03-01-PLAN.md — Refactor DPoP proof generation for external signers; implement YubiKeySigner via PKCS#11 behind --features yubikey
+- [x] 03-02-PLAN.md — Implement TpmSigner via tss-esapi behind --features tpm with P-256 capability probe
+- [x] 03-03-PLAN.md — Wire hardware signers into CLI (provision + --signer flag), persist signer type, write setup docs
 
 ### Phase 4: Fix Hardware Signer Refresh Persistence
 **Goal**: Token refresh preserves signer_type metadata so hardware signer users retain their DPoP binding across refresh + daemon restart cycles
@@ -82,13 +82,17 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 04-01-PLAN.md — Forward signer_type in both refresh paths + regression test
+- [x] 04-01-PLAN.md — Forward signer_type in both refresh paths + regression test
 
 ### Phase 5: Audit Documentation Cleanup
 **Goal**: Resolve all documentation-only gaps identified by the v1.0 milestone audit — SUMMARY frontmatter, ROADMAP checkboxes, and requirement partial statuses
 **Depends on**: None (documentation only)
 **Requirements**: MEM-01, MEM-02, MEM-04
 **Gap Closure:** Closes SUMMARY frontmatter omissions in plans 01-01/01-02 and ROADMAP checkbox inaccuracies across all 3 phases from v1.0 audit
+**Plans**: 1 plan
+
+Plans:
+- [ ] 05-01-PLAN.md — Fix SUMMARY frontmatter, ROADMAP checkboxes, and REQUIREMENTS.md statuses
 
 ## Progress
 
@@ -101,4 +105,4 @@ Phases execute in strict dependency order: 1 → 2 → 3
 | 2. Storage Backend Wiring | 3/3 | Complete   | 2026-03-10 |
 | 3. Hardware Signer Backends | 3/3 | Complete   | 2026-03-10 |
 | 4. Fix Hardware Signer Refresh Persistence | 1/1 | Complete   | 2026-03-10 |
-| 5. Audit Documentation Cleanup | 0/0 | Pending | — |
+| 5. Audit Documentation Cleanup | 0/1 | Pending | — |
