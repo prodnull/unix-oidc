@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-10T13:05:05.208Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-10T13:24:22.847Z"
 last_activity: 2026-03-10 — Roadmap created, requirements defined, research complete
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: n/a
 
 *Updated after each plan completion*
+| Phase 01 P01 | 7m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - [Pre-roadmap]: mlock via `libc::mlock` directly — already a workspace dependency, zero new deps
 - [Research]: `yubikey` 0.8.0 crate rejected — unaudited, experimental warning, stale 18 months; use `cryptoki` 0.12.0 (PKCS#11) instead
 - [Research]: `p256` must stay on 0.13 — 0.14.x removes `jwk` feature required by `public_key_jwk()`
+- [Phase 01]: p256 0.13 has no zeroize feature flag; ZeroizeOnDrop is unconditional in ecdsa-0.16 for SigningKey
+- [Phase 01]: mlock covers entire Box<ProtectedSigningKey> allocation rather than computing pointer to opaque SigningKey internals
+- [Phase 01]: from_key(SigningKey) round-trips through Zeroizing bytes to prevent stack key copies in SoftwareSigner
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:05:05.205Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-memory-protection-hardening/01-CONTEXT.md
+Last session: 2026-03-10T13:24:22.844Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
