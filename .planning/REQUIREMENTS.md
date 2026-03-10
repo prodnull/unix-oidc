@@ -9,13 +9,13 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Security Foundations
 
-- [ ] **SEC-01**: All `.expect()` and `.unwrap()` calls removed from PAM-reachable code paths
+- [x] **SEC-01**: All `.expect()` and `.unwrap()` calls removed from PAM-reachable code paths
 - [ ] **SEC-02**: `#![deny(clippy::expect_used, clippy::unwrap_used)]` lint active in `pam-unix-oidc`
 - [ ] **SEC-03**: Configurable enforcement modes (strict/warn/disabled) for JTI, DPoP requirement, ACR/AMR claims
 - [ ] **SEC-04**: figment-based config loading with backward-compatible defaults matching v1.0 behavior
 - [ ] **SEC-05**: Server-side DPoP nonce issuance per RFC 9449 §8 with PAM challenge delivery
 - [ ] **SEC-06**: DPoP nonce single-use enforcement and TTL-bounded moka cache
-- [ ] **SEC-07**: JTI cache size aligned between code and documentation (resolve 10k vs 100k)
+- [x] **SEC-07**: JTI cache size aligned between code and documentation (resolve 10k vs 100k)
 
 ### Enterprise Identity
 
@@ -103,11 +103,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 6 | Pending |
+| SEC-01 | Phase 6 | Complete |
 | SEC-02 | Phase 6 | Pending |
 | SEC-03 | Phase 6 | Pending |
 | SEC-04 | Phase 6 | Pending |
-| SEC-07 | Phase 6 | Pending |
+| SEC-07 | Phase 6 | Complete |
 | SEC-05 | Phase 7 | Pending |
 | SEC-06 | Phase 7 | Pending |
 | IDN-01 | Phase 8 | Pending |
