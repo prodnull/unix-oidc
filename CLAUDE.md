@@ -217,6 +217,60 @@ These invariants apply to the client-side agent daemon, where DPoP private keys 
 - Swap protection is best-effort (`mlock` failures are not fatal).
 - On CoW filesystems and SSDs, the three-pass overwrite is a signal of intent but not a guarantee. Full-disk encryption is the defense for those environments.
 
+### Storage Backend Invariants (`unix-oidc-agent/src/storage/router.rs`)
+
+These invariants apply to the client-side agent daemon's credential persistence layer.
+
+#### Backend selection
+
+1. **Probe-based detection** — `StorageRouter::detect()` uses a full write → read → delete
+   cycle (probe) to validate each backend. Constructor success alone is insufficient;
+   some backends construct without error but fail on I/O (e.g., keyutils when the
+   session keyring is not initialized, Secret Service when D-Bus is absent).
+
+2. **Priority chain (Linux)**: Secret Service → keyutils user keyring → file fallback.
+   **Priority chain (macOS)**: macOS Keychain → file fallback.
+
+3. **Forced backend contract** — When `UNIX_OIDC_STORAGE_BACKEND` is set, probe only
+   the requested backend and return `Err` on failure. Never fall through to the next
+   backend. This ensures the operator's explicit choice is honored exactly.
+
+4. **Probe key uniqueness** — Each probe uses a key with a PID + atomic counter suffix
+   (`unix-oidc-probe-{pid}-{seq}`). This prevents collision between parallel probes
+   in tests or concurrent daemon starts.
+
+#### Migration
+
+5. **Atomic migration with rollback** — If any key write or read-back fails during
+   migration, `rollback_migration()` deletes all keys already written to the destination
+   before returning `Err`. Partial migrations must not be left behind.
+
+6. **No file-to-file migration** — `maybe_migrate_from()` returns `NotApplicable`
+   immediately when the destination is `BackendKind::File`. File-to-file migration
+   is always a no-op.
+
+7. **Source deletion is best-effort** — After a successful migration, source files are
+   secure-deleted. Deletion failures are logged at `WARN` but do not abort the migration.
+   The credential is already safe in the keyring.
+
+8. **Migration trigger points** — Migration runs at daemon startup (`serve`) and at
+   login. Both triggers are required: daemon startup handles long-running servers
+   where users do not re-login; login handles the common upgrade path where a user
+   installs a keyring after initial setup.
+
+#### Fallback safety
+
+9. **File fallback is always available** — `FileStorage::new()` must never fail silently.
+   If even the file fallback fails, `detect()` returns `Err` and the daemon refuses
+   to start rather than operating without credential storage.
+
+10. **CoW/SSD advisory at startup** — On btrfs or APFS filesystems, and on SSD devices,
+    the agent logs a `WARN` at startup. Operators on these configurations should use
+    full-disk encryption (NIST SP 800-88 Rev 1, §2.5) as the primary protection for
+    at-rest key material, and should prefer a keyring backend over file storage.
+
+See `docs/storage-architecture.md` for deployment guide and troubleshooting.
+
 ### PAM Module Constraints
 
 1. **No panics** - A panic in PAM can lock users out of their system
