@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Completed 06-02-PLAN.md (SecurityModes/CacheConfig/EnforcementMode with figment)
-last_updated: "2026-03-10T20:37:41.649Z"
+stopped_at: Completed 06-03-PLAN.md (enforcement mode pipeline + deny lint)
+last_updated: "2026-03-10T21:09:31.355Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 06 P01 | 20 | 2 tasks | 10 files |
 | Phase 06 P02 | 270 | 1 tasks | 2 files |
+| Phase 06 P03 | 803 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [v2.0 roadmap]: reqwest stays on 0.11 — 0.11→0.12 TLS layer change requires full ClientBuilder audit; separate hardening item
 - [Phase 06]: parking_lot is unconditional production dep (not feature flag); getrandom errors map to AuthError::Config; DeviceFlowClient constructors return Result
 - [Phase 06-02]: EnforcementMode uses hand-rolled Deserialize to reject invalid strings with clear error; Option<SecurityModes> in PolicyConfig preserves v1.0 backward compat; Env::prefixed().only() prevents UNIX_OIDC_TEST_MODE from polluting config parse
+- [Phase 06]: ValidationConfig.enforce_jti: bool replaced by jti_enforcement: EnforcementMode — removes UNIX_OIDC_DISABLE_JTI_CHECK env var in favour of policy.yaml enforcement
+- [Phase 06]: Replay detection hard-fail in all modes; missing JTI configurable but replayed JTI never configurable (CLAUDE.md invariant)
+- [Phase 06]: deny(clippy::unwrap_used, clippy::expect_used) activated crate-wide in lib.rs; test modules have allow attribute; ENV_MUTEX migrated to parking_lot::Mutex
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-10T20:37:41.647Z
-Stopped at: Completed 06-02-PLAN.md (SecurityModes/CacheConfig/EnforcementMode with figment)
+Last session: 2026-03-10T21:09:31.353Z
+Stopped at: Completed 06-03-PLAN.md (enforcement mode pipeline + deny lint)
 Resume file: None

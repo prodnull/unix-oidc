@@ -26,7 +26,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 **Testing mandate:** Every phase must include comprehensive tests for both happy paths and adversarial inputs. Security features require negative tests (malformed tokens, replayed nonces, forged claims, timing attacks, resource exhaustion). Plans must allocate explicit testing tasks — not just implementation.
 
-- [ ] **Phase 6: PAM Panic Elimination + Security Mode Infrastructure** - Remove all `.expect()`/`.unwrap()` from PAM-reachable paths and wire configurable strict/warn/disabled enforcement modes
+- [x] **Phase 6: PAM Panic Elimination + Security Mode Infrastructure** - Remove all `.expect()`/`.unwrap()` from PAM-reachable paths and wire configurable strict/warn/disabled enforcement modes (completed 2026-03-10)
 - [ ] **Phase 7: DPoP Nonce Issuance** - Implement server-side DPoP nonces per RFC 9449 §8 to close the proof-replay window
 - [ ] **Phase 8: Username Mapping + Group Policy + Break-Glass** - Enterprise identity integration: claim transforms, group-based access control, and break-glass enforcement
 - [ ] **Phase 9: Token Introspection + Session Lifecycle + Token Refresh** - Full session management: RFC 7662 introspection, open/close session records, RFC 7009 revocation, and automatic token refresh
@@ -45,7 +45,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   3. An operator can set `jti_enforcement = "strict"` in `policy.yaml` and authentication with a missing JTI claim is rejected; setting `"warn"` logs a warning and passes
   4. A v1.0 `policy.yaml` file (no `[security_modes]` section) loads successfully against the v2.0 config struct with behavior identical to v1.0
   5. The JTI cache size is consistent between code and documentation (10k vs 100k discrepancy resolved and committed)
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — parking_lot migration + panic elimination (SEC-01, SEC-07)
@@ -119,7 +119,7 @@ Plans:
 | 3. Hardware Signer Backends | v1.0 | 3/3 | Complete | 2026-03-10 |
 | 4. Fix Hardware Signer Refresh Persistence | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
-| 6. PAM Panic Elimination + Security Mode Infrastructure | 2/3 | In Progress|  | - |
+| 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
 | 7. DPoP Nonce Issuance | v2.0 | 0/? | Not started | - |
 | 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 0/? | Not started | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |

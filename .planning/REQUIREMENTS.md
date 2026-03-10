@@ -10,7 +10,7 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 ### Security Foundations
 
 - [x] **SEC-01**: All `.expect()` and `.unwrap()` calls removed from PAM-reachable code paths
-- [ ] **SEC-02**: `#![deny(clippy::expect_used, clippy::unwrap_used)]` lint active in `pam-unix-oidc`
+- [x] **SEC-02**: `#![deny(clippy::expect_used, clippy::unwrap_used)]` lint active in `pam-unix-oidc`
 - [x] **SEC-03**: Configurable enforcement modes (strict/warn/disabled) for JTI, DPoP requirement, ACR/AMR claims
 - [x] **SEC-04**: figment-based config loading with backward-compatible defaults matching v1.0 behavior
 - [ ] **SEC-05**: Server-side DPoP nonce issuance per RFC 9449 §8 with PAM challenge delivery
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SEC-01 | Phase 6 | Complete |
-| SEC-02 | Phase 6 | Pending |
+| SEC-02 | Phase 6 | Complete |
 | SEC-03 | Phase 6 | Complete |
 | SEC-04 | Phase 6 | Complete |
 | SEC-07 | Phase 6 | Complete |
