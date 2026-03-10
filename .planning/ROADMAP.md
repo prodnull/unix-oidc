@@ -45,7 +45,12 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   3. An operator can set `jti_enforcement = "strict"` in `policy.yaml` and authentication with a missing JTI claim is rejected; setting `"warn"` logs a warning and passes
   4. A v1.0 `policy.yaml` file (no `[security_modes]` section) loads successfully against the v2.0 config struct with behavior identical to v1.0
   5. The JTI cache size is consistent between code and documentation (10k vs 100k discrepancy resolved and committed)
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — parking_lot migration + panic elimination (SEC-01, SEC-07)
+- [ ] 06-02-PLAN.md — SecurityModes/CacheConfig types + figment config loading (SEC-03, SEC-04)
+- [ ] 06-03-PLAN.md — Wire enforcement modes into validation + deny lint activation (SEC-02, SEC-03)
 
 ### Phase 7: DPoP Nonce Issuance
 **Goal**: The server issues a fresh single-use nonce with every DPoP challenge, making captured DPoP proofs unreplayable even within their `iat`/`exp` window
@@ -114,7 +119,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 | 3. Hardware Signer Backends | v1.0 | 3/3 | Complete | 2026-03-10 |
 | 4. Fix Hardware Signer Refresh Persistence | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
-| 6. PAM Panic Elimination + Security Mode Infrastructure | v2.0 | 0/? | Not started | - |
+| 6. PAM Panic Elimination + Security Mode Infrastructure | v2.0 | 0/3 | Planning complete | - |
 | 7. DPoP Nonce Issuance | v2.0 | 0/? | Not started | - |
 | 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 0/? | Not started | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |
