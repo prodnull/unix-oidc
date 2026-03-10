@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-03-10T17:40:18.118Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-10T18:05:31.058Z"
 last_activity: "2026-03-10 — Phase 03 Plan 01 complete: DPoP build/assemble refactor + YubiKeySigner via cryptoki PKCS#11"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
   percent: 53
 ---
 
@@ -60,6 +60,7 @@ Progress: [█████░░░░░] 53%
 | Phase 03-hardware-signer-backends P01 | 35m | 2 tasks | 10 files |
 | Phase 03-hardware-signer-backends P02 | 45m | 1 tasks | 3 files |
 | Phase 03-hardware-signer-backends P03 | 10m | 2 tasks | 5 files |
+| Phase 04 P01 | 2m | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,7 @@ Recent decisions affecting current work:
 - [Phase 03-03]: build_signer takes config param with #[allow(unused_variables)] — base builds have no hardware features so config is unused; hardware feature branches use it
 - [Phase 03-03]: Hardware login skips KEY_DPOP_PRIVATE — key lives on device, storage write intentionally omitted for hardware signer types
 - [Phase 03-03]: load_agent_state() is single source of truth for signer backend selection — reads signer_type from metadata, no silent fallback to software for hardware specs
+- [Phase 04]: Test helper mirrors production metadata construction pattern -- correct granularity for JSON field-forwarding bug
 
 ### Pending Todos
 
@@ -115,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T17:36:05.159Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-03-10T18:05:31.056Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
