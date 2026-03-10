@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-10T14:17:45.182Z"
-last_activity: "2026-03-10 — Plan 02 complete: SecretString token wrapping, process hardening (prctl/PT_DENY_ATTACH), mlock status in status command"
+stopped_at: Completed Phase 02 Plan 02 — StorageRouter wired, migration implemented
+last_updated: "2026-03-10T15:03:17.273Z"
+last_activity: "2026-03-10 — Phase 02 Plan 01 complete: StorageRouter with probe-based backend detection, keyring features fixed, libdbus-1-dev in CI"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 33
+  total_plans: 7
+  completed_plans: 6
+  percent: 40
 ---
 
 # Project State
@@ -55,6 +55,7 @@ Progress: [████░░░░░░] 40%
 | Phase 01-memory-protection-hardening P03 | 11m | 2 tasks | 5 files |
 | Phase 01-memory-protection-hardening P04 | 10m | 2 tasks | 3 files |
 | Phase 02-storage-backend-wiring P01 | 45m | 1 task | 5 files |
+| Phase 02-storage-backend-wiring P02 | 13 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02-01]: Probe key uses PID + AtomicU64 counter (unix-oidc-probe-{pid}-{seq}) — prevents collision between parallel test threads and concurrent daemon starts
 - [Phase 02-01]: keyring mock backend cannot round-trip via KeyringStorage (per-Entry-instance storage, no global map); probe tests use FileStorage with tempdir
 - [Phase 02-01]: detect_auto() tests marked #[ignore] on macOS — prevent interactive Keychain prompt; delegation tests use detect_forced("file")
+- [Phase 02-02]: maybe_migrate_from(&FileStorage) takes explicit source for two-tempdir test isolation without interactive keychain
+- [Phase 02-02]: Migration called in both run_serve (daemon startup) and run_login (upgrade trigger) per CONTEXT.md
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:17:45.180Z
-Stopped at: Completed Phase 02 Plan 01 — StorageRouter implemented
-Resume file: .planning/phases/02-storage-backend-wiring/02-02-PLAN.md
+Last session: 2026-03-10T15:03:17.271Z
+Stopped at: Completed Phase 02 Plan 02 — StorageRouter wired, migration implemented
+Resume file: None
