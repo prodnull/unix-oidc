@@ -1,354 +1,411 @@
-# Domain Pitfalls: Client-Side Key Protection in Rust
+# Domain Pitfalls: Production Hardening and Enterprise Auth on Existing OIDC PAM
 
-**Domain:** OIDC agent — keyring integration, memory protection, secure deletion, hardware key support
+**Domain:** OIDC PAM module and agent daemon — adding CIBA, FIDO2/WebAuthn step-up, session lifecycle, configurable security modes, username mapping, group policies, and operational readiness to an existing system
 **Researched:** 2026-03-10
-**Milestone:** Key Protection Hardening (unix-oidc-agent)
+**Milestone:** v2.0 Production Hardening and Enterprise Readiness
+**Confidence:** HIGH (primary sources: OpenID CIBA Core 1.0 spec, RFC 9449, libfido2 docs, systemd man pages, verified against live codebase)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause data exposure, silent credential loss, or production breakage.
+Mistakes that cause lockouts, panics in PAM, silent security regressions, or backward-incompatible deployments.
 
 ---
 
-### Pitfall 1: Keyring Activation Breaks Headless Deployments Silently
+### Pitfall 1: CIBA Polling Blocks the PAM Thread — Causing sshd Connection Timeout
 
-**What goes wrong:** `keyring` v3 on Linux defaults to the Secret Service backend (D-Bus + gnome-keyring or KWallet). On headless servers, CI runners, and containers, the D-Bus session bus is absent or has no Secret Service daemon attached. The call to `Entry::new()` or `set_password()` returns an opaque error. If the caller pattern-matches only on "success or file fallback" without explicitly catching backend-unavailable errors, credentials silently fail to store — the agent proceeds as if storage succeeded.
+**What goes wrong:**
+PAM's `authenticate()` function is called synchronously from sshd. `sshd` has a hard `LoginGraceTime` (default: 120 seconds, configurable). CIBA's backchannel authentication endpoint returns `auth_req_id`, then the client polls the token endpoint on a timer until the user approves on their phone. If the CIBA polling loop runs on the PAM thread using `std::thread::sleep()` — as the current device flow polling in `device_flow/client.rs` does (line 129: `std::thread::sleep(current_interval)`) — the PAM thread blocks for the entire challenge duration.
 
-**Why it happens:** `keyring` v3 changed its Linux backend selection. The prior behavior of falling back automatically is not guaranteed; the crate surfaces a `NoStorageAccess` or D-Bus connection error that must be explicitly handled by the caller. The dormant `KeyringStore` in this codebase (`storage/keyring_store.rs`) likely does not yet implement this fallback path (the existing tests are marked `#[ignore]`).
-
-**Consequences:**
-- Agent appears functional; DPoP key is never persisted to secure storage
-- On next restart, `load_or_create_signer()` generates a *new* key, breaking DPoP continuity — all outstanding tokens bound to the old key's `cnf` thumbprint are invalid
-- No user-visible error; silent identity rotation
-
-**Prevention:**
-1. Use `keyring`'s `keyutils` backend as the primary fallback on Linux headless environments (kernel keyring; no D-Bus required; ships in all distro kernels ≥ 4.0).
-2. Implement backend probe at agent startup: attempt Secret Service → fall back to `keyutils` → fall back to `FileStorage`. Log which backend was selected at `INFO` level.
-3. Make the backend probe a startup check, not a lazy first-write check, so failures are immediately visible.
-4. For CI: add a test target that explicitly sets `KEYRING_BACKEND=keyutils` (or a mock) and runs the full storage round-trip.
-
-**Warning signs:**
-- `#[ignore]` tests on `KeyringStore` — the backend has never been exercised in automation
-- Agent starts cleanly but generates a new keypair on every restart
-
-**Phase mapping:** Phase activating the keyring backend (wiring `KeyringStore` into `load_agent_state()`). Must be addressed before merge.
-
----
-
-### Pitfall 2: Kernel `keyutils` Session Keyring Disappears on SSH Logout
-
-**What goes wrong:** If the fallback path uses the Linux kernel session keyring (`@s`), keys stored there are scoped to the user's PAM session. When the user logs out of their last SSH session, PAM calls `keyctl_revoke()` on the session keyring — all stored keys vanish. On next login, `load_or_create_signer()` again generates a new DPoP key, breaking the `cnf` thumbprint.
-
-**Why it happens:** The session keyring (`man 7 session-keyring`) is designed for ephemeral session state; `pam_keyinit(8)` creates and revokes it on login/logout. This is the correct behavior for session-scoped secrets, but wrong for a DPoP private key that is meant to persist across sessions.
-
-**Consequences:** Same silent key rotation as Pitfall 1 but triggered by normal logout/login cycles.
-
-**Prevention:**
-- Store the DPoP private key in the *user keyring* (`@u`), not the session keyring. The user keyring persists as long as any process running as that UID is alive (i.e., across SSH sessions).
-- `keyring` v3's `keyutils` backend stores to the user keyring by default — verify this in the `keyring::keyutils` backend documentation before finalizing the implementation.
-- Alternatively, use the Secret Service with the `login` collection (unlocked at login and persisted across sessions) if D-Bus is available.
-
-**Warning signs:** DPoP key changes after every SSH session end/start, observable by checking the key thumbprint in stored tokens.
-
-**Phase mapping:** Same phase as Pitfall 1 (keyring activation). Needs an explicit integration test simulating session teardown.
-
----
-
-### Pitfall 3: `mlock` Silently Fails or Is Skipped in Containers and CI
-
-**What goes wrong:** `libc::mlock()` on an unprivileged process is bounded by `RLIMIT_MEMLOCK`. On most Linux distributions the default soft limit for non-root users is 64 KiB (verified in Docker/container discussions; Elasticsearch, llama.cpp, and Cassandra deployments all document hitting exactly this limit). An agent trying to lock more than 64 KiB of heap — or any memory in a rootless Docker/Kubernetes environment without `CAP_IPC_LOCK` — will receive `ENOMEM`. If the code treats `mlock` failure as fatal, the agent refuses to start. If it silently ignores the error, key material is unprotected without any indication.
+This works for Device Flow because Device Flow is user-interactive: the user sees the code, acts immediately. CIBA push auth targets phones; push delivery may be delayed by GCM/APNs 30–60 seconds. If the IdP uses long-polling (returning after auth, not immediately), the PAM thread can block for 60–120+ seconds, triggering sshd's `LoginGraceTime` timeout. sshd terminates the connection, the user is disconnected, and the CIBA request is orphaned in the IdP.
 
 **Why it happens:**
-- Docker containers run without `CAP_IPC_LOCK` by default
-- Rootless Docker/Podman cannot raise `RLIMIT_MEMLOCK` beyond the host's hard limit for the user
-- CI runners (GitHub Actions, GitLab CI) run as unprivileged users with default limits
+The existing polling pattern in `DeviceFlowClient::poll_for_token()` uses `reqwest::blocking` with `std::thread::sleep()`. This is acceptable for device flow (user-driven, short loops) but is architecturally wrong for CIBA where the IdP may use long-poll responses of 30+ seconds. The `SudoConfig.challenge_timeout` is currently 60 seconds — but that is the total allowed, not a per-poll ceiling.
 
-**Consequences:**
-- If fatal: agent won't start in any CI or container environment — blocks automated testing
-- If silently ignored: `mlock` protection is theater; key material can still be paged to swap
+The OpenID CIBA Core 1.0 spec (§7.3) says the authorization server may respond to a poll request after waiting up to `expires_in` seconds. In long-poll mode, a single HTTP GET can block for the full expiry interval.
 
-**Prevention:**
-1. Treat `mlock` as best-effort. Log a `WARN` with the `ENOMEM` detail if it fails; do not abort.
-2. Check `RLIMIT_MEMLOCK` at startup and log the effective limit so operators know their protection level.
-3. For page alignment: `mlock()` operates on whole pages. When calling it on heap-allocated buffers (e.g., a `Box<[u8; 32]>` for the raw key bytes), the page containing the buffer may also contain unrelated data — this is acceptable but means the lock covers more than just the key. Use `memsec` or `secrets` crates which handle alignment and guard pages correctly rather than calling `libc::mlock` directly.
-4. Test the `mlock`-unavailable code path explicitly in CI (do not skip or `#[ignore]` it — verify the fallback behavior is correct).
+**Codebase location:** `pam-unix-oidc/src/device_flow/client.rs:129` (sleep pattern), `pam-unix-oidc/src/approval/provider.rs:175–218` (trait-level polling loop). Any CIBA implementation that reuses this polling trait will inherit the blocking problem.
 
-**Warning signs:** Any `mlock` call without a checked return value; absence of test coverage for the `ENOMEM` path.
+**How to avoid:**
+1. Implement CIBA polling in the agent daemon (`unix-oidc-agent`), not in the PAM module. The PAM module asks the agent "start CIBA challenge for user X", then polls the agent's local socket (fast, local IPC) for a resolved/rejected status. The agent handles the slow IdP polling asynchronously in its tokio runtime.
+2. Cap the PAM-side poll interval at 2–3 seconds against the local agent socket. The agent's tokio task handles the IdP-side long-poll off the PAM thread.
+3. If CIBA must run in-process (no agent), use `std::thread::spawn` to run the polling loop on a separate thread and join with a hard timeout. Never block the PAM thread with network I/O for more than 5 seconds without returning `PamError::AUTH_ERR`.
+4. Set a sane `LoginGraceTime 120` minimum in the deployment documentation — users must know that CIBA requires extended grace time.
 
-**Phase mapping:** Phase adding `mlock` protection. The `ENOMEM` fallback path must be tested before merge.
+**Warning signs:**
+- Any `std::thread::sleep` call in a code path reachable from `PamServiceModule::authenticate()` with a delay exceeding 5 seconds
+- `reqwest::blocking::Client` used inside PAM for CIBA polling (blocking HTTP on the PAM thread)
+- `challenge_timeout` set higher than `LoginGraceTime` in sshd
 
----
-
-### Pitfall 4: `mlock` on a `Vec<u8>` Doesn't Lock What You Think
-
-**What goes wrong:** Calling `mlock` on the pointer inside a `Vec<u8>` locks the current heap allocation. However:
-- `Vec::push()`, `Vec::reserve()`, or any operation that causes reallocation moves the data to a new, unlocked page. The old page is not zeroed; it contains a copy of the key.
-- `Box<[u8]>` avoids reallocation after construction but still has no alignment guarantee: the allocation may share a page with other heap data, causing the lock to cover more than intended (benign) or — if using a locked allocator — to lock non-secret data.
-
-**Why it happens:** `Vec` is a growable container; its internal buffer can move. `mlock` on the address at time-of-call does not follow the data if it moves.
-
-**Consequences:** Key material exists in unlocked, potentially swappable memory after any Vec growth operation.
-
-**Prevention:**
-- Fix the buffer size before locking: convert to `Box<[u8; N]>` or `Box<[u8]>` (via `.into_boxed_slice()`) before calling `mlock`. Never call `mlock` on a `Vec` that is still growable.
-- Prefer `memsec::malloc_arr::<u8>(N)` or the `secrets` crate's `SecretVec`, which allocates a fixed-size, page-aligned, mlock'd buffer from the start. These also add guard pages to detect over/underflows.
-- For the P-256 `SigningKey` (32 bytes of scalar): wrap in `Zeroizing<[u8; 32]>` for serialization/deserialization buffers; the in-memory `SigningKey` struct from the `p256` crate already implements `ZeroizeOnDrop` (verify with the installed version).
-
-**Warning signs:** `mlock` called on a `Vec<u8>` that was grown after construction; no guard for reallocation.
-
-**Phase mapping:** Same phase as `mlock` addition. Architecture review item before implementation starts.
+**Phase to address:** The phase implementing CIBA step-up. Must be the first design decision, before any code is written for CIBA.
 
 ---
 
-### Pitfall 5: `zeroize` Cannot Zero Copies Created by Move Semantics
+### Pitfall 2: WebAuthn in SSH Requires a Relay — There Is No Browser
 
-**What goes wrong:** Rust's move semantics compile to a `memcpy` of the struct's bytes to the new stack location. The source bytes on the old stack frame are *not* zeroed — the compiler only guarantees they are not accessible by the moved-from name, not that the memory is cleared. `Zeroizing<T>` zeroes the final resting place on `Drop`, but all intermediate copies created by passing the value between functions remain uncleared.
+**What goes wrong:**
+WebAuthn/FIDO2 authentication (`StepUpMethod::Fido2` in `policy/rules.rs:27`) requires a relying party (RP) client to call `navigator.credentials.get()` in a browser context, which triggers OS/browser interaction with the CTAP2 authenticator. In an SSH session, there is no browser. The WebAuthn ceremony cannot be initiated directly from the PAM module or the agent daemon.
 
-Concrete scenario for this codebase: `load_or_create_signer()` reads 32 raw key bytes from storage into a `Vec<u8>`, passes it to `SigningKey::from_bytes()`, and the intermediate buffer accumulates multiple stack frames before being zeroed.
+A common mistake is to implement FIDO2 step-up using `libfido2`'s assertion flow directly (CTAP2 over USB/NFC) and claim this is "WebAuthn." It is not — CTAP2 direct assertion lacks the origin binding and RP ID verification that WebAuthn provides. An SSH-side implementation using libfido2 assertion calls a different security model than browser WebAuthn and will not be interoperable with standard WebAuthn RP verification libraries.
 
-**Why it happens:** Rust does not have a "move-and-wipe-source" semantic. This is a known, open language-level limitation — the `Pin` RFC and various proposals have not resolved it as of 2026.
+The `StepUpMethod::Fido2` variant exists in the codebase today but has no implementation behind it (it is parsed from policy YAML but no `ApprovalProvider` dispatches on it). This is the right state — but any implementation must choose one of two valid patterns, not a third "looks like WebAuthn but isn't" pattern.
 
-**Consequences:** Multiple copies of the raw key scalar exist on the stack after deserialization, surviving until those stack frames are overwritten by subsequent function calls. This is exploitable via core dump analysis, `/proc/self/mem` inspection by same-UID processes (the exact threat model this milestone is trying to close), and cold boot attacks.
+**Valid approaches (HIGH confidence):**
+1. **CIBA + Authenticator App Fallback:** For IdPs that support CIBA + FIDO2 authentication on the authenticator app (Okta Verify, Microsoft Authenticator), initiate CIBA from the PAM side and let the IdP orchestrate the FIDO2 challenge on the user's device. The PAM module never touches CTAP2. This is the right pattern for enterprise IdPs.
+2. **SSH FIDO2 keys (ssh-keygen -t ed25519-sk):** OpenSSH natively supports FIDO2-resident keys. Users generate `ed25519-sk` keys; sshd verifies them. This is entirely orthogonal to OIDC — it is a separate SSH key type, not OIDC step-up. Do not conflate this with the OIDC/DPoP flow.
+3. **Direct CTAP2 libfido2 assertion for LOCAL authenticator only:** If the user has a FIDO2 security key physically connected to the server (unusual for SSH), libfido2 can generate and verify an assertion. This is a niche deployment model and must be explicitly documented as "local hardware key required on server."
 
-**Prevention:**
-1. Minimize the number of by-value moves of key material. Pass raw key bytes as `&mut [u8]` (by mutable reference) whenever possible so the data stays in one memory location.
-2. Use `Zeroizing<[u8; 32]>` (stack-fixed-size array) for the deserialization buffer, not `Vec<u8>`. Fixed-size arrays passed by value still copy, but the single-location discipline is easier to audit.
-3. Prefer keeping the P-256 `SigningKey` in an `Arc<Zeroizing<SigningKey>>` (heap, single owner) throughout the agent's lifetime so it is never moved once constructed.
-4. After calling `SigningKey::from_bytes()` or equivalent, immediately call `.zeroize()` on the input buffer and ensure the buffer is declared with `zeroize::Zeroizing<>` wrapper so `Drop` handles the zero-on-scope-exit case.
-5. Do not `clone()` key material structures; if clones are needed, document each one and zeroize explicitly.
+**How to avoid:**
+- Do not implement `Fido2` as a direct CTAP2 call from the PAM module unless the deployment model explicitly requires a hardware key attached to the server.
+- The recommended implementation for `StepUpMethod::Fido2` in this system is: initiate CIBA with `acr_values=phr` (phishing-resistant) and let the IdP drive FIDO2 on the user's device. The CIBA result carries a token with `acr=phr`; the PAM module validates the ACR claim.
+- Mark `StepUpMethod::Fido2` as `/// Requires CIBA with phishing-resistant ACR. See docs/step-up-fido2.md.` in the policy rules docs.
 
-**Warning signs:** `SigningKey` or raw key bytes returned by value from functions; `Vec<u8>` used to hold key bytes across multiple function boundaries without being wrapped in `Zeroizing<>`.
+**Warning signs:**
+- Any import of `libfido2`, `fido2-rs`, or `ctap-hid-fido2` crates in the PAM module crate (`pam-unix-oidc/Cargo.toml`)
+- Any code that attempts to open a USB HID device (`/dev/hidraw*`) from within `authenticate()`
 
-**Phase mapping:** Phase adding `zeroize`. Code review checklist item: every function that touches raw key bytes must be audited for intermediate copies.
-
----
-
-### Pitfall 6: `#[derive(ZeroizeOnDrop)]` Is Silently Incomplete for Wrapper Types
-
-**What goes wrong:** `#[derive(ZeroizeOnDrop)]` on a struct containing a `p256::ecdsa::SigningKey` works only if `SigningKey` itself implements `ZeroizeOnDrop`. The `p256` crate does implement this — but only when compiled with the `zeroize` feature enabled. If the `p256` dependency in `Cargo.toml` does not explicitly opt into `features = ["zeroize"]`, the derive compiles without error but the inner key material is not zeroed on drop.
-
-**Why it happens:** RustCrypto crates gate zeroize support behind a Cargo feature to avoid forcing the `zeroize` crate on all consumers. The feature is often off by default or depends on which `p256` feature set is active.
-
-**Consequences:** Derived `ZeroizeOnDrop` on agent structs gives a false sense of security; the 32-byte private scalar is never zeroed in practice.
-
-**Prevention:**
-- In `Cargo.toml`, explicitly declare: `p256 = { version = "0.13", features = ["ecdsa", "zeroize"] }`.
-- Write a test that constructs a signing key, captures the raw bytes address, drops the key, and confirms the bytes at that address are zero (requires `unsafe` and must pin the allocation to prevent moving — treat as a best-effort smoke test, not a hard correctness guarantee).
-- Audit all `#[derive(ZeroizeOnDrop)]` structs at review time: every field type must independently implement `ZeroizeOnDrop` or `Zeroize`.
-
-**Warning signs:** `p256` in `Cargo.toml` without explicit `features = ["zeroize"]`; derived `ZeroizeOnDrop` on structs with `SigningKey` fields that haven't been audited.
-
-**Phase mapping:** First commit adding `zeroize`. Check `Cargo.toml` as part of the PR diff.
+**Phase to address:** Phase implementing IdP-agnostic step-up. Architecture decision document required before implementation.
 
 ---
 
-### Pitfall 7: Drop Ordering Exposes Key Material After Dependent State is Cleaned
+### Pitfall 3: `.expect()` in PAM-Reachable Code Paths Causes Total Lockout
 
-**What goes wrong:** Rust drops struct fields in declaration order. If a struct holding a `Zeroizing<SigningKey>` also holds an audit log handle or IPC channel that flushes on drop, and the channel drops *after* the key material, the drop of the channel may trigger code that reads (or logs) fields adjacent to where the key was stored. More subtly: if the `SigningKey` is dropped first and the audit log is flushed second, the log flush may read from memory that now contains zeros — benign — but if the audit code accesses the signing key field (e.g., to log the key thumbprint on "agent stopping"), it will read zeroed bytes and emit a corrupt thumbprint, causing confusion.
+**What goes wrong:**
+`CLAUDE.md` states "No panics in PAM paths." The codebase currently has four `.expect()` calls reachable from PAM module code:
 
-**Why it happens:** Rust's drop order is deterministic but easy to mis-read when fields are added over time.
+- `pam-unix-oidc/src/device_flow/client.rs:32` — `Client::builder().build().expect("Failed to create HTTP client")` — in `DeviceFlowClient::new()`
+- `pam-unix-oidc/src/device_flow/client.rs:51` — same pattern in `DeviceFlowClient::with_endpoints()`
+- `pam-unix-oidc/src/security/session.rs:74` — `getrandom::fill(&mut bytes).expect("secure random number generation failed")` — called from `generate_ssh_session_id()`, called from `authenticate()`
+- `pam-unix-oidc/src/oidc/dpop.rs:282` — `SystemTime::now().duration_since(UNIX_EPOCH).expect("system time before UNIX epoch")`
 
-**Consequences:** Mostly an operational/correctness issue (corrupt log entries), but in pathological cases could cause a use-after-zeroize audit entry that looks like a security event.
+When v2.0 adds CIBA and session lifecycle code, new `reqwest::blocking` clients and getrandom calls will be introduced. If the same `.expect()` pattern is reused, any panic from network setup failure (invalid TLS config, exhausted file descriptors), entropy failure (in constrained container environments), or clock skew causes the PAM module to `abort()`, which kills the sshd process. The user is immediately disconnected. If this happens during an SSH session to a server without break-glass access, the server becomes inaccessible until the next reboot or a local console login.
 
-**Prevention:**
-- Declare `Zeroizing<>` wrapped key material as the *last* field in any struct, so it drops last (fields drop in reverse declaration order... actually Rust drops fields in *declaration order*, so put key material last to ensure nothing accesses it after zero — verify this for your struct layout).
+**Why it happens:**
+`reqwest::blocking::Client::builder().build()` can theoretically fail if TLS initialization fails (missing system CA bundle, invalid proxy configuration). In practice this almost never panics on a well-configured system, so developers treat the `.expect()` as documentation of "this should never fail." In PAM, "should never" is not good enough — edge cases in container environments (missing CA bundles, low file descriptor limits) can trigger these paths.
 
-  **Correction — Rust drop order:** Rust drops struct fields in *forward declaration order* (first field drops first). Therefore, place key material as the *first* field if you want it zeroed before dependent fields run their drop logic, or as the *last* field if you want dependent state (e.g., IPC channel) torn down first. Choose based on what your drop logic needs. Document the chosen order with a comment.
+**How to avoid:**
+1. Search for `.expect(` in all files under `pam-unix-oidc/src/` before any new feature is merged. Replace every `.expect()` with `map_err(|e| PamError::SERVICE_ERR)` or equivalent, logging the error with `tracing::error!()` first.
+2. For `getrandom` failure in session ID generation: return a timestamp-only session ID (lower entropy, but safe) rather than panicking. Alternatively, log the error and return `PamError::SERVICE_ERR`.
+3. For `reqwest` client construction: return `Err(AuthError::Config(...))` and let the PAM entry point translate it to `PamError::SERVICE_ERR`.
+4. Add a `#![deny(clippy::unwrap_used, clippy::expect_used)]` lint to `pam-unix-oidc/lib.rs` — Clippy can enforce this automatically on new code.
+5. When introducing CIBA or session store clients in v2.0, all HTTP client construction must use `?` propagation, never `.expect()`.
 
-- Write a `Drop` impl for agent state structs that explicitly zeroes key material before flushing final audit events.
-- Never access key-bearing fields inside a `Drop` impl for a sibling struct.
+**Warning signs:**
+- Any `.expect(` in `pam-unix-oidc/src/` outside of `#[cfg(test)]` blocks
+- New Cargo.toml dependencies (reqwest, tokio, custom HTTP clients) added to `pam-unix-oidc` without a corresponding panic audit
 
-**Warning signs:** `AgentState` or similar structs where `signing_key` field position was chosen arbitrarily; `Drop` impls that access multiple fields without considering ordering.
-
-**Phase mapping:** Phase adding `zeroize` + keyring integration, during struct refactoring.
-
----
-
-### Pitfall 8: YubiKey PIV Exclusive PCSC Lock Conflicts With gpg-agent and Other Applications
-
-**What goes wrong:** The PCSC protocol grants exclusive transactions to one application at a time. `yubikey-agent` (and by extension, any persistent agent holding a `YubiKey` handle open) takes a persistent transaction so it can cache the PIN. This makes the YubiKey's PIV applet inaccessible to every other application — `gpg-agent`, `ykman`, the YubiKey Manager GUI, and any other PCSC client — for as long as the unix-oidc-agent process is running.
-
-On systems where users also use their YubiKey for GPG-signed git commits or PGP email, this will cause silent failures in those workflows whenever the unix-oidc-agent is running in the background.
-
-**Why it happens:** PCSC exclusive transactions are designed for atomic card operations (e.g., PIN verify + sign in one uninterruptible sequence). Holding the transaction open indefinitely is an abuse of the protocol but is done by some agents for PIN caching convenience.
-
-**Consequences:**
-- `gpg-agent` returns "Card Error" or "No such device" when unix-oidc-agent holds the lock
-- `ykman` fails to connect for firmware queries or key management
-- Users experience intermittent "YubiKey not found" errors in unrelated applications
-
-**Prevention:**
-- Do not hold an open `YubiKey` handle (and thus PCSC transaction) between signing operations. Open the connection, perform the operation (PIN verify + sign), close the connection. This requires re-entering PIN on each DPoP proof generation unless a separate PIN caching mechanism is implemented.
-- For PIN caching without holding the PCSC lock: cache the PIN in a `Zeroizing<String>` in-process (with a configurable TTL), re-open the YubiKey connection each time, and use the cached PIN for the `verify_pin()` call. This is the approach taken by `yubikey-agent` in its non-persistent-transaction mode.
-- Document this tradeoff explicitly in the hardware key backend's documentation.
-
-**Warning signs:** `YubiKey::open()` called once at agent startup and the handle stored in agent state without explicit `drop()` between operations.
-
-**Phase mapping:** Hardware key backend phase. Architecture decision before implementation begins.
+**Phase to address:** Phase 1 of v2.0 (PAM hardening / panic elimination). Must be completed before any other v2.0 feature work begins.
 
 ---
 
-### Pitfall 9: `pcscd` Absent or Stale After System Suspend/Resume
+### Pitfall 4: Token Introspection on Every PAM Authentication Kills IdP Under Load
 
-**What goes wrong:** On Linux, `pcscd` (the PC/SC daemon) must be running for any PCSC-based YubiKey access. After system suspend/resume, `pcscd` frequently loses its connection to the USB device and requires a restart. The `yubikey` crate's `open()` call will return a PCSC error (`PcscError::NoReadersAvailable` or similar) until `pcscd` is restarted. Additionally, on RHEL 9, `pcscd` is socket-activated by `systemd` but may not start automatically on first access.
+**What goes wrong:**
+Adding RFC 7662 token introspection to the PAM module — to get real-time revocation status — means an HTTP call to the IdP's introspection endpoint on every `authenticate()` invocation. On a server with 50 concurrent SSH connections, that is 50 concurrent introspection requests per second during peak login. IdPs enforce rate limits on introspection; Okta, for example, enforces per-client rate limits that can be as low as 600 req/min per application.
 
-**Why it happens:** USB device reattachment after resume is handled by the kernel, but `pcscd` holds a file descriptor to the CCID driver that becomes stale after resume. The daemon must be signalled or restarted.
+Beyond rate limiting: if the IdP is temporarily unavailable (planned maintenance, network partition), every SSH login fails simultaneously. This is a catastrophic failure mode — the entire server becomes inaccessible to all users at once. The current JWKS caching in `oidc/jwks.rs` (5-minute TTL) survives IdP outages gracefully; introspection without caching does not.
 
-**Consequences:** YubiKey signing operations fail non-deterministically on laptop workstations. User sees "hardware key unavailable" with no clear recovery path.
+**Why it happens:**
+Developers adding introspection often implement it as a synchronous call in the `authenticate()` hot path without caching, because "we need current revocation status." The design tension is real — caching introspection results reduces freshness — but the correct resolution is not "cache nothing" but "cache with a short TTL tuned to the organization's revocation SLA."
 
-**Prevention:**
-1. In the `HardwareSigner` implementation, wrap all `YubiKey::open()` calls in a retry loop (max 3 attempts with 200ms backoff) before returning the error to the caller.
-2. Surface the PCSC error code in the error message so users know to run `sudo systemctl restart pcscd`.
-3. Implement a health-check command (`unix-oidc-agent hardware-status`) that probes PCSC availability without attempting a sign operation.
-4. Ensure PCSC is listed as a runtime dependency in package manifests (`.deb`, `.rpm`).
+The current JTI cache (`security/jti_cache.rs`) is local, in-process, bounded at 100k entries. A similar pattern works for introspection results.
 
-**Warning signs:** No retry logic around `YubiKey::open()`; error message that says "hardware key unavailable" without actionable guidance.
+**How to avoid:**
+1. Implement an introspection result cache keyed by token JTI with a configurable TTL (default: 60 seconds). Token expiry provides the ultimate freshness bound — a revoked token cached for 60 seconds is valid at most 60 seconds longer than intended.
+2. On introspection endpoint failures (network error, HTTP 5xx), fall back to local JWT signature verification (the current behavior). Log at `WARN` level. Do not fail authentication because the introspection endpoint is unreachable.
+3. Enforce introspection TTL < token TTL. Never cache an introspection result past the token's own `exp` claim.
+4. Make introspection opt-in via policy config (e.g., `ssh_login.introspection: enabled|disabled|best_effort`). Default to `disabled` to preserve the existing behavior and not break deployments that rely on local JWT verification only.
+5. The JWKS `RwLock<Option<CachedJwks>>` pattern in `oidc/jwks.rs` is a correct model for the introspection cache.
 
-**Phase mapping:** Hardware key backend phase. Retry logic is a must-have, not a nice-to-have.
+**Warning signs:**
+- `reqwest::blocking` introspection call added directly to `oidc/validation.rs` without a cache
+- No circuit-breaker or fallback-to-local behavior when introspection endpoint is unreachable
+- Introspection TTL not bounded by token `exp`
 
----
-
-### Pitfall 10: TPM2 `tss-esapi` Requires `tpm2-abrmd` for Multi-Process Access
-
-**What goes wrong:** Direct TPM access via `/dev/tpm0` grants exclusive access to one process at a time; a second caller receives `EBUSY`. If two processes try to use the TPM concurrently (e.g., the unix-oidc-agent and the system's IMA/measured-boot infrastructure, or a concurrent sudo step-up flow), one will fail. The `tss-esapi` crate supports both direct device TCTI and the `tabrmd` TCTI (access broker/resource manager daemon), but only the `tabrmd` TCTI serialises multi-process access correctly.
-
-**Why it happens:** The TPM hardware itself supports only one command channel. `tpm2-abrmd` is the resource manager that multiplexes access across processes, handling session virtualisation and handle management. Without it, concurrent access is impossible.
-
-**Consequences:** Intermittent TPM signing failures under concurrent load; race condition between agent startup and system TPM consumers.
-
-**Prevention:**
-1. Always use `TctiNameConf::Tabrmd` when building with TPM support; fall back to `TctiNameConf::Device` only if `tpm2-abrmd` is explicitly unavailable (and document the single-user-only limitation).
-2. Make `tpm2-abrmd` a declared runtime dependency in the `tpm` feature's package manifests.
-3. Check for `tpm2-abrmd` presence at startup (probe `org.freedesktop.DBus` for the `com.intel.tss2.Tabrmd` name) and warn if absent.
-
-**Warning signs:** TPM TCTI configured as `Device` without documentation of the concurrency limitation; no check for `tpm2-abrmd` availability.
-
-**Phase mapping:** TPM backend sub-phase of the hardware key phase. Pre-implementation dependency audit.
+**Phase to address:** Phase implementing session lifecycle / token introspection.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 5: PAM Session Store Requires Cross-Invocation Shared State — PAM Reinitializes Every Time
+
+**What goes wrong:**
+PAM invokes the module's `authenticate()`, `setcred()`, `open_session()`, and `close_session()` functions as separate processes or separate `dlopen()` calls with no shared state between them. A session store that holds state in module-level `static` (e.g., a `Lazy<RwLock<HashMap<...>>>` for session IDs) works within a single process but is not visible to other sshd worker processes.
+
+sshd with `UsePrivilegeSeparation yes` (the modern default) uses a privilege-separated architecture: the pre-authentication monitor runs as root; after authentication the unprivileged child handles the session. PAM is typically called from the monitor process. Storing session state in the monitor's memory makes it invisible to the session process and to the next incoming connection's monitor process.
+
+The current `security/session.rs` generates session IDs but does not persist them anywhere. When `open_session()` is called after `authenticate()`, the session ID generated in `authenticate()` is gone.
+
+**How to avoid:**
+1. Any persistent session store must be out-of-process: a file under `/run/unix-oidc/sessions/` (root-owned, mode 0700), or a socket-based call to the `unix-oidc-agent` daemon. Do not attempt to share state via module statics across PAM invocations from different sshd processes.
+2. Pass session correlation ID via PAM data (the `pam_set_data()` / `pam_get_data()` API, available through the `pamsm` crate's `pamh.set_data()` / `pamh.get_data()` if exposed). PAM data is shared between calls within the same PAM handle (same sshd session), but not across processes.
+3. For session revocation state: write a minimal record to a tmpfs file on `authenticate()` success, check/delete it on `close_session()`. The file path must include the session ID and be race-condition safe (use `O_CREAT | O_EXCL` for creation).
+4. For `RwLock<HashMap>` singleton caches (JTI cache, rate limiter) already in the codebase: these work correctly because all PAM calls for a given sshd connection use the same process. They do not work for cross-connection correlation. Document this boundary explicitly.
+
+**Warning signs:**
+- Session state stored in `static Lazy<...>` that is expected to be visible to `open_session()` after a different `authenticate()` call
+- Session ID written to memory in `authenticate()` and expected to be readable in `close_session()` without using `pam_set_data()`
+
+**Phase to address:** Phase implementing full session lifecycle.
 
 ---
 
-### Pitfall 11: YubiKey Firmware Version Differences Break PIV Slot Assumptions
+### Pitfall 6: Configurable Security Modes — Making Strict the Default Silently Breaks Existing Deployments
 
-**What goes wrong:** PIV slot availability, key algorithm support, and touch policy support vary across YubiKey firmware versions. YubiKey 4 devices do not support Ed25519; YubiKey 5 firmware < 5.2.3 does not support P-384. Since DPoP requires P-256 (ES256), this is not a blocking issue, but code that attempts to enumerate slots or check firmware capabilities without error handling will panic or return confusing errors on older devices.
+**What goes wrong:**
+Issue #10 (configurable security modes: strict/warn/disabled) specifies adding enforcement levels to checks like JTI presence, DPoP binding, and ACR verification. If the v2.0 config parser makes `strict` the new default for any check that was previously `warn`, every existing deployment without a `policy.yaml` expressing the old behavior will start rejecting tokens that were previously accepted.
 
-**Prevention:** Always check `yubikey.version()` before operations that have firmware version prerequisites. Return a clear error message including the detected firmware version and minimum required version.
+Concrete example: the current `ValidationConfig.enforce_jti` field in `oidc/validation.rs:64` defaults to `true`. But the env variable `UNIX_OIDC_DISABLE_JTI_CHECK=true` implies some operators turned off JTI enforcement for compatibility. If v2.0 adds a `jti_enforcement = "strict"` config field and defaults it to `strict`, operators who relied on the env variable workaround will find their logins broken after upgrading.
 
-**Phase mapping:** Hardware key phase. Add firmware version check to the `YubiKeySigner::new()` constructor.
+**Why it happens:**
+Security teams want stricter defaults. But "stricter defaults on upgrade" violates the principle of conservative deployment: changes to a PAM module should never lock out users without explicit operator action. The existing `policy.yaml` schema (`PolicyConfig` in `policy/config.rs`) already uses `#[serde(default)]` on all structs — this is correct. The trap is adding new fields whose semantic default is stricter than the v1.0 implicit behavior.
 
----
+**How to avoid:**
+1. Rule: new security mode fields must default to the v1.0 behavior (warn/permissive), not to the desired future secure default. Document in code: `// Default matches v1.0 behavior — see Issue #10 migration guide`.
+2. Provide a migration guide in `docs/` that lists every new config field, its default value, and its recommended production value. Operators opt in to strict mode deliberately.
+3. For the `break_glass` config section: `BreakGlassConfig.enabled` defaults to `false`. Wiring break-glass enforcement in v2.0 must not change this default or add any behavior when `enabled = false`. Currently the struct is parsed but has no code acting on it. Adding enforcement code that triggers when `enabled = false` (e.g., "break-glass not configured — deny root access") would be a breaking change.
+4. In `#[serde(default)]` structs, always implement `Default` explicitly and document the security rationale for each default value. Do not rely on `#[derive(Default)]` unless the defaults have been explicitly verified to match v1.0 semantics.
 
-### Pitfall 12: Secure Deletion on CoW Filesystems Requires Explicit Handling
+**Warning signs:**
+- A new `SecurityMode` enum that derives `Default` to `Strict` without a backward-compat audit
+- `break_glass` enforcement code that fires when `enabled = false` or `local_account = None`
+- The `grace_period` field (referenced in `CLAUDE.md` but absent from `PolicyConfig` in `config.rs`) being added with a non-zero default that changes auth timing behavior
 
-**What goes wrong:** On btrfs (default on openSUSE, Fedora Atomic) and APFS (macOS), `overwrite + unlink` does not guarantee the original data blocks are unrecoverable. CoW filesystems write new data to new blocks; overwriting a file allocates new blocks for the overwritten content while the original blocks remain allocated until the snapshot or reflink reference count reaches zero. Standard `std::fs::remove_file` does not address this.
-
-**Why it happens:** The `FileStorage` migration path (detecting existing file-stored keys and migrating to keyring) must also securely delete the legacy plaintext file. A naive `fs::write(path, zeros); fs::remove_file(path)` does not work on btrfs.
-
-**Consequences:** Forensic recovery of the DPoP private key from btrfs snapshots is possible after "secure" deletion.
-
-**Prevention:**
-1. After successfully migrating file-stored keys to the keyring backend, overwrite the file, `fsync()`, unlink, and log a warning that filesystem-level recovery may still be possible on CoW filesystems.
-2. Document this limitation in the migration code with a comment referencing the CoW issue.
-3. Do not promise "secure deletion" in user-facing messages; use "deleted from the filesystem (CoW filesystems may retain copies in snapshots)".
-
-**Phase mapping:** Keyring activation phase, specifically the file-to-keyring migration path.
+**Phase to address:** Phase implementing configurable security modes (Issue #10).
 
 ---
 
-### Pitfall 13: macOS Keychain Prompts in Non-Interactive Contexts
+### Pitfall 7: policy.yaml Backward Compatibility — Unknown Fields Must Not Cause Parse Failure
 
-**What goes wrong:** On macOS, the first time a Keychain item is accessed by a new application binary, the system displays an "Allow" / "Deny" dialog. In automated test environments, CI, or if the binary path changes (e.g., after `cargo build`), this prompt blocks indefinitely. Tests that test the macOS Keychain backend will hang in CI.
+**What goes wrong:**
+`serde_yaml` with `#[serde(default)]` accepts missing fields gracefully. But `serde_yaml::from_str` with a strict `Deserialize` derive will return an error if the YAML contains a field not present in the Rust struct. This means adding new policy fields in v2.0 breaks operators who wrote forward-compatible YAML (e.g., a v2.0 `policy.yaml` deployed to a server still running v1.0 PAM) AND breaks v1.0 operators who add v2.0 fields before upgrading the binary.
 
-**Prevention:**
-- The agent binary must be code-signed with a keychain access group entitlement for non-interactive Keychain access in production. This is a build-time step.
-- For CI, use `keyring`'s mock backend (opt in via `set_default_credential_builder(mock::default_credential_builder())`); do not test the real Keychain in CI.
-- Document the code-signing requirement in the macOS deployment guide.
+Specifically: `PolicyConfig`, `SshConfig`, `SudoConfig`, and `BreakGlassConfig` all use `#[serde(default)]` but do not use `#[serde(deny_unknown_fields)]`, which means unknown fields are currently silently ignored by serde_yaml. This is the correct behavior. The trap is accidentally adding `#[serde(deny_unknown_fields)]` to any of these structs while cleaning up code.
 
-**Phase mapping:** Keyring activation phase. CI test matrix must explicitly gate real-Keychain tests behind a manual/local flag.
+The reverse is also dangerous: if v2.0 removes a field from the struct (e.g., removing the `CommandRule.pattern` field and renaming it), existing policy.yaml files that reference the old field name will lose their configuration silently (serde ignores unknown fields, the new field defaults to empty/false).
 
----
+**How to avoid:**
+1. Never add `#[serde(deny_unknown_fields)]` to any `PolicyConfig` struct or its sub-structs.
+2. When renaming a config field, use `#[serde(alias = "old_name")]` for at least one major version before removing the old name.
+3. Add a YAML schema validation step (via a `unix-oidc-agent validate-config` command) that warns about deprecated field names without rejecting the config.
+4. Write a test that loads a v1.0-style `policy.yaml` (no v2.0 fields) against the v2.0 `PolicyConfig` struct and verifies it deserializes without error and with correct defaults.
+5. Write a test that loads a v2.0-style `policy.yaml` (all new fields) against the v1.0 `PolicyConfig` struct (via a snapshot of the v1.0 struct) and verifies it also deserializes without error (the v1.0 binary ignores new fields).
 
-### Pitfall 14: YubiKey PIV PIN Retry Counter Exhaustion
+**Warning signs:**
+- `#[serde(deny_unknown_fields)]` appearing anywhere in `pam-unix-oidc/src/policy/`
+- Field renames without `#[serde(alias)]`
+- Tests that only test the happy path of config loading, not the cross-version compat path
 
-**What goes wrong:** PIV slots have a PIN retry counter (default: 3 attempts). If the unix-oidc-agent implements a retry loop for PIN entry (e.g., prompting the user up to 3 times), and a bug causes the loop to re-submit the same wrong PIN, the YubiKey will lock the PIV applet. Recovery requires the PUK (PIN Unblocking Key). If the PUK is also exhausted, the PIV application must be reset, destroying all PIV keys.
-
-**Prevention:**
-- Never implement automatic PIN retry. One attempt per user prompt; if wrong, return the error to the user with the remaining retry count.
-- Before each PIN submission, call `yubikey.get_pin_retries()` and surface the count to the user ("2 attempts remaining before key lockout").
-- Test the retry-counter-exhaustion path with a test YubiKey (not a production device).
-
-**Phase mapping:** Hardware key phase — PIN handling design review before any code is written.
-
----
-
-## Minor Pitfalls
+**Phase to address:** Every phase that modifies `PolicyConfig`. Backward-compat tests should be added in the first phase that touches the config schema.
 
 ---
 
-### Pitfall 15: `memsec` vs `libc::mlock` — Transitive Dependency Drag
+### Pitfall 8: SO_PEERCRED for IPC Hardening Has Different APIs on Linux vs macOS
 
-**What goes wrong:** `memsec` pulls in `winapi` and other platform-specific crates. For the unix-oidc-agent (Linux + macOS only), this adds unnecessary compile-time weight and increases the supply chain surface. `libc::mlock` is available in the already-present `libc` crate with no additional dependency.
+**What goes wrong:**
+The `unix-oidc-agent` socket (`daemon/socket.rs`) currently does not validate the peer UID on incoming connections. The socket is `0600` (owner-only), which provides filesystem-level access control, but does not cryptographically prevent another process running as the same UID from connecting.
 
-**Prevention:** For the agent's narrow use case (locking a fixed-size key buffer), prefer `libc::mlock` directly over adding `memsec`. Only add `memsec` or `secrets` if guard-page protection is required.
+When v2.0 adds explicit peer credential validation (IPC hardening), the natural approach is to use `SO_PEERCRED`. On Linux, `SO_PEERCRED` is set via `getsockopt(fd, SOL_SOCKET, SO_PEERCRED, ...)` and returns a `struct ucred { pid, uid, gid }`. On macOS (and BSD), the equivalent is `getpeereid(fd, &euid, &egid)` or `LOCAL_PEERCRED` via `getsockopt(fd, SOL_LOCAL, LOCAL_PEERCRED, ...)`. These are different syscalls, different struct layouts, and different socket option levels.
 
-**Phase mapping:** `mlock` implementation. Minor dependency audit before adding.
+The Rust `nix` crate exposes `nix::sys::socket::sockopt::PeerCredentials` on Linux; for macOS, `nix` 0.28+ exposes `peer_pid_privilege` via `LOCAL_PEERCRED`. The tokio `UnixStream` does not expose peer credentials directly — raw fd access is required.
+
+**How to avoid:**
+1. Use conditional compilation: `#[cfg(target_os = "linux")]` for `SO_PEERCRED` and `#[cfg(target_os = "macos")]` for `getpeereid`. PostgreSQL's `src/port/getpeereid.c` is a reference implementation of the portable pattern.
+2. The `nix` crate (already a transitive dependency via `libc`) is the correct abstraction layer. Do not call `libc::getsockopt` directly.
+3. On macOS, `getpeereid` returns `(euid, egid)` — no PID. The agent socket is user-local so UID check is sufficient for the threat model.
+4. Implement as a utility function `fn verify_peer_uid(stream: &UnixStream, expected_uid: u32) -> Result<(), IpcError>` with platform-specific cfg blocks, tested on both Linux and macOS in CI.
+5. Note: peer credential checking verifies the UID at the time of `connect()`, not at the time of each request. A process that drops privileges after connecting would pass the check. For the agent's threat model (same-user IPC), this is acceptable.
+
+**Warning signs:**
+- `SO_PEERCRED` used unconditionally without `#[cfg(target_os = "linux")]`
+- `getpeereid` called without checking that the `nix` version supports it
+- Peer credential logic added only to Linux without a macOS path (the agent supports macOS)
+
+**Phase to address:** Phase implementing IPC hardening.
 
 ---
 
-### Pitfall 16: Compiler Fence in `zeroize` Does Not Prevent Spectre-Class Leakage
+### Pitfall 9: systemd Dependency Ordering — Agent Daemon May Not Be Ready When PAM Runs
 
-**What goes wrong:** `zeroize` uses `core::sync::atomic::compiler_fence(SeqCst)` and `write_volatile` to prevent the compiler from eliding the zero-write. This is effective against compiler-level dead-store elimination. It does not prevent CPU speculative execution from transiently reading the pre-zero value through a side channel (Spectre variant 1). For the unix-oidc-agent's threat model (same-UID malware, forensic recovery), this is acceptable — Spectre exploitation requires a carefully crafted gadget and is out of scope. Document this explicitly so future contributors do not over-claim the security properties.
+**What goes wrong:**
+If the `unix-oidc-agent` daemon is managed as a systemd user service (`systemctl --user start unix-oidc-agent`), it starts when the user's first session is created. The PAM module runs during session creation — before the user service manager is guaranteed to be started. This creates a startup ordering race: PAM calls the agent socket, the socket does not yet exist, and PAM falls back to an error.
 
-**Prevention:** Add a code comment in the key zeroization path: "zeroize prevents compiler dead-store elimination via volatile write + compiler fence. It does not protect against speculative execution side-channels (Spectre). This is acceptable per the agent's threat model."
+On RHEL 9, systemd user instances are not started until `pam_systemd.so` completes. If `pam_unix_oidc.so` runs before `pam_systemd.so` in `/etc/pam.d/sshd`, the user session manager is not initialized, `XDG_RUNTIME_DIR` is not set, and `AgentServer::default_socket_path()` (which falls back to `/tmp` when `XDG_RUNTIME_DIR` is unset) may resolve to the wrong path.
 
-**Phase mapping:** `zeroize` integration. Comment required, no code change.
+Additionally, systemd socket activation (`Type=socket`) could theoretically be used to auto-start the agent on first connection. But socket-activated services require the service to be ready to accept and handle the request synchronously — the OIDC login flow requires network access and user interaction, neither of which can be pre-warmed by socket activation.
+
+**How to avoid:**
+1. The agent daemon should be started at user login (via `pam_exec.so` or a PAM session module that forks the daemon), not as a `systemctl --user` service triggered by PAM itself. The agent should be a long-running per-user daemon started once at first login, not per-SSH-connection.
+2. The PAM module must handle "agent not running" gracefully: if the agent socket is absent or refuses connection, fall back to `PamError::AUTH_ERR` with a user-visible message ("Run 'unix-oidc-agent login' to authenticate"), not a panic or hang.
+3. For `XDG_RUNTIME_DIR` resolution: `AgentServer::default_socket_path()` already handles the missing env var (falls back to `/tmp`). Ensure the PAM module and the agent use the same path resolution function — a mismatch causes "agent not found" errors that are hard to diagnose.
+4. If using systemd socket activation for the agent, set `After=network-online.target` and ensure the socket unit creates `XDG_RUNTIME_DIR` before the service starts.
+5. Document the exact PAM stack order in `/etc/pam.d/sshd` in the deployment guide: `pam_systemd.so` must appear before `pam_unix_oidc.so` in the `session` stack.
+
+**Warning signs:**
+- `XDG_RUNTIME_DIR` assumed to be set without a fallback in socket path resolution (currently handled correctly but could regress)
+- Agent socket path hardcoded in the PAM module (not using the same resolution as the agent daemon)
+- PAM module that hangs waiting for agent connection without a timeout
+
+**Phase to address:** Phase implementing systemd/launchd operational readiness.
 
 ---
 
-## Phase-Specific Warnings Summary
+### Pitfall 10: Username Mapping Creates Silent Identity Confusion Under Race Conditions
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|---|---|---|
-| Keyring activation as default backend | Silent storage failure on headless Linux (no D-Bus) | Implement backend probe; `keyutils` fallback; log selected backend |
-| Keyring activation | Session keyring eviction on logout breaks DPoP key continuity | Use user keyring (`@u`) not session keyring (`@s`) |
-| File-to-keyring migration | CoW filesystem (btrfs/APFS) retains plaintext key in snapshots after deletion | Overwrite + fsync + unlink; document limitation |
-| `mlock` addition | `ENOMEM` in containers/CI breaks agent startup or silently skips protection | Best-effort `mlock`; log warn on failure; test the failure path |
-| `mlock` addition | `Vec<u8>` reallocation moves key bytes to unlocked page | Fix buffer size before locking; prefer `Box<[u8; N]>` |
-| `zeroize` integration | Move semantics leave unzeroized stack copies | Pass key bytes by `&mut` reference; keep `SigningKey` on heap in `Arc` |
-| `zeroize` integration | `p256` missing `zeroize` feature silently breaks `ZeroizeOnDrop` | Explicit `features = ["zeroize"]` in `Cargo.toml` |
-| Hardware key (YubiKey) | Persistent PCSC transaction locks out gpg-agent and ykman | Open/close connection per operation; cache PIN in-process |
-| Hardware key (YubiKey) | `pcscd` stale after resume; `systemd` socket activation not triggered | Retry loop in `open()`; surface actionable error message |
-| Hardware key (YubiKey) | PIN retry exhaustion locks PIV applet permanently | One attempt per prompt; surface remaining retry count |
-| Hardware key (TPM) | Direct `/dev/tpm0` access blocks concurrent processes | Mandate `tpm2-abrmd` TCTI; probe daemon presence at startup |
-| macOS CI | Keychain prompt blocks non-interactive test runs | Use mock backend in CI; code-sign binary for production |
+**What goes wrong:**
+Username mapping (e.g., Azure AD UPN `alice@corp.com` → Unix user `alice`, or `preferred_username` → POSIX user lookup via SSSD) has two failure modes:
+
+1. **Many-to-one collision:** Two IdP users map to the same Unix username (e.g., `alice@sales.corp.com` and `alice@engineering.corp.com` both map to `alice`). The current `pam_user != result.username` check in `lib.rs:98` catches the case where the PAM user doesn't match the token user, but only if the comparison is done after mapping. If mapping is applied to the token claim before comparison, and two different token users map to the same `alice`, the wrong token can authenticate.
+2. **Mapping function failure is treated as deny:** If the SSSD lookup or custom mapping function fails (e.g., SSSD is temporarily unavailable), and the code returns `AuthError::UserNotFound`, users are denied during SSSD outages. This is technically correct (don't let unknown users in) but can be operationally catastrophic if SSSD is the source of truth for all users — an SSSD outage locks out all users simultaneously.
+
+The current `sssd/user.rs` lookup is synchronous and has no timeout. A slow SSSD response blocks the PAM thread.
+
+**How to avoid:**
+1. Username mapping must be applied consistently: either compare raw claims (token `preferred_username` == PAM user), or compare after mapping (mapped Unix username == PAM user). Never mix. Document which comparison point is used.
+2. Add a timeout to SSSD lookups (max 5 seconds) using `std::thread` + channel, or move the lookup to a separate thread. The current blocking `nss` lookup in `sssd/user.rs` has no timeout.
+3. For mapping tables: implement a uniqueness check at config load time — if two IdP identities map to the same Unix user, reject the config with a clear error rather than silently creating an ambiguous mapping.
+4. Consider a configurable `on_mapping_failure: deny | allow_if_exists_locally` policy. `deny` is secure; `allow_if_exists_locally` is a reasonable operational fallback that does not depend on SSSD availability for locally-provisioned users.
+
+**Warning signs:**
+- `sssd/user.rs` with no timeout on the NSS lookup
+- Username comparison done before vs. after mapping is inconsistent in different code paths
+- No test for the "two IdP users map to same Unix user" collision case
+
+**Phase to address:** Phase implementing username mapping and group policies.
+
+---
+
+## Technical Debt Patterns
+
+Shortcuts that seem reasonable but create long-term problems in this specific system.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| `.expect()` in PAM code paths for "can't happen" cases | Simpler code, clear failure mode | Panic in sshd = user lockout; one bad server state bricks auth | Never in PAM paths; acceptable in agent CLI paths |
+| Reusing `reqwest::blocking` for CIBA polling (same pattern as Device Flow) | Minimal new code | Blocks PAM thread; can trigger sshd LoginGraceTime cutoff | Never for CIBA in PAM; only for agent-side background polling |
+| Global static `JwksProvider` singleton | Simple initialization | Not refreshable without restart; shared across threads without explicit ownership | Acceptable only if TTL-based refresh is implemented (currently is) |
+| Introspection without caching | Always-fresh revocation status | N x concurrent logins → N introspection requests/sec; IdP rate-limit → all logins fail | Never; always cache with TTL bounded by token `exp` |
+| Defaulting new security mode config fields to `strict` | Correct secure default for new deployments | Breaks existing deployments on upgrade without operator action | Never; always default to v1.0 behavior, let operators opt in |
+| `pam_set_data()` for cross-function session state | Simpler than external storage | Session state visible only within same PAM handle; `close_session()` may run in different process | Acceptable for within-session state; not for cross-connection correlation |
+| Hardcoding Keycloak-specific endpoint paths in `DeviceFlowClient::new()` | Works for current Keycloak CI environment | Breaks all non-Keycloak IdPs at device flow init | Never in new code; existing `DeviceFlowClient::new()` at `device_flow/client.rs:33` already has this issue and must be fixed |
+
+---
+
+## Integration Gotchas
+
+Common mistakes when connecting to external services in this domain.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| CIBA endpoint | Polling at fixed interval, ignoring `interval` in auth response | Honor the `interval` field from the CIBA auth response; implement `slow_down` backoff as spec requires (OpenID CIBA Core 1.0 §7.3) |
+| CIBA endpoint | Using POLL mode; expecting all IdPs to support it | Not all IdPs support POLL mode; Okta supports PUSH only. Detect via discovery (`backchannel_token_delivery_modes_supported`). Plan for PUSH-only IdPs |
+| Token introspection | Using client_credentials to authenticate to introspection endpoint | Many IdPs require `client_assertion` (JWT-based client auth) for confidential clients; `client_secret_post` is deprecated in many deployments |
+| SSSD | Calling `getpwnam()` synchronously in PAM | `getpwnam()` blocks until SSSD responds; no timeout; SSSD outage = PAM thread hangs indefinitely |
+| Keycloak device flow | Building endpoint as `{issuer}/protocol/openid-connect/auth/device` | This is Keycloak-specific. Other IdPs use `device_authorization_endpoint` from OIDC discovery. Must use discovery in production code |
+| Auth0 CIBA | Assuming standard `/bc-authorize` endpoint | Auth0 uses `/oauth/bc-authorize`; differs from the CIBA spec's recommended path |
+| macOS Keychain (agent) | Testing Keychain backend in CI | macOS Keychain prompts in non-interactive contexts; use mock backend (established pitfall from v1.0 PITFALLS.md, still applies here) |
+
+---
+
+## Performance Traps
+
+Patterns that work at small scale but fail as login volume grows.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Per-login introspection (no cache) | IdP rate limits trigger; all logins fail simultaneously | Cache introspection results keyed by JTI with configurable TTL (default 60s) | At ~10 concurrent logins/second on a shared server |
+| JWKS re-fetch on every login (cache miss storm) | JWKS endpoint overwhelmed during key rotation; all logins fail | The current `DEFAULT_CACHE_TTL_SECS = 300` is good; but the `RwLock` in `oidc/jwks.rs` is not stampede-protected: all threads that miss the cache simultaneously fetch JWKS | Under concurrent login burst (50+ simultaneous SSH connections) |
+| `RwLock<HashMap>` JTI cache under high concurrency | Lock contention; P99 latency spikes during high-concurrency login events | The current `global_jti_cache()` uses `std::sync::RwLock`. This is fine for moderate load. For high-scale deployments, a sharded cache is needed — but that is explicitly out of scope (distributed JTI cache is v2.1+) | At ~1000+ concurrent login events/minute on a single server |
+| SSSD lookup with no timeout (existing code) | PAM thread hangs indefinitely when SSSD is slow; SSH connections stack up until `sshd` runs out of file descriptors | Add 5-second timeout to SSSD lookup; return `AuthError::UserResolution` on timeout | When SSSD is degraded (e.g., LDAP network partition) |
+| reqwest blocking client per request (current pattern in `device_flow/client.rs`) | Per-request TLS handshake overhead | Re-use HTTP client (already done via struct member); do not create new `Client::builder().build()` per auth attempt | Not a performance issue in current code; would become one if client creation is moved inside the auth loop |
+
+---
+
+## Security Mistakes
+
+Domain-specific security issues when adding v2.0 features to this codebase.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Accepting CIBA `auth_req_id` from client-controlled input without binding to session | Token swapping — a valid `auth_req_id` from another user's CIBA session is substituted | Bind `auth_req_id` to the PAM session (pam_set_data) and verify the resulting token's `sub` matches the initiating PAM user |
+| Caching introspection "active=true" past token `exp` | Accepting expired token as valid after revocation check | Enforce cache TTL ≤ (token `exp` - now). Never cache past token expiry |
+| `break_glass.requires` field parsed but not enforced | Break-glass account accessible without the required second factor | Any code path for break-glass bypass must enforce `requires` (e.g., YubiKey OTP) before granting access. The current `BreakGlassConfig` struct stores `requires` but nothing acts on it |
+| Adding `ACR` value check as a new HARD-FAIL without migration | Deployments where IdP returns no ACR claim are locked out on upgrade | New ACR enforcement must default to WARN mode (per Issue #10 migration pattern); escalate to HARD-FAIL only when operator sets `strict` |
+| Token in `AgentResponseData::Proof.token` field sent over Unix socket without framing | Token visible in process listing if socket path leaks to low-privilege process | Socket is already `0600`; this is acceptable. Do not add `SO_REUSEADDR` or change socket permissions for convenience |
+| Adding `introspect` command to agent IPC protocol that returns raw token state | IPC protocol expansion increases attack surface from any same-UID process | New IPC commands must be audited for information disclosure; the `Status` response already leaks `thumbprint` and `username` — ensure new introspection responses do not leak `sub` or claim values |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+Things that appear complete but are missing critical pieces for v2.0 features.
+
+- [ ] **CIBA implementation:** The `StepUpMethod::Push` variant exists in policy YAML parsing but has no `ApprovalProvider` implementation. Dispatching to `Push` without an implementation silently falls through — verify that unimplemented step-up methods return `PamError::AUTH_ERR`, not `PamError::SUCCESS`.
+- [ ] **FIDO2/WebAuthn step-up:** `StepUpMethod::Fido2` exists in rules but has no implementation and no documentation of the intended deployment model. Must be documented as "CIBA with phishing-resistant ACR" before v2.0 ships.
+- [ ] **Break-glass enforcement:** `BreakGlassConfig` is parsed and stored in `PolicyConfig` but nothing in `auth.rs` or `lib.rs` acts on it. "Break-glass is configured" != "break-glass is enforced."
+- [ ] **Configurable security modes:** `ValidationConfig` has `enforce_jti` bool but no `SecurityMode` enum for warn/strict/disabled. The Issue #10 config shape is not yet implemented.
+- [ ] **Username mapping:** The `extract_username_from_token()` function in `daemon/socket.rs` supports multiple claim fallbacks. The PAM module's username comparison at `lib.rs:98` directly compares `result.username` with the PAM user. There is no configurable mapping table between IdP claim values and Unix usernames.
+- [ ] **Group policy enforcement:** `PolicyConfig` has no `groups` or `required_groups` field. SSH access control by IdP group membership is not implemented.
+- [ ] **Session revocation:** `close_session()` in `lib.rs:188` returns `PamError::SUCCESS` unconditionally. No session cleanup, no revocation notification to IdP.
+- [ ] **Token refresh in PAM context:** The PAM module validates tokens but does not refresh expired ones. If a user's token expires during a long-running SSH session, the next `pam_authenticate()` call (e.g., on sudo) will fail. Decide whether refresh is the agent's responsibility or the PAM module's.
+- [ ] **Keycloak-specific endpoint hardcoding:** `DeviceFlowClient::new()` builds the device authorization endpoint as `{issuer}/protocol/openid-connect/auth/device`. This is Keycloak-specific. IdP-agnostic step-up requires using OIDC discovery to resolve `device_authorization_endpoint`.
+- [ ] **DPoP nonce issuance (RFC 9449 §8):** The PAM module's DPoP validation does not issue server-selected nonces. Without nonce binding, a captured DPoP proof is replayable on the same URI within its `iat`/`exp` window even if the JTI has not been seen. The JTI cache mitigates this but nonce binding is the RFC-recommended defense.
+
+---
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| PAM panic causes sshd crash → locked out | HIGH | Use break-glass account (local password + YubiKey OTP per `break_glass` config); console/IPMI access; revert PAM config with `sed -i 's/^auth.*pam_unix_oidc/#&/' /etc/pam.d/sshd` |
+| Introspection DoS — all logins failing | MEDIUM | Set `introspection: disabled` in policy.yaml (if feature is opt-in as recommended); reload PAM config; logins resume using local JWT verification |
+| New strict default breaks existing deployment on upgrade | MEDIUM | Roll back to previous package version; add explicit permissive config values; re-upgrade. If `#[serde(default)]` is respected, adding missing fields to policy.yaml restores behavior |
+| CIBA polling blocks PAM thread → sshd timeout | MEDIUM | Disable CIBA step-up method in policy.yaml; set `allowed_methods: [device_flow]` as fallback |
+| Username mapping collision locks legitimate user | MEDIUM | Temporarily set `allow_if_exists_locally` fallback policy; fix IdP claim or mapping table; re-enable strict mapping |
+| Session store file under `/run/unix-oidc/` fills tmpfs | LOW | `rm -rf /run/unix-oidc/sessions/` (safe — stale session files have no auth effect); adjust session TTL cleanup interval |
+| Agent socket path mismatch (PAM can't find daemon) | LOW | Check `XDG_RUNTIME_DIR` in sshd environment; verify agent and PAM use same `default_socket_path()` logic; restart agent with explicit `--socket` arg |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+How roadmap phases should address these pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| `.expect()` panics in PAM paths | Phase 1: PAM panic elimination | `grep -r '\.expect(' pam-unix-oidc/src/` returns zero results outside `#[cfg(test)]`; clippy lint `deny(expect_used)` passes |
+| CIBA polling blocks PAM thread | Phase implementing CIBA step-up — architecture decision before first line of code | Load test: 50 concurrent SSH connections with CIBA challenges; none trigger sshd LoginGraceTime timeout |
+| WebAuthn has no browser in SSH | Phase implementing FIDO2 step-up — ADR required first | No libfido2/ctap crate appears in `pam-unix-oidc/Cargo.toml`; Fido2 documented as "CIBA+ACR" pattern |
+| Introspection DoS under load | Phase implementing token introspection | Integration test: introspection endpoint returns HTTP 429; PAM falls back to local JWT verification without error |
+| PAM session store cross-invocation state | Phase implementing session lifecycle | Functional test: `authenticate()` + `open_session()` + `close_session()` across process boundaries; session ID correlates correctly |
+| Config mode defaults break existing deployments | Phase implementing Issue #10 security modes | Test: v1.0 `policy.yaml` (no new fields) loads against v2.0 code with expected permissive behavior |
+| policy.yaml backward compat | Every phase touching `PolicyConfig` | Test: v1.0 YAML loads without error against v2.0 struct; v2.0 YAML loads without error against v1.0 struct |
+| SO_PEERCRED portability | Phase implementing IPC hardening | Build and test peer credential validation on both Linux (Ubuntu 22.04) and macOS CI targets |
+| systemd ordering race | Phase implementing systemd/launchd operational readiness | Integration test: fresh user login with agent not yet started; PAM returns graceful error, not hang |
+| Username mapping identity confusion | Phase implementing username mapping | Unit test: two IdP users with same mapped Unix username → config validation error at load time |
 
 ---
 
 ## Sources
 
-- keyring-rs issue tracker — automatic fallback discussion: https://github.com/hwchen/keyring-rs/issues/133
-- keyring-rs issue — headless VM failures: https://github.com/hwchen/keyring-rs/issues/83
-- keyring-rs `keyutils` backend (headless recommendation): https://docs.rs/keyring/latest/keyring/keyutils/index.html
-- session-keyring(7) Linux man page (PAM revocation behavior): https://www.man7.org/linux/man-pages/man7/session-keyring.7.html
-- user-keyring(7) Linux man page: https://man7.org/linux/man-pages/man7/user-keyring.7.html
-- Cloudflare — Linux Kernel Key Retention Service: https://blog.cloudflare.com/the-linux-kernel-key-retention-service-and-why-you-should-use-it-in-your-next-application/
-- mlock(2) Linux man page (RLIMIT_MEMLOCK, ENOMEM, page alignment): https://man7.org/linux/man-pages/man2/mlock.2.html
-- Docker + RLIMIT_MEMLOCK (64 KiB default, containers, IPC_LOCK): https://medium.com/@thejasongerard/resource-limits-mlock-and-containers-oh-my-cca1e5d1f259
-- Rust forum — mlock on Vec: https://users.rust-lang.org/t/how-to-mlock-the-memory-allocated-by-a-vec/70344
-- zeroize crate docs (volatile write + compiler fence approach): https://docs.rs/zeroize/latest/zeroize/
-- Move semantics + zeroize pitfall (stack copies): https://benma.github.io/2020/10/16/rust-zeroize-move.html
-- CipherStash — verifying zeroize with assembly: https://cipherstash.com/blog/verifying-rust-zeroize-with-assembly-including-portable-simd
-- Rust internals — move-and-zeroize language limitation: https://internals.rust-lang.org/t/idea-traits-for-zeroizing-before-and-after-move/11728
-- yubikey.rs crate docs (PCSC, exclusive access): https://docs.rs/yubikey/latest/yubikey/
-- yubikey-agent (persistent transaction / exclusive lock tradeoff): https://github.com/FiloSottile/yubikey-agent
-- Yubico — resolving GPG CCID conflicts: https://support.yubico.com/hc/en-us/articles/4819584884124-Resolving-GPG-s-CCID-conflicts
-- pcscd must be restarted for ykman access: https://github.com/Yubico/yubikey-manager/issues/548
-- tss-esapi Rust docs (TCTI, multi-process, tabrmd): https://docs.rs/tss-esapi/
-- tpm2-abrmd (multi-user TPM access broker): https://github.com/tpm2-software/tpm2-abrmd
-- Yubico — PIN and touch policies: https://docs.yubico.com/yesdk/users-manual/application-piv/pin-touch-policies.html
-- secrets crate (mlock'd SecretVec with guard pages): https://docs.rs/secrets/latest/secrets/struct.SecretVec.html
+- OpenID Connect Client-Initiated Backchannel Authentication Flow Core 1.0 (CIBA spec, §7.3 polling): https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
+- RFC 9449 DPoP — server nonce issuance (§8): https://www.rfc-editor.org/rfc/rfc9449#section-8
+- RFC 7662 OAuth 2.0 Token Introspection: https://www.rfc-editor.org/rfc/rfc7662
+- RFC 8628 OAuth 2.0 Device Authorization Grant — `slow_down` handling: https://www.rfc-editor.org/rfc/rfc8628
+- libfido2 — direct CTAP2 assertion (not WebAuthn): https://developers.yubico.com/libfido2/
+- WebAuthn Level 2 specification — Relying Party context requirement: https://www.w3.org/TR/webauthn-2/
+- pam_set_data(3) man page — PAM data sharing within handle: https://man7.org/linux/man-pages/man3/pam_set_data.3.html
+- SO_PEERCRED Linux man page — unix(7): https://man7.org/linux/man-pages/man7/unix.7.html
+- getpeereid macOS man page: https://www.unix.com/man-page/osx/3/getpeereid
+- PostgreSQL portable getpeereid.c reference: https://github.com/postgres/postgres/blob/master/src/port/getpeereid.c
+- systemd socket activation — dependency ordering: https://www.freedesktop.org/software/systemd/man/latest/systemd.socket.html
+- Okta CIBA — PUSH only, not POLL mode: https://learning.okta.com/first-look-client-initiated-backchannel-authentication-flow
+- serde_yaml unknown fields — default behavior (fields silently ignored without deny_unknown_fields): https://docs.rs/serde_yaml/latest/serde_yaml/
+
+---
+
+*Pitfalls research for: Production hardening and enterprise auth features on an existing OIDC PAM + agent system*
+*Researched: 2026-03-10*
+*Supersedes: v1.0 PITFALLS.md (key protection hardening)*

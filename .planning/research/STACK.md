@@ -1,250 +1,277 @@
-# Technology Stack: Client-Side Key Protection
+# Technology Stack: v2.0 Production Hardening & Enterprise Readiness
 
-**Project:** unix-oidc — Key Storage Hardening Milestone
+**Project:** unix-oidc — v2.0 Milestone
 **Researched:** 2026-03-10
-**Scope:** OS keyring, memory locking, secure zeroing, YubiKey PIV, TPM 2.0
+**Scope:** CIBA push auth, FIDO2/WebAuthn server-side verification, token introspection/revocation, session lifecycle, configurable security modes, systemd/launchd service integration
+**Note:** This file covers ONLY new dependencies for v2.0. The v1.0 stack (p256, jsonwebtoken, reqwest, keyring, zeroize, secrecy, cryptoki, tss-esapi, etc.) is validated and unchanged — see prior STACK.md snapshot in git history.
 
 ---
 
-## Recommended Stack
+## Recommended Stack — New Additions Only
 
-### Domain 1 — OS Keyring / Keychain Integration
+### 1. CIBA Client Flow (RFC OIDC CIBA Core 1.0)
+
+**Verdict: Implement directly with existing `reqwest` + `oauth2` 5.0.0. Do NOT add a CIBA-specific crate.**
+
+No Rust crate implements the CIBA client flow as of 2026-03-10. The `openidconnect` 4.0.1 crate (by the same author as `oauth2` 5.0.0) does not include CIBA endpoints. This is confirmed by reviewing the crates.io search results — no CIBA-specific crate has material adoption.
+
+CIBA poll mode (the correct mode for a non-interactive PAM client) consists of exactly two HTTP interactions:
+
+1. `POST /bc-authorize` — sends `login_hint`, `scope`, `client_id`, `binding_message`, receives `auth_req_id` + `expires_in` + `interval`
+2. `POST /token` with `grant_type=urn:openid:params:grant-type:ciba` and `auth_req_id` — polls until `authorization_pending` resolves to tokens or `expired_token`
+
+Both are plain `application/x-www-form-urlencoded` POST requests. The existing `reqwest::Client` already handles this. Add `oauth2 = "5.0.0"` for strongly-typed token response parsing and introspection support (see Domain 3).
 
 | Technology | Version | Purpose | Confidence |
 |------------|---------|---------|------------|
-| `keyring` | **3.6.3** (stable) | OS keychain integration — macOS Keychain, Linux Secret Service, Linux kernel keyutils | HIGH |
+| `oauth2` | **5.0.0** | Typed OAuth2 token responses, introspection (RFC 7662), revocation (RFC 7009) — works with existing `reqwest` 0.11 | HIGH |
 
-**Recommendation:** Upgrade from `keyring = "3"` (which resolves to 3.6.3) and enable the `linux-native-sync-persistent` feature set for Linux headless-server compatibility.
+**Why oauth2 5.0.0 (not 4.x):** 5.0.0 is the current stable release (26M total downloads, Rust 1.65 MSRV). It includes built-in `introspect()` method against RFC 7662 endpoints and typed `TokenIntrospectionResponse`. The CIBA HTTP calls themselves are custom (not covered by oauth2 crate helpers) but the token response type deserialization is directly reusable.
 
-**Rationale:**
+**CIBA polling loop design:** The agent spawns a `tokio::task` that polls on the `interval` returned by `/bc-authorize` (minimum 30 seconds per the OpenID CIBA Core spec, §7.3). The task sends a `tracing` event at each poll cycle and wakes the waiting PAM conversation when tokens arrive. Maximum wait is bounded by `expires_in` from the initial response. The PAM module side sets a hard timeout (configurable, default 120 s) and returns `PAM_AUTH_ERR` if no token arrives before expiry.
 
-The project already depends on `keyring` 3. Version 3.6.3 is the latest stable (released 2025-07-27). Version 4.0.0-rc.3 exists but is pre-release (multiple betas yanked, not yet stable as of 2026-02-01). **Do not upgrade to 4.x until it stabilises.**
+**Reqwest version note:** Both crates in the workspace pin `reqwest = "0.11"`. Do NOT upgrade to 0.12 in this milestone — the 0.11→0.12 TLS layer change (rustls 0.22 upgrade) requires audit of all `ClientBuilder` configurations and SSRF redirect-disable settings. Upgrade is a separate hardening item.
 
-The critical decision for this project is the Linux backend selection. The crate exposes three distinct Linux backends:
+---
 
-1. **`linux-native` (kernel keyutils, `linux-keyutils` 0.2.4)** — Uses the Linux kernel's in-kernel keyring via raw syscalls. No D-Bus, no daemon dependency. Survives headless/containerised/systemd service environments. **Does not persist across reboots** (in-memory only at the kernel level). This is the right backend for DPoP key caching within a session.
+### 2. FIDO2 / WebAuthn Server-Side Assertion Verification
 
-2. **`sync-secret-service` (D-Bus libsecret)** — Uses the FreeDesktop Secret Service API (GNOME Keyring, KWallet). Persists across reboots. **Requires a running D-Bus session bus and a Secret Service provider** — absent on headless servers, minimal cloud VMs, and containers. Known tokio deadlock risk if called on the main async thread (must spawn blocking thread).
+**Verdict: Use `webauthn-rs` 0.5.4 (high-level safe API). Do NOT use `webauthn-rs-core` directly.**
 
-3. **`linux-native-sync-persistent`** — Combines both: stores in kernel keyutils for fast access, falls back to Secret Service for persistence. Best of both worlds but introduces D-Bus dependency.
+| Technology | Version | Purpose | Confidence |
+|------------|---------|---------|------------|
+| `webauthn-rs` | **0.5.4** | Server-side WebAuthn assertion verification (W3C WebAuthn Level 3+) | HIGH |
 
-**For unix-oidc specifically:** The agent stores DPoP private keys that must survive reboots (otherwise the user must re-authenticate on every boot). The right feature set is `linux-native-sync-persistent` on Linux and `apple-native` on macOS. The existing `KeyringStorage` must add graceful degradation: if Secret Service is unavailable (headless server), fall back to `linux-native` (session-scoped) with a logged warning that keys will not survive reboot, then fall further back to `FileStorage`.
+**Why webauthn-rs:**
+- Current stable: 0.5.4 (released December 2024; 0.5.2 released July 2025 per search results — version numbering is per-release, 0.5.4 is latest as of 2026-03-10 per `cargo search`).
+- Security-audited by SUSE Product Security. The library explicitly states it follows W3C WebAuthn Level 3+ processing and enforces constraints beyond the spec's minimum security requirements.
+- The high-level `webauthn-rs` crate (not `webauthn-rs-core`) enforces correct credential state machine usage at the type level — prevents the sharp-edge misuse patterns that the core API exposes.
+- Maintained by the `kanidm` project (production identity management system), giving it a real-world deployment track record.
+- Only supports secure cryptographic primitives — does not accept weak algorithms that an attacker might negotiate.
+- Android Safety Net attestation removed January 2025 (the correct security decision).
 
-**Feature flags to specify:**
+**Integration pattern for PAM step-up (non-HTTP context):**
+
+WebAuthn assertions require a challenge issued by the relying party and signed by the authenticator. In a PAM context, the challenge flow is:
+
+```
+PAM module (server side)          Agent daemon (client side)         User's FIDO2 device
+  |                                    |                                    |
+  |-- IPC: request step-up ---------->|                                    |
+  |                                    |-- challenge = Uuid::new_v4() ---> |
+  |<-- IPC: challenge returned --------|                                    |
+  |                                    |                                    |
+  |  (challenge stored in              |-- platform WebAuthn client ------> |
+  |   session store with TTL)          |<-- authenticator response ---------|
+  |                                    |                                    |
+  |<-- IPC: assertion response --------|                                    |
+  |                                    |                                    |
+  |  webauthn.finish_passkey_authentication(response, &auth_state) ------> |
+  |  (auth_state retrieved from session store by challenge id)             |
+```
+
+The `webauthn-rs` `Webauthn` struct is built with `WebauthnBuilder::new(rp_id, rp_origin)`. For SSH authentication context, `rp_id` is the server hostname and `rp_origin` is a synthetic `unix://hostname` URI (WebAuthn Level 3 explicitly supports non-HTTPS origins for device-bound scenarios).
+
+**Challenge state persistence:** The `PasskeyAuthentication` state returned by `start_passkey_authentication()` MUST be stored server-side (in the session store, keyed by challenge UUID, TTL 60 s). Storing it client-side defeats WebAuthn's security guarantees. See Domain 4 (session store).
+
+**Credential storage:** The `Passkey` struct (serializable via serde) for each enrolled user is stored in the per-user credential file (JSON, 0600, under `/var/lib/unix-oidc/webauthn/<username>/`). Do not store in the OIDC token cache.
+
+**Feature flags:**
 
 ```toml
-[target.'cfg(target_os = "linux")'.dependencies]
-keyring = { version = "3.6.3", features = ["linux-native-sync-persistent", "crypto-rust"] }
+# unix-oidc-agent/Cargo.toml
+[features]
+webauthn = ["dep:webauthn-rs"]
 
-[target.'cfg(target_os = "macos")'.dependencies]
-keyring = { version = "3.6.3", features = ["apple-native"] }
+[dependencies]
+webauthn-rs = { version = "0.5.4", optional = true, features = ["danger-allow-state-serialisation"] }
 ```
 
-Use `crypto-rust` (not `crypto-openssl`) to avoid introducing an OpenSSL dependency — the project already uses `rustls` exclusively.
-
-**Known issues:**
-- KDE Wallet (KWallet) is limited to UTF-8 strings. The existing base64-encoding in `KeyringStorage` already handles this correctly.
-- Tokio deadlock: the existing `KeyringStorage` is synchronous; do not call it from an async context without `tokio::task::spawn_blocking`.
-- `delete_credential()` (3.x API) differs from `delete_password()` (2.x) — already handled in the existing code.
-
----
-
-### Domain 2 — Secure Memory Zeroing on Drop
-
-| Technology | Version | Purpose | Confidence |
-|------------|---------|---------|------------|
-| `zeroize` | **1.8.2** | Zero key material bytes on drop; `#[derive(ZeroizeOnDrop)]`; integrates with RustCrypto types | HIGH |
-| `secrecy` | **0.10.3** | `Secret<T>` wrapper that zeroes T on drop; enforces that secrets are not accidentally logged or compared | HIGH |
-
-**Rationale:**
-
-`zeroize` 1.8.2 (released 2025-09-29, 372M downloads) is the RustCrypto-ecosystem standard for secure zeroing. It uses volatile writes and compiler fences to prevent the optimizer from eliding the zeroing. It is already the transitive dependency of `p256` 0.13, `secrecy`, and dozens of other crates in this ecosystem — adding it explicitly does not widen the dependency tree.
-
-The `p256` crate's `SigningKey` type already implements `ZeroizeOnDrop` (via `elliptic-curve`'s integration with zeroize). **However**, `SoftwareSigner::export_key()` currently returns `Vec<u8>` — a raw allocation that will not be zeroed on drop. This is the primary gap to fix.
-
-**Fix pattern:**
-
-```rust
-use zeroize::Zeroizing;
-
-// BEFORE (unsafe — key bytes linger in heap until allocator reclaims them)
-pub fn export_key(&self) -> Vec<u8> {
-    self.signing_key.to_bytes().to_vec()
-}
-
-// AFTER (bytes zeroed when the Zeroizing wrapper is dropped)
-pub fn export_key(&self) -> Zeroizing<Vec<u8>> {
-    Zeroizing::new(self.signing_key.to_bytes().to_vec())
-}
-```
-
-`secrecy` 0.10.3 wraps a `Secret<T: Zeroize>` that:
-- Calls `T::zeroize()` on drop
-- Redacts the value in `Debug` output (prevents accidental log leakage)
-- Prevents `PartialEq` comparisons that might leak via timing
-
-Use `Secret<Zeroizing<Vec<u8>>>` for in-memory token and key storage within the agent daemon. `secrecy` depends on `zeroize ^1.6`, which is compatible with `zeroize` 1.8.2.
+`danger-allow-state-serialisation` is required to serialize `PasskeyAuthentication` state for cross-process storage (PAM module to agent IPC). The feature name is intentionally alarming — the danger is storing state insecurely (client side), not serialization itself.
 
 **What NOT to use:**
-- `memsec` 0.7.0 — implements libsodium-style `mlock`/`memzero`. Last released 2024-06-06. Provides `mlock` wrapper but requires `unsafe` throughout. For zeroing alone, `zeroize` is cleaner, better maintained, and already in the dependency tree.
-- `secrets` 1.2.0 — stale since 2022, low adoption.
+- `passkey` / `passkey-authenticator` 0.5.0 — these are client-side (authenticator) crates for building passkey software implementations, not server-side assertion verifiers. Wrong direction.
+- `webauthn-rs-core` directly — exposes unsafe low-level API with many footguns. The high-level `webauthn-rs` wraps it correctly.
 
 ---
 
-### Domain 3 — Memory Locking (mlock / prevent swap)
+### 3. Token Introspection (RFC 7662) and Revocation (RFC 7009)
+
+**Verdict: Use `oauth2` 5.0.0 for typed introspection. For revocation, use existing `reqwest` with manual POST.**
 
 | Technology | Version | Purpose | Confidence |
 |------------|---------|---------|------------|
-| `memsec` | **0.7.0** | `mlock`/`munlock` wrappers for pinning key pages to RAM | MEDIUM |
-| `libc` (direct) | **0.2.x** (workspace) | `libc::mlock` / `libc::munlock` raw syscall — already a workspace dep | HIGH |
+| `oauth2` | **5.0.0** | `introspect()` method against RFC 7662 endpoint; typed response (active, exp, sub, scope, etc.) | HIGH |
 
-**Recommendation: Use `libc::mlock` directly, not `memsec`.**
+The `oauth2` 5.0.0 crate provides:
+- `Client::introspect(token)` — queries `set_introspection_uri()` per RFC 7662
+- `TokenIntrospectionResponse` trait — `is_active()`, `exp()`, `sub()`, `scope()`, `username()`
+- `Client::revoke_token(token)` — posts to RFC 7009 revocation endpoint
+- Typed token responses with `set_introspection_uri()` and `set_revocation_uri()`
 
-**Rationale:**
+**Security consideration:** Per RFC 7662, introspection endpoints require client authentication. The PAM module authenticates as a `client_credentials` client. Ensure `set_introspection_uri()` uses the same HTTPS base as the `iss` claim to prevent SSRF to attacker-controlled endpoints. Configure `reqwest::Client` with `redirect::Policy::none()` before calling introspection.
 
-`mlock(2)` prevents kernel pages containing key material from being written to swap. This is a `POSIX.1-2001` syscall, available on all Linux targets (Ubuntu 22.04+, RHEL 9+) and macOS. `libc` 0.2 is already a workspace dependency (required by `pamsm`). Adding a `mlock` call costs zero additional dependencies.
-
-The pattern for a memory-locked buffer wrapping a P-256 key:
-
-```rust
-use std::ptr;
-use libc::{mlock, munlock};
-
-pub struct LockedBuffer {
-    data: Vec<u8>,
-}
-
-impl LockedBuffer {
-    pub fn new(data: Vec<u8>) -> Self {
-        // SAFETY: Valid pointer, size is len() of a Vec<u8>
-        unsafe {
-            mlock(data.as_ptr() as *const _, data.len());
-        }
-        Self { data }
-    }
-}
-
-impl Drop for LockedBuffer {
-    fn drop(&mut self) {
-        // Zeroize first, then unlock
-        use zeroize::Zeroize;
-        self.data.zeroize();
-        unsafe {
-            munlock(self.data.as_ptr() as *const _, self.data.len());
-        }
-    }
-}
-```
-
-**Important constraints:**
-
-- `mlock` requires `CAP_IPC_LOCK` capability or the locked bytes must fit within the process's `RLIMIT_MEMLOCK` limit. On Linux, the default limit for non-root users is 64 KiB — sufficient for a P-256 key (32 bytes) plus a few tokens, but insufficient for large allocations. The agent binary should document this requirement and handle `EPERM` gracefully (log warning, continue without locking).
-- `mlock` locks the page containing the address, not just the bytes. On a 4 KiB page, a 32-byte key locks the full 4 KiB. Multiple small keys on the same page are locked by a single call.
-- `memsec` 0.7.0 wraps the same syscall but introduces a crate boundary for a three-line wrapper. Only prefer `memsec` if the team wants its `malloc`-based guarded allocation (`malloc_mprotect`) which places guard pages around the allocation — this provides stronger protection but is heavier and not needed for this use case.
-- `secmem-proc` 0.3.8 (2025-12-31) addresses a different threat: it uses `prctl(PR_SET_DUMPABLE, 0)` to prevent core dumps and `/proc/self/mem` reads. Worth adding as a defence-in-depth measure in the agent daemon's startup code. It does not perform `mlock`.
-
-**macOS note:** `mlock` on macOS requires `sudo` or an entitlement for non-privileged processes. The agent should attempt `mlock` and log (not fail) if `EPERM` is returned.
+**When to introspect vs. cache:** Token signature verification (offline) should be the primary validation path — introspection involves a network call per authentication event. Introspection is appropriate for: (1) session revocation checks on sensitive operations, (2) refreshing cached token status after TTL expires, (3) explicit "is this token still valid?" queries before granting long-duration access. Cache introspection responses for the `expires_in` duration returned by the introspection response.
 
 ---
 
-### Domain 4 — YubiKey PKCS#11 / PIV Integration
+### 4. Session Lifecycle Store
+
+**Verdict: Use `moka` 0.12.14 (async TTL cache). Do NOT use `tower-sessions`, `dashmap`, or a custom `HashMap`.**
 
 | Technology | Version | Purpose | Confidence |
 |------------|---------|---------|------------|
-| `cryptoki` | **0.12.0** | PKCS#11 high-level Rust wrapper (via YKCS11 shared library) | HIGH |
-| `yubikey` | **0.8.0** | Pure Rust PIV driver (direct PC/SC, no PKCS#11 layer) | LOW — experimental |
+| `moka` | **0.12.14** | In-memory async TTL cache with per-entry expiry, TinyLFU eviction — for challenge state, token cache, introspection cache | HIGH |
 
-**Recommendation: Use `cryptoki` 0.12.0 (PKCS#11 path), not `yubikey` 0.8.0 (direct PIV path).**
+**Why moka:**
+- `moka::future::Cache<K, V>` integrates natively with tokio. No background threads (removed in 0.12.0) — driven by the tokio runtime.
+- Per-entry TTL — each cache entry carries its own expiry, eliminating the need for a background janitor task. Challenge states expire in 60 s; cached tokens expire at their `exp` claim; introspection responses expire at their `expires_in`.
+- TinyLFU eviction policy — bounded size prevents memory exhaustion under load (DoS protection).
+- API mirrors `std::collections::HashMap` for insertion/retrieval; async-aware for use in `async fn` PAM flows.
+- Widely used in production Rust systems (inspired by Java Caffeine, extensively deployed in TiKV ecosystem).
+- 0.12.14 is the current stable release.
 
-**Rationale:**
+**Why not dashmap 7.0.0-rc2:** dashmap is still in release-candidate for 7.x; the stable series is 5.x. More critically, dashmap provides no TTL mechanism — implementing TTL cleanup manually over a `DashMap` requires a background tokio task and atomic timestamps, recreating moka's wheel at lower quality. For a security cache (JTI replay protection, challenge state), unbounded growth is a DoS vector; moka's capacity bound is a first-class feature.
 
-Two integration paths exist. They are architecturally different.
+**Why not tower-sessions:** tower-sessions is an HTTP middleware abstraction for web frameworks. The unix-oidc session store is internal to the agent daemon, not tied to HTTP request/response cycles. Using tower-sessions would import axum/tower dependencies into a PAM-adjacent binary — inappropriate dependency weight.
 
-**Path A: `cryptoki` + YKCS11 (PKCS#11)**
-
-`cryptoki` 0.12.0 (released 2026-01-22, maintained by the Parsec community) is a Rust wrapper around the standard PKCS#11 C API. On YubiKey, Yubico ships `libykcs11.so` — their official PKCS#11 module. The Rust code loads the module at runtime, opens a session, and calls `C_Sign` with `CKM_ECDSA` for P-256 signing. This is the path used by production deployments of ssh-agent, GPG, and TLS clients against YubiKeys.
-
-Advantages:
-- Hardware-vendor-supported path. `libykcs11.so` is the official interface.
-- Generic — the same `YubikeyPkcs11Signer` implementation will work against other PKCS#11-capable tokens (Nitrokey, smart cards, HSMs) with zero code changes.
-- `cryptoki` is actively maintained (six releases in 2025, latest 2026-01-22) and used by multiple production projects.
-- No dependency on PC/SC (though PKCS#11 modules themselves often use it internally).
-
-Disadvantages:
-- Requires `libykcs11.so` installed on the host (available in `yubikey-manager` or `ykcs11` packages on Debian/Ubuntu; `ykpers` on RHEL).
-- Runtime dynamic loading means errors surface at runtime, not compile time.
-
-**Path B: `yubikey` 0.8.0 (pure Rust direct PIV)**
-
-The `yubikey` crate (iqlusioninc/yubikey.rs, last release 2023-08-16) communicates directly with the YubiKey PIV applet over PC/SC (`pcsc` crate). Supports P-256 and P-384 ECDSA.
-
-**Not recommended for this project:**
-- Explicitly labelled "experimental" with "No security audits of this crate have ever been performed" in the README.
-- Last released August 2023 — no maintenance for 18 months.
-- Multiple forks exist (sandbox-quantum, cowriepayments, str4d) indicating upstream stagnation.
-- The `untested` feature is the only defined Cargo feature — the crate's own maturity signal is a warning.
-- For a security-critical PAM-adjacent agent, an unaudited experimental crate for the hardware key path is a high risk.
-
-**Implementation sketch (cryptoki path):**
+**Session types to cache:**
 
 ```toml
-[features]
-yubikey = ["dep:cryptoki"]
-
-[dependencies]
-cryptoki = { version = "0.12.0", optional = true }
+# unix-oidc-agent/Cargo.toml
+moka = { version = "0.12.14", features = ["future"] }
 ```
 
 ```rust
-// YubikeyPkcs11Signer implements DPoPSigner
-// At init: cryptoki::Pkcs11::new(libykcs11_path)?
-// Sign:    session.sign(&mechanism, key_handle, &digest)?
-// Mechanism: Mechanism::Ecdsa (CKM_ECDSA, signs raw digest)
+// Challenge state: keyed by challenge UUID, TTL 60s
+moka::future::Cache<Uuid, PasskeyAuthentication>
+
+// Active session: keyed by session_id (UUID), TTL = token exp
+moka::future::Cache<Uuid, SessionRecord>
+
+// Introspection result: keyed by token hash, TTL = min(resp.expires_in, 300s)
+moka::future::Cache<[u8; 32], IntrospectionResult>
 ```
 
-For DPoP proofs: sign the SHA-256 digest of the JWS signing input with `CKM_ECDSA` (raw ECDSA, not `CKM_ECDSA_SHA256` which hashes internally) to maintain full control over the digest computation, consistent with how `p256::ecdsa::SigningKey::sign_digest` operates.
+`SessionRecord` holds: user identity (sub, preferred_username), IdP-issued claims, DPoP binding thumbprint, auth method (password/CIBA/WebAuthn), auth time, step-up auth time if applicable. This record drives the group policy engine and audit logging.
 
 ---
 
-### Domain 5 — TPM 2.0 Integration
+### 5. Configurable Security Modes
+
+**Verdict: Use `figment` 0.10.19 for hierarchical config loading. No runtime reload needed for security modes — reload requires restart.**
 
 | Technology | Version | Purpose | Confidence |
 |------------|---------|---------|------------|
-| `tss-esapi` | **7.6.0** (stable) | TPM 2.0 ESAPI Rust bindings for key generation and signing | MEDIUM |
+| `figment` | **0.10.19** | Hierarchical configuration: defaults → `/etc/unix-oidc/config.toml` → env vars (`UNIX_OIDC_*`) | HIGH |
 
-**Do NOT use `tss-esapi` 8.0.0-alpha.2 in this milestone.**
+**Why figment (not `config` 0.15.19):**
+- Figment 0.10.19 is the de-facto standard for Rocket/axum-adjacent Rust projects. Type-safe extraction via `figment.extract::<AppConfig>()` — compile-time structure validation.
+- Layering model directly supports the unix-oidc security mode pattern: compiled-in defaults → site config file → environment overrides. `config` crate is more complex and has historically had soundness issues in earlier versions.
+- Zero-cost abstraction: reads config at startup, extracts into a plain `AppConfig` struct. No runtime indirection after startup.
+- The existing codebase already uses `serde_yaml` for config parsing; figment replaces that with a cleaner multi-source abstraction (TOML preferred, but YAML provider also available).
 
-**Rationale:**
-
-`tss-esapi` 7.6.0 (released 2024-12-14) is the current stable release from the Parsec / parallaxsecond project. It wraps the C `libtss2-esys` library and exposes ESAPI functions including `sign()` and key creation commands. The `rustcrypto` feature (available in 8.x alpha, not 7.x stable) adds type conversions between TPM key types and RustCrypto traits — useful but not blocking.
-
-`tss-esapi` 8.0.0-alpha.2 (released 2026-02-26) adds the `bundled` feature (vendors `tpm2-tss` C source via cmake, eliminating the system library dependency) and the `rustcrypto`/`rustcrypto-full` features. However, it is alpha — the API is unstable and multiple alpha versions exist without a release candidate. **Pin to 7.6.0 for this milestone; plan upgrade to 8.x stable in a follow-on milestone.**
-
-**System library requirement:**
-
-`tss-esapi` 7.6.0 requires `libtss2-esys` ≥ 3.x installed on the system:
-- Ubuntu 22.04 Jammy: `libtss2-esys-3.0.2-0` (version 3.2.0) — available in the default repos
-- RHEL 9: `tpm2-tss` package available via BaseOS/AppStream — version 3.x
-- The `generate-bindings` feature is optional; use pregenerated bindings (default) to avoid needing `bindgen` and `clang` at build time
-
-**Integration as optional Cargo feature:**
+**Security mode enum (Issue #10):**
 
 ```toml
-[features]
-tpm = ["dep:tss-esapi"]
-
-[dependencies]
-tss-esapi = { version = "7.6.0", optional = true }
+# /etc/unix-oidc/config.toml
+[security]
+jti_enforcement = "warn"       # strict | warn | disabled
+dpop_required = "strict"       # strict | warn | disabled
+acr_enforcement = "warn"       # strict | warn | disabled
+revocation_check = "warn"      # strict | warn | disabled
 ```
 
-The `TpmSigner` implements `DPoPSigner` by:
-1. Loading an EC P-256 key from a persistent TPM handle (by handle index) or creating one
-2. Calling `context.sign(key_handle, &digest, scheme, validation)` where `scheme` is `SigScheme::EcDsa(HashScheme::new::<Sha256>())`
-3. Marshalling the ECDSA signature into DER or raw (r,s) format for the JWT
+```rust
+#[derive(Debug, Deserialize, Default)]
+pub enum EnforcementMode {
+    Strict,
+    #[default]
+    Warn,
+    Disabled,
+}
+```
 
-**Key creation and persistence:** TPM persistent handles (0x81000000 range) survive reboots. The agent should create a P-256 key under a primary key (EK or SRK hierarchy) and persist it at a deterministic handle. The handle index can be stored in the agent config file (plaintext, non-secret).
+**Hard-fail checks are NOT configurable** (per CLAUDE.md security invariants): signature verification, issuer validation, audience validation, expiration, algorithm enforcement. These are never exposed as `EnforcementMode` fields.
 
-**Deployment constraint:** The host must have a TPM 2.0 chip and `tpm2-abrmd` (TPM access broker) running, or the agent must be run as a user with direct `/dev/tpm0` access. This is a significant deployment prerequisite and is why the TPM feature must remain strictly optional.
+**Config reload:** Security mode changes require daemon restart. Do not implement hot reload for security configuration — it creates a TOCTOU window where an attacker who can write the config file could temporarily downgrade enforcement. Signal the operator to restart via `systemctl reload unix-oidc-agent` which triggers clean restart (not SIGHUP in-place reload).
+
+```toml
+# Cargo.toml
+figment = { version = "0.10.19", features = ["toml", "env"] }
+```
+
+---
+
+### 6. systemd / launchd Service Integration
+
+**Verdict: Use `sd-notify` 0.5.0 for systemd. For launchd (macOS), write plist template — no crate needed.**
+
+| Technology | Version | Purpose | Confidence |
+|------------|---------|---------|------------|
+| `sd-notify` | **0.5.0** | `READY=1`, `WATCHDOG=1`, `STATUS=` notifications to systemd service manager | HIGH |
+
+**Why sd-notify:**
+- 0.5.0 is the current stable release. Pure Rust reimplementation of the `sd_notify(3)` protocol — no `libsystemd` shared library dependency (important: the PAM module is a `cdylib` and cannot safely dlopen systemd internals).
+- Provides `NotifyState::Ready`, `NotifyState::Watchdog`, `NotifyState::Status(msg)` — the three notifications needed.
+- The agent daemon should call `sd_notify(READY=1)` after: IPC socket bound, config validated, initial JWKS fetched. This ensures systemd only routes traffic to the agent after it is genuinely ready.
+- `WatchdogSec=30s` in the unit file with `NotifyState::Watchdog` sent every 15 s — if the agent deadlocks or its event loop stalls, systemd restarts it.
+
+**Unit file pattern:**
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=main
+WatchdogSec=30
+Restart=on-failure
+RestartSec=5
+AmbientCapabilities=CAP_IPC_LOCK
+```
+
+`CAP_IPC_LOCK` is needed for `mlock(2)` without root. This is the correct, minimal capability grant — not `CAP_SYS_ADMIN`.
+
+**macOS launchd:** The `launchd` (0.1.x) and `raunch` (0.1.x) crates are too limited for this use case — `launchd` only parses plist files, `raunch` only handles socket activation. No crate is needed. Ship a `com.unix-oidc.agent.plist` template in `packaging/macos/` using `plist` crate for validation in CI, hand-authored for deployment.
+
+```toml
+# Cargo feature for systemd only (Linux)
+[target.'cfg(target_os = "linux")'.dependencies]
+sd-notify = "0.5.0"
+```
+
+---
+
+## Dependency Summary — New Additions Only
+
+```toml
+# workspace Cargo.toml — shared
+[workspace.dependencies]
+oauth2 = "5.0.0"
+moka = { version = "0.12.14", features = ["future"] }
+figment = { version = "0.10.19", features = ["toml", "env"] }
+
+# unix-oidc-agent/Cargo.toml
+[dependencies]
+oauth2.workspace = true
+moka.workspace = true
+figment.workspace = true
+
+[features]
+webauthn = ["dep:webauthn-rs"]
+
+[dependencies.webauthn-rs]
+version = "0.5.4"
+optional = true
+features = ["danger-allow-state-serialisation"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+sd-notify = "0.5.0"
+
+# pam-unix-oidc/Cargo.toml — no new dependencies
+# The PAM module validates tokens, reads session state via IPC, applies security modes.
+# oauth2 and figment added only if the PAM module reads config directly
+# (preferred: PAM module reads from agent IPC to avoid config duplication)
+```
 
 ---
 
@@ -252,96 +279,73 @@ The `TpmSigner` implements `DPoPSigner` by:
 
 | Category | Recommended | Alternative | Why Rejected |
 |----------|-------------|-------------|--------------|
-| OS keyring | `keyring` 3.6.3 | `keyring` 4.0.0-rc.3 | Pre-release; multiple yanked betas; breaking API changes not yet stable |
-| Secure zeroing | `zeroize` 1.8.2 | `memsec` 0.7.0 for zeroing | `memsec` adds unsafe patterns; `zeroize` already transitive dep; purpose-built for this |
-| Memory locking | `libc::mlock` (direct) | `memsec::mlock` | `libc` already a workspace dep; avoids unnecessary crate boundary for 3-line syscall wrapper |
-| YubiKey | `cryptoki` 0.12.0 | `yubikey` 0.8.0 | `yubikey` is explicitly experimental, unaudited, 18-month stale; security-critical code path requires audited library |
-| PKCS#11 | `cryptoki` 0.12.0 | `pkcs11` 0.5.0 | `pkcs11` 0.5.0 last released April 2020 — 6 years stale; `cryptoki` is its maintained successor |
-| TPM alpha | `tss-esapi` 7.6.0 | `tss-esapi` 8.0.0-alpha.2 | Alpha with unstable API; `bundled` feature useful but deferrable; 7.6.0 is stable and sufficient |
-| Secret wrapping | `secrecy` 0.10.3 | Raw `Zeroizing<Vec<u8>>` | `secrecy` adds Debug redaction and prevents accidental equality comparisons, both relevant for tokens in logs |
+| WebAuthn | `webauthn-rs` 0.5.4 | `webauthn-rs-core` 0.5.4 | Core crate exposes unsafe API with footguns the high-level crate prevents at the type level; SUSE audit covers both but high-level API is the intended interface |
+| WebAuthn client side | — | `passkey-authenticator` 0.5.0 | Client/authenticator crate — wrong direction; we need server-side relying-party verification |
+| Session cache | `moka` 0.12.14 | `dashmap` 5.5.3 (stable) | dashmap has no TTL — security caches require bounded TTL to prevent DoS and stale state; implementing TTL over dashmap recreates moka at lower quality |
+| Session cache | `moka` 0.12.14 | `tower-sessions` | HTTP framework middleware — imports unnecessary web stack into PAM binary; session model mismatch |
+| CIBA | Direct `reqwest` | — | No mature CIBA crate exists in Rust ecosystem; CIBA poll mode is two HTTP calls, not worth a crate |
+| Config | `figment` 0.10.19 | `config` 0.15.19 | `config` 0.15.x has historically had panics on certain provider failures; figment is type-safe at extraction time; `config`'s async watch/reload model is unnecessary here |
+| systemd | `sd-notify` 0.5.0 | `systemd` / `libsystemd` | `libsystemd` binding requires the C library (`libsystemd.so`), a runtime dependency inappropriate for a PAM module context; `sd-notify` is pure Rust |
+| Reqwest upgrade | Stay on 0.11 | `reqwest` 0.12 | 0.11→0.12 TLS layer change requires full audit of all ClientBuilder configurations and SSRF protections; defer to dedicated hardening phase |
 
 ---
 
-## Dependency Addition Plan
+## What NOT to Add
 
-**Add to workspace (all platforms):**
-
-```toml
-# Cargo.toml workspace.dependencies
-zeroize = { version = "1.8.2", features = ["derive"] }
-secrecy = "0.10.3"
-```
-
-**Add to unix-oidc-agent only:**
-
-```toml
-# unix-oidc-agent/Cargo.toml
-[dependencies]
-zeroize = { workspace = true }
-secrecy = { workspace = true }
-secmem-proc = "0.3.8"   # prctl(PR_SET_DUMPABLE) at daemon startup
-
-# Platform-specific keyring features
-[target.'cfg(target_os = "linux")'.dependencies]
-keyring = { version = "3.6.3", features = ["linux-native-sync-persistent", "crypto-rust"] }
-
-[target.'cfg(target_os = "macos")'.dependencies]
-keyring = { version = "3.6.3", features = ["apple-native"] }
-
-# Optional hardware features
-[features]
-default = []
-yubikey = ["dep:cryptoki"]
-tpm = ["dep:tss-esapi"]
-
-[dependencies]
-cryptoki = { version = "0.12.0", optional = true }
-tss-esapi = { version = "7.6.0", optional = true }
-```
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `redis` / `sqlx` / any database crate | Session store is per-host, in-process, and bounded by active user count; a PAM binary with a database client is an extreme attack surface expansion | `moka` in-process cache; Redis is a v2.1+ scalability milestone |
+| `tower` / `axum` / `actix-web` | The PAM module is a `cdylib`, not an HTTP server; agent IPC is Unix socket, not HTTP | Plain `tokio::net::UnixListener` for IPC |
+| `openidconnect` crate for CIBA | `openidconnect` 4.0.1 does not implement CIBA endpoints; adds ~15 transitive dependencies for functionality not used | Direct `reqwest` + `oauth2` for token response parsing |
+| Any `async-graphql` or GraphQL | No GraphQL interface required | N/A |
+| `tracing-opentelemetry` + collector infra | Out of scope for this milestone; structured `tracing` spans are sufficient for local audit | `tracing` + `tracing-subscriber` (already in workspace) |
 
 ---
 
-## Breaking Change Flag: p256 Upgrade
+## Version Compatibility Notes
 
-**Do not upgrade `p256` to 0.14.x in this milestone.**
-
-`p256` 0.14.0-rc.7 (pre-release, 2026-02-03) **removes the `jwk` feature**. The agent's `SoftwareSigner::public_key_jwk()` and `KeyringStorage` depend on JWK serialization from `p256`. Upgrading to 0.14.x would require replacing `p256`'s JWK serialization with a custom implementation (which already exists in `thumbprint.rs` and `dpop.rs` as manual base64 encoding). This is a separate refactor — not part of the key protection milestone.
-
-**Stay on `p256 = "0.13"` (resolves to 0.13.2) for this milestone.**
+| Existing | New Addition | Compatibility Status |
+|----------|-------------|---------------------|
+| `reqwest` 0.11 | `oauth2` 5.0.0 | Compatible — oauth2 5.x ships its own HTTP adapter; the existing `reqwest` 0.11 client is usable via `oauth2::reqwest::async_http_client` (0.11-compatible variant) |
+| `serde` 1.0 | `moka` 0.12.14 | Compatible — moka uses serde only for optional serialization of entries, not in the hot path |
+| `serde` 1.0 | `webauthn-rs` 0.5.4 | Compatible — Passkey and state types implement `Serialize`/`Deserialize` with serde 1.x |
+| `tokio` 1.x | `moka` 0.12.14 | Compatible — `moka::future` is designed for tokio 1.x |
+| `p256` 0.13 | `webauthn-rs` 0.5.4 | No direct interaction — webauthn-rs uses `openssl` or `ring` internally for EC ops, not p256; they do not share types and do not conflict |
+| `uuid` 1.x | All new crates | Compatible — uuid 1.22.0 in workspace; moka keys and session IDs use `Uuid` |
 
 ---
 
-## Security Notes
+## Security Notes for New Dependencies
 
-1. **`zeroize` and compiler optimisations:** `zeroize` uses `ptr::write_volatile` and `atomic::compiler_fence(SeqCst)` to prevent the compiler from eliding zeroing. This is correct on stable Rust. It does NOT prevent the hardware CPU from caching values in registers — but Rust's ownership model makes register retention across function boundaries impossible in normal code.
+1. **`webauthn-rs` OpenSSL dependency:** `webauthn-rs` 0.5.4 has a default dependency on `openssl` for some attestation certificate verification paths. Verify via `cargo tree` that this does not introduce `openssl-sys` into the PAM module (`pam-unix-oidc`). If it does, gate webauthn behind a feature flag and document that the PAM module never links openssl. The agent binary tolerates openssl as it is not a `cdylib`.
 
-2. **`mlock` and `RLIMIT_MEMLOCK`:** The default `RLIMIT_MEMLOCK` for unprivileged users on Linux is 64 KiB. A P-256 private key is 32 bytes; a page is 4 KiB. In practice, locking a single key consumes one page (4 KiB) against the limit. Handle `EPERM` (permission denied) and `ENOMEM` (would exceed limit) gracefully — lock if possible, log if not, never abort.
+2. **Challenge TTL enforcement is mandatory:** A `PasskeyAuthentication` state stored without TTL is a DoS vector (unbounded memory growth) and a replay vector (stale challenges are trivially completable by a resource-constrained attacker who captured a partial ceremony). moka's per-entry TTL at 60 s is the correct mechanism — do not implement a manual cleanup task.
 
-3. **`secmem-proc` in daemon startup:** `prctl(PR_SET_DUMPABLE, 0)` prevents `/proc/self/mem` reads and core dumps containing key material. Call this once at agent daemon startup, before key material is loaded. On macOS the equivalent is not available via this crate (platform-specific entitlements required).
+3. **CIBA `binding_message` prevents phishing:** Per OpenID CIBA Core §7.1, include a short human-readable `binding_message` (e.g., `"SSH login from bastion-01"`) in every `/bc-authorize` request. This message is displayed on the user's authentication device, allowing them to recognize and reject unexpected login attempts. This is security-critical, not optional.
 
-4. **PKCS#11 session thread safety:** `cryptoki` sessions are not `Send`. Each thread that performs signing operations must own its own session. For the agent daemon's async context, use `tokio::task::spawn_blocking` for all `cryptoki` calls.
+4. **oauth2 introspection SSRF guard:** Configure the `reqwest::Client` used for introspection with `redirect::Policy::none()`. An IdP redirecting the introspection endpoint to an attacker-controlled URL is a realistic misconfiguration attack.
 
-5. **TPM key non-exportability:** A TPM-resident key created with `sensitiveDataOrigin = true` and no `userWithAuth` duplication policy cannot be extracted from the TPM in usable form. This is the desired property — the private key never exists in process memory.
+5. **figment config file ownership:** The agent startup should `stat()` the config file and refuse to start if it is not owned by root (uid 0) or writable by non-root. A world-writable config file allows unprivileged users to downgrade security modes.
 
 ---
 
 ## Sources
 
-- crates.io API, keyring 3.6.3: https://crates.io/crates/keyring (fetched 2026-03-10)
-- crates.io API, zeroize 1.8.2: https://crates.io/crates/zeroize (fetched 2026-03-10)
-- crates.io API, yubikey 0.8.0: https://crates.io/crates/yubikey (fetched 2026-03-10)
-- crates.io API, tss-esapi 7.6.0: https://crates.io/crates/tss-esapi (fetched 2026-03-10)
-- crates.io API, cryptoki 0.12.0: https://crates.io/crates/cryptoki (fetched 2026-03-10)
-- crates.io API, memsec 0.7.0: https://crates.io/crates/memsec (fetched 2026-03-10)
-- crates.io API, secrecy 0.10.3: https://crates.io/crates/secrecy (fetched 2026-03-10)
-- crates.io API, secmem-proc 0.3.8: https://crates.io/crates/secmem-proc (fetched 2026-03-10)
-- crates.io API, linux-keyutils 0.2.4: https://crates.io/crates/linux-keyutils (fetched 2026-03-10)
-- keyring docs — Linux backends: https://docs.rs/keyring/latest/keyring/secret_service/index.html
-- keyring docs — keyutils module: https://docs.rs/keyring/latest/keyring/keyutils/index.html
-- yubikey.rs experimental/unaudited warning: https://github.com/iqlusioninc/yubikey.rs (README)
-- cryptoki Parsec community crate: https://github.com/parallaxsecond/rust-cryptoki
-- tss-esapi parallaxsecond: https://github.com/parallaxsecond/rust-tss-esapi
-- Ubuntu 22.04 tpm2-tss package (libtss2-esys 3.2.0): https://launchpad.net/ubuntu/jammy/+package/libtss2-esys-3.0.2-0
-- zeroize pitfall with move semantics: https://benma.github.io/2020/10/16/rust-zeroize-move.html
-- mlock(2) Linux manual page: https://man7.org/linux/man-pages/man2/mlock.2.html
-- RFC 9449 — DPoP: https://www.rfc-editor.org/rfc/rfc9449
+- crates.io `cargo search` output (verified 2026-03-10): webauthn-rs 0.5.4, oauth2 5.0.0, moka 0.12.14, figment 0.10.19, sd-notify 0.5.0, dashmap 7.0.0-rc2
+- webauthn-rs GitHub (kanidm/webauthn-rs) — SUSE audit, Level 3+ compliance, safe API recommendation: https://github.com/kanidm/webauthn-rs
+- webauthn-rs authentication use cases (step-up pattern): https://github.com/kanidm/webauthn-rs/blob/master/designs/authentication-use-cases.md
+- oauth2-rs RFC 7662 introspection PR merged: https://github.com/ramosbugs/oauth2-rs/pull/117
+- oauth2 5.0.0 docs (introspect, revoke, token response): https://docs.rs/oauth2/latest/oauth2/
+- moka 0.12.14 — no background threads, per-entry TTL, future::Cache: https://github.com/moka-rs/moka
+- OpenID Connect CIBA Core 1.0 — poll mode, bc-authorize, interval: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
+- RFC 9126 — Pushed Authorization Requests (PAR, distinct from CIBA): https://datatracker.ietf.org/doc/html/rfc9126
+- RFC 7662 — OAuth 2.0 Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662
+- RFC 7009 — OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
+- sd-notify 0.5.0 — pure Rust, no libsystemd: https://crates.io/crates/sd-notify
+- figment 0.10.19 — hierarchical config, TOML/env: https://crates.io/crates/figment
+- reqwest 0.11→0.12 TLS layer changes (migration caution): https://github.com/seanmonstar/reqwest/issues/2191
+
+---
+
+*Stack research for: unix-oidc v2.0 Production Hardening & Enterprise Readiness*
+*Researched: 2026-03-10*
