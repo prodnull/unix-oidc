@@ -28,12 +28,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An OAuth token (access, refresh, client secret) printed via `tracing::debug!` or `{:?}` appears as `[REDACTED]` rather than the raw value, because tokens are wrapped in `secrecy::Secret<String>`
   4. Running `unix-oidc-agent` on a system with existing file-stored credentials and then deleting them produces a random-overwrite + fsync + unlink sequence (not a simple file remove), and the agent logs a CoW advisory warning on btrfs/APFS
   5. The security rationale for memory protection decisions (mlock semantics, zeroize limitations, secrecy wrapper) is present in CLAUDE.md security invariants and the README security section
-**Plans**: 3 plans (2 waves)
+**Plans**: 4 plans (2 waves)
 
 Plans:
 - [x] 01-01: Add `zeroize` + `secrecy` to workspace; enable `p256` `zeroize` feature; wrap `SigningKey` in `ProtectedSigningKey` with `ZeroizeOnDrop` and `Option<MlockGuard>`
 - [x] 01-02: Wrap all `export_key()` return paths in `Zeroizing<Vec<u8>>`; wrap access/refresh/client-secret fields in `secrecy::Secret<String>`; add `secmem-proc` call at daemon startup
-- [ ] 01-03: Replace `FileStorage::delete()` with random-overwrite + fsync + unlink; add CoW advisory log; update CLAUDE.md and README security sections
+- [x] 01-03: Replace `FileStorage::delete()` with random-overwrite + fsync + unlink; add CoW advisory log; update CLAUDE.md and README security sections
+- [ ] 01-04: (gap closure) Wrap remaining refresh_token and client_secret in SecretString in main.rs and socket.rs
 
 ### Phase 2: Storage Backend Wiring
 **Goal**: The agent defaults to OS keyring storage, falls back to kernel keyutils on headless Linux, migrates existing file-stored credentials transparently, and reports its active backend on status
@@ -76,6 +77,6 @@ Phases execute in strict dependency order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Memory Protection Hardening | 3/3 | Complete   | 2026-03-10 |
+| 1. Memory Protection Hardening | 3/4 | Gap closure | - |
 | 2. Storage Backend Wiring | 0/3 | Not started | - |
 | 3. Hardware Signer Backends | 0/3 | Not started | - |
