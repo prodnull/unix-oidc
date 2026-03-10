@@ -63,12 +63,12 @@ Plans:
   3. Building the agent without any feature flags (`cargo build -p unix-oidc-agent`) succeeds and produces a binary with no YubiKey or TPM dependencies — the hardware features are purely additive optional flags
   4. A YubiKey session opens and closes PCSC per signing operation (no persistent handle held), so running `unix-oidc-agent login` concurrently with `gpg --card-status` does not deadlock or produce PCSC exclusive-lock errors
   5. The hardware key setup guide (YubiKey PIV provisioning, TPM enrollment, PCSC daemon requirements) is present in docs and covers the expected failure modes (PIN lockout, pcscd not running, TPM not present)
-**Plans**: TBD
+**Plans**: 3 plans (3 waves)
 
 Plans:
-- [ ] 03-01: Spike `cryptoki` 0.12.0 `CKM_ECDSA` raw-digest path for DPoP signing; validate JWS encoding round-trip; document findings; implement `YubiKeySigner: DPoPSigner` with open/sign/close PCSC pattern behind `--features yubikey`
-- [ ] 03-02: Implement `TpmSigner: DPoPSigner` via `tss-esapi` 7.6.0 behind `--features tpm`; add P-256 capability probe at provisioning time; mandate `tpm2-abrmd` TCTI
-- [ ] 03-03: Implement `HardwareSignerFactory` + `SignerConfig` YAML + `--signer` CLI flag (HW-06); write `#[ignore]` hardware integration tests; write hardware key setup docs (HW-07)
+- [ ] 03-01-PLAN.md — Refactor DPoP proof generation for external signers; implement YubiKeySigner via PKCS#11 behind --features yubikey
+- [ ] 03-02-PLAN.md — Implement TpmSigner via tss-esapi behind --features tpm with P-256 capability probe
+- [ ] 03-03-PLAN.md — Wire hardware signers into CLI (provision + --signer flag), persist signer type, write setup docs
 
 ## Progress
 
