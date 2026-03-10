@@ -26,16 +26,27 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 
 ### Active
 
-(No active milestone — run `/gsd:new-milestone` to plan next work)
+## Current Milestone: v2.0 Production Hardening & Enterprise Readiness
+
+**Goal:** Eliminate every security gap, doc/code mismatch, and operational deficiency to make unix-oidc production-deployable at enterprise scale.
+
+**Target features:**
+- PAM panic elimination and server-side DPoP nonce issuance (RFC 9449 §8)
+- Configurable security modes (Issue #10: strict/warn/disabled)
+- IdP-agnostic step-up with Push (CIBA) and FIDO2 (WebAuthn) methods
+- Full session lifecycle (introspection, revocation, session store)
+- Username mapping, group-based policies, break-glass enforcement
+- Configurable timeouts, IPC hardening, automatic token refresh
+- Operational readiness (systemd/launchd, tracing spans, audit fixes)
 
 ### Out of Scope
 
-- Distributed JTI cache (Redis) — server-side concern, different milestone
-- RwLock panic hardening in PAM module — important but orthogonal to client-side keys
-- Token revocation API — requires IdP-side work, separate milestone
-- Configurable security modes (Issue #10) — server-side policy, separate milestone
-- Agent forwarding — anti-feature: breaks PAM non-interactive model and threat model
+- Distributed JTI cache (Redis) — separate scalability milestone
+- Token exchange use cases — separate v2.1+ milestone
+- VDI/agent forwarding — anti-feature: breaks PAM non-interactive model and threat model
 - Interactive PIN during PAM auth — anti-feature: PAM is non-interactive by design
+- SCIM provisioning — separate provisioning milestone
+- Post-quantum migration — watching NIST standardization timeline
 
 ## Context
 
@@ -65,4 +76,4 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 - **Hardware**: YubiKey requires pcscd; TPM requires tpm2-abrmd; both Linux-only for TPM
 
 ---
-*Last updated: 2026-03-10 after v1.0 milestone*
+*Last updated: 2026-03-10 after v2.0 milestone start*
