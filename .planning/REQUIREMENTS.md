@@ -9,10 +9,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Memory Protection
 
-- [ ] **MEM-01**: All key export paths return `Zeroizing<Vec<u8>>` instead of raw `Vec<u8>`
-- [ ] **MEM-02**: `p256` crate built with `zeroize` feature enabling `ZeroizeOnDrop` on `SigningKey`
+- [x] **MEM-01**: All key export paths return `Zeroizing<Vec<u8>>` instead of raw `Vec<u8>`
+- [x] **MEM-02**: `p256` crate built with `zeroize` feature enabling `ZeroizeOnDrop` on `SigningKey`
 - [x] **MEM-03**: In-memory OAuth tokens wrapped in `secrecy::Secret<String>` (access token, refresh token, client secret)
-- [ ] **MEM-04**: Key material pages locked via `libc::mlock` with best-effort semantics (warn on `EPERM`/`ENOMEM`, never fatal)
+- [x] **MEM-04**: Key material pages locked via `libc::mlock` with best-effort semantics (warn on `EPERM`/`ENOMEM`, never fatal)
 - [x] **MEM-05**: Key material allocated on heap only (`Box`/`Arc`), never passed by value across function boundaries, to prevent unzeroized stack copies
 - [x] **MEM-06**: Documentation updated with memory protection design rationale and limitations (CLAUDE.md security invariants, README security section)
 
@@ -72,10 +72,10 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MEM-01 | Phase 1, Phase 5 | Pending |
-| MEM-02 | Phase 1, Phase 5 | Pending |
+| MEM-01 | Phase 1, Phase 5 | Complete |
+| MEM-02 | Phase 1, Phase 5 | Complete |
 | MEM-03 | Phase 1 | Complete |
-| MEM-04 | Phase 1, Phase 5 | Pending |
+| MEM-04 | Phase 1, Phase 5 | Complete |
 | MEM-05 | Phase 1 | Complete |
 | MEM-06 | Phase 1 | Complete |
 | STOR-01 | Phase 2 | Complete |
@@ -95,11 +95,11 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 **Coverage:**
 - v1 requirements: 20 total
-- Complete: 14
-- Pending (gap closure): 6 (MEM-01, MEM-02, MEM-04 → Phase 5; HW-01, HW-02, HW-06 → Phase 4)
+- Complete: 20
+- Pending: 0
 - Mapped to phases: 20
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after roadmap finalization*
+*Last updated: 2026-03-10 after Phase 5 audit documentation cleanup*
