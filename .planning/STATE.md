@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Completed 07-dpop-nonce-issuance-01-PLAN.md
-last_updated: "2026-03-10T23:17:44.043Z"
+stopped_at: "Checkpoint: human-verify 07-02 (Task 2)"
+last_updated: "2026-03-10T23:23:36.772Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P02 | 270 | 1 tasks | 2 files |
 | Phase 06 P03 | 803 | 2 tasks | 4 files |
 | Phase 07-dpop-nonce-issuance P01 | 45 | 2 tasks | 7 files |
+| Phase 07-dpop-nonce-issuance P02 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase 07-dpop-nonce-issuance]: moka Cache.remove() is atomic single-use primitive for nonce consume; no TOCTOU
 - [Phase 07-dpop-nonce-issuance]: validate_dpop_proof() returns DPoPProofResult{thumbprint,nonce} to decouple binding check from cache consumption
 - [Phase 07-dpop-nonce-issuance]: Nonce replay is always hard-fail; missing nonce enforcement respects dpop_required mode (strict/warn/disabled)
+- [Phase 07-dpop-nonce-issuance]: Safe-default Strict enforcement when policy file absent; orphaned nonces expire via TTL; single auth dispatch routes both strict+no-proof and has-proof through authenticate_with_dpop()
 
 ### Pending Todos
 
@@ -88,6 +90,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-10T23:17:44.041Z
-Stopped at: Completed 07-dpop-nonce-issuance-01-PLAN.md
+Last session: 2026-03-10T23:23:36.770Z
+Stopped at: Checkpoint: human-verify 07-02 (Task 2)
 Resume file: None

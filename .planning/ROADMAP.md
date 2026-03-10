@@ -27,7 +27,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Testing mandate:** Every phase must include comprehensive tests for both happy paths and adversarial inputs. Security features require negative tests (malformed tokens, replayed nonces, forged claims, timing attacks, resource exhaustion). Plans must allocate explicit testing tasks — not just implementation.
 
 - [x] **Phase 6: PAM Panic Elimination + Security Mode Infrastructure** - Remove all `.expect()`/`.unwrap()` from PAM-reachable paths and wire configurable strict/warn/disabled enforcement modes (completed 2026-03-10)
-- [ ] **Phase 7: DPoP Nonce Issuance** - Implement server-side DPoP nonces per RFC 9449 §8 to close the proof-replay window
+- [x] **Phase 7: DPoP Nonce Issuance** - Implement server-side DPoP nonces per RFC 9449 §8 to close the proof-replay window (completed 2026-03-10)
 - [ ] **Phase 8: Username Mapping + Group Policy + Break-Glass** - Enterprise identity integration: claim transforms, group-based access control, and break-glass enforcement
 - [ ] **Phase 9: Token Introspection + Session Lifecycle + Token Refresh** - Full session management: RFC 7662 introspection, open/close session records, RFC 7009 revocation, and automatic token refresh
 - [ ] **Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation** - IdP-agnostic step-up authentication via CIBA poll mode and FIDO2 through phishing-resistant ACR claim delegation
@@ -60,7 +60,7 @@ Plans:
   1. A DPoP proof replayed after its nonce has been consumed is rejected with a distinct error, even if the proof's `iat`/`exp` and JTI are valid
   2. Each PAM authentication challenge carries a server-generated nonce that the client must include in its DPoP proof
   3. Nonces expire after 60 seconds; a proof bearing an expired nonce is rejected
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — DPoP nonce cache (moka-backed), nonce generation, CacheConfig extension, enforcement mode threading (SEC-05, SEC-06)
@@ -124,7 +124,7 @@ Plans:
 | 4. Fix Hardware Signer Refresh Persistence | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
-| 7. DPoP Nonce Issuance | 1/2 | In Progress|  | - |
+| 7. DPoP Nonce Issuance | 2/2 | Complete   | 2026-03-10 | - |
 | 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 0/? | Not started | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/? | Not started | - |
