@@ -70,6 +70,22 @@ Plans:
 - [ ] 03-02-PLAN.md — Implement TpmSigner via tss-esapi behind --features tpm with P-256 capability probe
 - [ ] 03-03-PLAN.md — Wire hardware signers into CLI (provision + --signer flag), persist signer type, write setup docs
 
+### Phase 4: Fix Hardware Signer Refresh Persistence
+**Goal**: Token refresh preserves signer_type metadata so hardware signer users retain their DPoP binding across refresh + daemon restart cycles
+**Depends on**: Phase 3
+**Requirements**: HW-01, HW-02, HW-06
+**Gap Closure:** Closes integration gap (signer_type dropped on refresh) and E2E flow gap (hardware refresh broken) from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. After `login --signer yubikey` → token refresh → daemon restart, the loaded metadata contains `signer_type: "yubikey"` and the daemon uses the hardware signer path
+  2. Both `run_refresh()` in main.rs and `perform_token_refresh()` in socket.rs forward `signer_type` from original metadata to `updated_metadata`
+  3. A regression test verifies signer_type survives a simulated refresh cycle
+
+### Phase 5: Audit Documentation Cleanup
+**Goal**: Resolve all documentation-only gaps identified by the v1.0 milestone audit — SUMMARY frontmatter, ROADMAP checkboxes, and requirement partial statuses
+**Depends on**: None (documentation only)
+**Requirements**: MEM-01, MEM-02, MEM-04
+**Gap Closure:** Closes SUMMARY frontmatter omissions in plans 01-01/01-02 and ROADMAP checkbox inaccuracies across all 3 phases from v1.0 audit
+
 ## Progress
 
 **Execution Order:**
@@ -80,3 +96,5 @@ Phases execute in strict dependency order: 1 → 2 → 3
 | 1. Memory Protection Hardening | 4/4 | Complete   | 2026-03-10 |
 | 2. Storage Backend Wiring | 3/3 | Complete   | 2026-03-10 |
 | 3. Hardware Signer Backends | 3/3 | Complete   | 2026-03-10 |
+| 4. Fix Hardware Signer Refresh Persistence | 0/0 | Pending | — |
+| 5. Audit Documentation Cleanup | 0/0 | Pending | — |

@@ -9,10 +9,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Memory Protection
 
-- [x] **MEM-01**: All key export paths return `Zeroizing<Vec<u8>>` instead of raw `Vec<u8>`
-- [x] **MEM-02**: `p256` crate built with `zeroize` feature enabling `ZeroizeOnDrop` on `SigningKey`
+- [ ] **MEM-01**: All key export paths return `Zeroizing<Vec<u8>>` instead of raw `Vec<u8>`
+- [ ] **MEM-02**: `p256` crate built with `zeroize` feature enabling `ZeroizeOnDrop` on `SigningKey`
 - [x] **MEM-03**: In-memory OAuth tokens wrapped in `secrecy::Secret<String>` (access token, refresh token, client secret)
-- [x] **MEM-04**: Key material pages locked via `libc::mlock` with best-effort semantics (warn on `EPERM`/`ENOMEM`, never fatal)
+- [ ] **MEM-04**: Key material pages locked via `libc::mlock` with best-effort semantics (warn on `EPERM`/`ENOMEM`, never fatal)
 - [x] **MEM-05**: Key material allocated on heap only (`Box`/`Arc`), never passed by value across function boundaries, to prevent unzeroized stack copies
 - [x] **MEM-06**: Documentation updated with memory protection design rationale and limitations (CLAUDE.md security invariants, README security section)
 
@@ -28,12 +28,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Hardware Key Backends
 
-- [x] **HW-01**: `YubiKeySigner` implementing `DPoPSigner` trait via `cryptoki` 0.12 (PKCS#11) with P-256 ECDSA signing
-- [x] **HW-02**: `TpmSigner` implementing `DPoPSigner` trait via `tss-esapi` 7.6 with P-256 ECDSA signing
+- [ ] **HW-01**: `YubiKeySigner` implementing `DPoPSigner` trait via `cryptoki` 0.12 (PKCS#11) with P-256 ECDSA signing
+- [ ] **HW-02**: `TpmSigner` implementing `DPoPSigner` trait via `tss-esapi` 7.6 with P-256 ECDSA signing
 - [x] **HW-03**: Both backends gated behind optional cargo features (`yubikey`, `tpm`) to avoid bloating base build
 - [x] **HW-04**: YubiKey uses open-sign-close PCSC pattern (no persistent handle) to avoid blocking other applications
 - [x] **HW-05**: TPM probes P-256 capability at provisioning time with clear error if unsupported
-- [x] **HW-06**: `unix-oidc-agent login --signer yubikey|tpm|software` CLI flag for backend selection
+- [ ] **HW-06**: `unix-oidc-agent login --signer yubikey|tpm|software` CLI flag for backend selection
 - [x] **HW-07**: Documentation updated with hardware key setup guides (YubiKey PIV provisioning, TPM enrollment), PCSC daemon requirements, and troubleshooting
 
 ## v2 Requirements
@@ -72,10 +72,10 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MEM-01 | Phase 1 | Complete |
-| MEM-02 | Phase 1 | Complete |
+| MEM-01 | Phase 1, Phase 5 | Pending |
+| MEM-02 | Phase 1, Phase 5 | Pending |
 | MEM-03 | Phase 1 | Complete |
-| MEM-04 | Phase 1 | Complete |
+| MEM-04 | Phase 1, Phase 5 | Pending |
 | MEM-05 | Phase 1 | Complete |
 | MEM-06 | Phase 1 | Complete |
 | STOR-01 | Phase 2 | Complete |
@@ -85,16 +85,18 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | STOR-05 | Phase 2 | Complete |
 | STOR-06 | Phase 2 | Complete |
 | STOR-07 | Phase 2 | Complete |
-| HW-01 | Phase 3 | Complete |
-| HW-02 | Phase 3 | Complete |
+| HW-01 | Phase 3, Phase 4 | Pending |
+| HW-02 | Phase 3, Phase 4 | Pending |
 | HW-03 | Phase 3 | Complete |
 | HW-04 | Phase 3 | Complete |
 | HW-05 | Phase 3 | Complete |
-| HW-06 | Phase 3 | Complete |
+| HW-06 | Phase 3, Phase 4 | Pending |
 | HW-07 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
+- Complete: 14
+- Pending (gap closure): 6 (MEM-01, MEM-02, MEM-04 → Phase 5; HW-01, HW-02, HW-06 → Phase 4)
 - Mapped to phases: 20
 - Unmapped: 0
 
