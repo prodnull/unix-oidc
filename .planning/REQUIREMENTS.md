@@ -44,8 +44,8 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **STP-02**: CIBA binding_message carries the command being authorized for phishing context
 - [x] **STP-03**: CIBA backchannel discovery from IdP OIDC metadata (backchannel_authentication_endpoint)
 - [x] **STP-04**: FIDO2 step-up via CIBA ACR delegation (request phishing-resistant ACR from IdP)
-- [ ] **STP-05**: Step-up IPC protocol extensions (StepUp, StepUpPending, StepUpComplete messages)
-- [ ] **STP-06**: IdP discovery-based endpoint resolution replacing Keycloak-hardcoded device flow URLs
+- [x] **STP-05**: Step-up IPC protocol extensions (StepUp, StepUpPending, StepUpComplete messages)
+- [x] **STP-06**: IdP discovery-based endpoint resolution replacing Keycloak-hardcoded device flow URLs
 - [ ] **STP-07**: Configurable step-up timeout for CIBA polling (default 120s)
 
 ### Operational Readiness
@@ -129,8 +129,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STP-02 | Phase 10 | Complete |
 | STP-03 | Phase 10 | Complete |
 | STP-04 | Phase 10 | Complete |
-| STP-05 | Phase 10 | Pending |
-| STP-06 | Phase 10 | Pending |
+| STP-05 | Phase 10 | Complete |
+| STP-06 | Phase 10 | Complete |
 | STP-07 | Phase 10 | Pending |
 | OPS-01 | Phase 11 | Pending |
 | OPS-02 | Phase 11 | Pending |

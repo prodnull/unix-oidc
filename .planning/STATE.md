@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-11T03:36:39.684Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-11T03:38:32.105Z"
 last_activity: 2026-03-11 — Phases 6-9 complete; Phase 10 next
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 67
 ---
 
@@ -63,6 +63,7 @@ Progress: [██████░░░░] 67%
 | Phase 09 P02 | 259 | 2 tasks | 4 files |
 | Phase 09 P03 | 600 | 2 tasks | 4 files |
 | Phase 10-ciba-step-up-fido2-acr-delegation P01 | 10 | 2 tasks | 5 files |
+| Phase 10-ciba-step-up-fido2-acr-delegation P02 | 277 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase 10-01]: ACR validation hard-fail always (no EnforcementMode) — security invariant; phrh satisfies phr but not reverse
 - [Phase 10-01]: CibaClient is parameter-builder only, no HTTP — keeps PAM crate free of async I/O for CIBA
 - [Phase 10-01]: CIBA_GRANT_TYPE uses urn:openid:params not urn:ietf:params per CIBA Core 1.0 §2; binding_message strips args for security
+- [Phase 10-ciba-step-up-fido2-acr-delegation]: StepUpPending placed before Refreshed in untagged AgentResponseData — both have expires_in; unique poll_interval_secs field discriminates correctly when tried first
+- [Phase 10-ciba-step-up-fido2-acr-delegation]: DeviceFlowClient::from_discovery() is IdP-agnostic constructor using OIDC discovery endpoints; from_discovery() preferred over new() for all non-Keycloak IdPs
 
 ### Pending Todos
 
@@ -117,6 +120,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T03:36:39.682Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-11T03:38:32.102Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
