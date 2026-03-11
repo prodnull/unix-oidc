@@ -64,10 +64,10 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Operational Readiness
 
-- [ ] **OPS-01**: systemd user service unit with hardening directives (NoNewPrivileges, ProtectSystem, MemoryDenyWriteExecute)
-- [ ] **OPS-02**: systemd socket activation support with standalone fallback
+- [x] **OPS-01**: systemd user service unit with hardening directives (NoNewPrivileges, ProtectSystem, MemoryDenyWriteExecute)
+- [x] **OPS-02**: systemd socket activation support with standalone fallback
 - [ ] **OPS-03**: launchd plist template for macOS agent daemon
-- [ ] **OPS-04**: sd-notify READY=1 after socket bind + config validation + initial JWKS fetch
+- [x] **OPS-04**: sd-notify READY=1 after socket bind + config validation + initial JWKS fetch
 - [ ] **OPS-05**: SO_PEERCRED (Linux) / getpeereid (macOS) peer UID validation on IPC socket
 - [ ] **OPS-06**: IPC idle timeout (configurable, default 60s) to prevent Tokio task leaks
 - [x] **OPS-07**: Configurable JWKS HTTP timeout (default 10s, operator-tunable)
@@ -154,10 +154,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INT-02 | Phase 12 | Pending |
 | INT-03 | Phase 12 | Pending |
 | INT-04 | Phase 12 | Pending |
-| OPS-01 | Phase 13 | Pending |
-| OPS-02 | Phase 13 | Pending |
+| OPS-01 | Phase 13 | Complete |
+| OPS-02 | Phase 13 | Complete |
 | OPS-03 | Phase 13 | Pending |
-| OPS-04 | Phase 13 | Pending |
+| OPS-04 | Phase 13 | Complete |
 | OPS-05 | Phase 13 | Pending |
 | OPS-06 | Phase 13 | Pending |
 | OPS-07 | Phase 13 | Complete |
