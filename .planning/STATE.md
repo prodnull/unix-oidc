@@ -103,6 +103,7 @@ Recent decisions affecting current work:
 ### Pending Todos
 
 - [Global]: Every phase must include adversarial/negative tests (malformed tokens, replayed nonces, forged claims, timing attacks, resource exhaustion) — not just happy-path tests
+- [Docs]: Create `docs/standards-compliance-matrix.md` — centralized RFC/NIST/standards tracker for publications (whitepapers, conference talks, WG outreach, blog posts). Currently refs scattered across ADRs, code comments, security guide, REQUIREMENTS.md. Need section-level RFC coverage map, NIST/SOC2 cross-refs, implementation status. `docs/ietf/` dir exists but empty. Full inventory in project memory `standards-tracking.md`.
 
 ### Blockers/Concerns
 
