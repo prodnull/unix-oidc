@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-11T00:01:12.217Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-11T00:44:29.228Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-dpop-nonce-issuance P01 | 45 | 2 tasks | 7 files |
 | Phase 07-dpop-nonce-issuance P02 | 3 | 1 tasks | 1 files |
 | Phase 07-dpop-nonce-issuance P02 | 3 | 2 tasks | 1 files |
+| Phase 08-username-mapping-group-policy-break-glass P01 | 560 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 07-dpop-nonce-issuance]: Nonce replay is always hard-fail; missing nonce enforcement respects dpop_required mode (strict/warn/disabled)
 - [Phase 07-dpop-nonce-issuance]: Safe-default Strict enforcement when policy file absent; orphaned nonces expire via TTL; single auth dispatch routes both strict+no-proof and has-proof through authenticate_with_dpop()
 - [Phase 07-dpop-nonce-issuance]: issue_and_deliver_nonce() extracted as named helper in lib.rs; orphaned nonces handled by TTL eviction; dpop_proof.is_some() || mode==Strict routes both cases through authenticate_with_dpop()
+- [Phase 08-01]: Groups resolved from NSS (SSSD/FreeIPA), never from token claims — avoids Entra group overage and multi-IdP format inconsistencies
+- [Phase 08-01]: groups_enforcement defaults to Warn; empty allowed_groups always permits (backward compat invariant for v1.0 deployments)
+- [Phase 08-01]: Regex (?P<username>...) validated at config load (not auth time); macOS getgrouplist returns Some for unknown users — enforcement-mode logic tested via simulation helper
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T00:01:12.212Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-username-mapping-group-policy-break-glass/08-CONTEXT.md
+Last session: 2026-03-11T00:44:29.226Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None

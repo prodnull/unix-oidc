@@ -19,13 +19,13 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Enterprise Identity
 
-- [ ] **IDN-01**: Username claim mapping with configurable claim source (sub, email, preferred_username, custom)
-- [ ] **IDN-02**: Username transform functions (strip domain suffix, regex with capture group, lowercase)
-- [ ] **IDN-03**: Username uniqueness validation at config load time to prevent many-to-one collisions
-- [ ] **IDN-04**: Group-based login access policy from OIDC groups claim with configurable allow-list
-- [ ] **IDN-05**: Group-based sudo access policy (sudo_groups) gating step-up authorization
-- [ ] **IDN-06**: Break-glass account enforcement — skip OIDC for configured accounts, pass to next PAM module
-- [ ] **IDN-07**: Break-glass audit event emitted on every break-glass authentication
+- [x] **IDN-01**: Username claim mapping with configurable claim source (sub, email, preferred_username, custom)
+- [x] **IDN-02**: Username transform functions (strip domain suffix, regex with capture group, lowercase)
+- [x] **IDN-03**: Username uniqueness validation at config load time to prevent many-to-one collisions
+- [x] **IDN-04**: Group-based login access policy from OIDC groups claim with configurable allow-list
+- [x] **IDN-05**: Group-based sudo access policy (sudo_groups) gating step-up authorization
+- [x] **IDN-06**: Break-glass account enforcement — skip OIDC for configured accounts, pass to next PAM module
+- [x] **IDN-07**: Break-glass audit event emitted on every break-glass authentication
 
 ### Session & Token Lifecycle
 
@@ -110,13 +110,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-07 | Phase 6 | Complete |
 | SEC-05 | Phase 7 | Complete |
 | SEC-06 | Phase 7 | Complete |
-| IDN-01 | Phase 8 | Pending |
-| IDN-02 | Phase 8 | Pending |
-| IDN-03 | Phase 8 | Pending |
-| IDN-04 | Phase 8 | Pending |
-| IDN-05 | Phase 8 | Pending |
-| IDN-06 | Phase 8 | Pending |
-| IDN-07 | Phase 8 | Pending |
+| IDN-01 | Phase 8 | Complete |
+| IDN-02 | Phase 8 | Complete |
+| IDN-03 | Phase 8 | Complete |
+| IDN-04 | Phase 8 | Complete |
+| IDN-05 | Phase 8 | Complete |
+| IDN-06 | Phase 8 | Complete |
+| IDN-07 | Phase 8 | Complete |
 | SES-01 | Phase 9 | Pending |
 | SES-02 | Phase 9 | Pending |
 | SES-03 | Phase 9 | Pending |
