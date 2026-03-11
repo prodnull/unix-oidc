@@ -155,7 +155,14 @@ Plans:
   3. An operator can set `jwks_cache_ttl_secs = 600` in config and verify via structured logs that JWKS fetches occur at that interval
   4. A complete authentication flow (JWKS fetch → token validation → DPoP verify → user lookup) produces correlated tracing spans visible in a single trace
   5. The macOS agent daemon starts automatically at login via the provided launchd plist without manual configuration
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Configurable timeouts (figment) + audit hostname fix (OPS-07, OPS-08, OPS-09, OPS-10, OPS-12)
+- [ ] 13-02-PLAN.md — systemd service units + socket activation + sd-notify + graceful shutdown (OPS-01, OPS-02, OPS-04)
+- [ ] 13-03-PLAN.md — IPC peer authentication + idle timeout (OPS-05, OPS-06)
+- [ ] 13-04-PLAN.md — launchd plist template + install/uninstall subcommands (OPS-03)
+- [ ] 13-05-PLAN.md — Tracing instrumentation + JSON output + GetProof logging (OPS-11, OPS-13)
 
 ## Progress
 
@@ -173,4 +180,4 @@ Plans:
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | 3/3 | Complete   | 2026-03-11 | - |
 | 11. Implementation Completion | 1/2 | In Progress|  | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
-| 13. Operational Hardening | v2.0 | 0/? | Not started | - |
+| 13. Operational Hardening | v2.0 | 0/5 | Planned | - |
