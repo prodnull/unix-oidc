@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-11T01:37:19.931Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-11T02:14:45.001Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 11
+  completed_plans: 9
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08-username-mapping-group-policy-break-glass P01 | 560 | 3 tasks | 10 files |
 | Phase 08-username-mapping-group-policy-break-glass P02 | 310 | 2 tasks | 3 files |
 | Phase 08-username-mapping-group-policy-break-glass P03 | 252 | 2 tasks | 3 files |
+| Phase 09 P01 | 428 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 08-01]: Regex (?P<username>...) validated at config load (not auth time); macOS getgrouplist returns Some for unknown users — enforcement-mode logic tested via simulation helper
 - [Phase 08-02]: Break-glass check is unconditionally FIRST in authenticate() before rate limiting; authenticate_with_config gains optional mapper param (None=backward compat); sudo group check before device flow initiation; empty sudo_groups skips NSS lookup
 - [Phase 08-username-mapping-group-policy-break-glass]: check_collision_safety() hard-fail gatekeeper wraps validate_collision_safety() warnings as Err — single source of heuristics, unconditional non-configurable fail same class as signature verification
+- [Phase 09]: Session correlation via PAM putenv/getenv is best-effort: failure never fails auth; AuthResult gains token_exp and token_issuer fields for open_session use
+- [Phase 09]: Session records 0600 root; session directory 0700 root; atomic write-then-rename on same filesystem; path-traversal validation on session_id
+- [Phase 09]: notify_agent_session_closed uses blocking std UnixStream with 2s timeout; socket via UNIX_OIDC_AGENT_SOCKET env or XDG_RUNTIME_DIR fallback
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T01:37:19.922Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-token-introspection-session-lifecycle-token-refresh/09-CONTEXT.md
+Last session: 2026-03-11T02:14:44.999Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: None
