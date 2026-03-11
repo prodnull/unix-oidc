@@ -33,7 +33,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation** - IdP-agnostic step-up authentication via CIBA poll mode and FIDO2 through phishing-resistant ACR claim delegation (completed 2026-03-11)
 - [ ] **Phase 11: Implementation Completion** - Wire existing but unwired test assets into CI, fill DPoP-bound token E2E gaps, cross-language interop in CI, agent daemon lifecycle test
 - [ ] **Phase 12: Rigorous Integration Testing** - CIBA live IdP test infrastructure, step-up IPC full-flow, break-glass fallback, FIDO2 authenticator simulation
-- [ ] **Phase 13: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes
+- [x] **Phase 13: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes (completed 2026-03-11)
 
 ## Phase Details
 
@@ -155,7 +155,7 @@ Plans:
   3. An operator can set `jwks_cache_ttl_secs = 600` in config and verify via structured logs that JWKS fetches occur at that interval
   4. A complete authentication flow (JWKS fetch → token validation → DPoP verify → user lookup) produces correlated tracing spans visible in a single trace
   5. The macOS agent daemon starts automatically at login via the provided launchd plist without manual configuration
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [ ] 13-01-PLAN.md — Configurable timeouts (figment) + audit hostname fix (OPS-07, OPS-08, OPS-09, OPS-10, OPS-12)
@@ -180,4 +180,4 @@ Plans:
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | 3/3 | Complete   | 2026-03-11 | - |
 | 11. Implementation Completion | 1/2 | In Progress|  | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
-| 13. Operational Hardening | 4/5 | In Progress|  | - |
+| 13. Operational Hardening | 5/5 | Complete   | 2026-03-11 | - |

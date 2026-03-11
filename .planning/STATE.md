@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: executing
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-03-11T12:30:19.583Z"
+stopped_at: Completed 13-05-PLAN.md
+last_updated: "2026-03-11T12:39:14.146Z"
 last_activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
   percent: 100
 ---
 
@@ -71,6 +71,7 @@ Progress: [██████████] 100%
 | Phase 13-operational-hardening P02 | 8 | 2 tasks | 6 files |
 | Phase 13-operational-hardening P04 | 9 | 2 tasks | 3 files |
 | Phase 13 P03 | 331 | 2 tasks | 4 files |
+| Phase 13-operational-hardening P05 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,7 @@ Recent decisions affecting current work:
 - [Phase 13-operational-hardening]: launchd_socket::take() returns None on ESRCH (not under launchd) — fallthrough to standalone is correct behavior
 - [Phase 13]: idle_timeout stored in AgentServer as Duration field with with_idle_timeout() builder; default 60s; per-read timeout (not per-connection total) wraps each read_line call
 - [Phase 13]: main.rs captures ipc_idle_timeout_secs from AgentConfig::load() at Gate 2; fallback to 60s if config load fails
+- [Phase 13]: init_tracing() uses try_init() — prevents double-registration panics; tracing-journald gated to Linux cfg; peer_pid forwarded to handle_connection (no second syscall); extract_jwk_from_proof() NOT instrumented (untrusted input); GetProof INFO log emitted before signer check
 
 ### Pending Todos
 
@@ -143,6 +145,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T12:30:19.580Z
-Stopped at: Completed 13-03-PLAN.md
+Last session: 2026-03-11T12:39:14.143Z
+Stopped at: Completed 13-05-PLAN.md
 Resume file: None

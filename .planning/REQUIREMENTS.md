@@ -74,9 +74,9 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **OPS-08**: Configurable device flow HTTP timeout (default 30s, operator-tunable)
 - [x] **OPS-09**: Configurable clock skew tolerance (default 5s future / 60s staleness)
 - [x] **OPS-10**: Configurable JWKS cache TTL wired to env var (default 300s)
-- [ ] **OPS-11**: Tracing spans across full authentication flow (JWKS fetch, validation, DPoP verify, user lookup)
+- [x] **OPS-11**: Tracing spans across full authentication flow (JWKS fetch, validation, DPoP verify, user lookup)
 - [x] **OPS-12**: Audit hostname resolution via gethostname() syscall instead of env vars
-- [ ] **OPS-13**: Proof request logging at INFO level (username, target, signer type)
+- [x] **OPS-13**: Proof request logging at INFO level (username, target, signer type)
 
 ## Future Requirements (v2.1+)
 
@@ -164,9 +164,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-08 | Phase 13 | Complete |
 | OPS-09 | Phase 13 | Complete |
 | OPS-10 | Phase 13 | Complete |
-| OPS-11 | Phase 13 | Pending |
+| OPS-11 | Phase 13 | Complete |
 | OPS-12 | Phase 13 | Complete |
-| OPS-13 | Phase 13 | Pending |
+| OPS-13 | Phase 13 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 50 total
