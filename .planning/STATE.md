@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Phases 6-9 complete, Phase 8 bookkeeping fixed
-last_updated: "2026-03-11T03:00:00.000Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-03-11T03:36:39.684Z"
 last_activity: 2026-03-11 — Phases 6-9 complete; Phase 10 next
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 14
+  completed_plans: 12
   percent: 67
 ---
 
@@ -62,6 +62,7 @@ Progress: [██████░░░░] 67%
 | Phase 09 P01 | 428 | 2 tasks | 5 files |
 | Phase 09 P02 | 259 | 2 tasks | 4 files |
 | Phase 09 P03 | 600 | 2 tasks | 4 files |
+| Phase 10-ciba-step-up-fido2-acr-delegation P01 | 10 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,10 @@ Recent decisions affecting current work:
 - [Phase 09]: SessionAcknowledged uses acknowledged:bool discriminant field + placed before Ok{} in untagged AgentResponseData enum to prevent serde collision
 - [Phase 09]: spawn_refresh_task() exported pub; cleanup_session() is module-private — only handle_connection calls it
 - [Phase 09]: revocation_endpoint stored in token metadata at login (from OIDC discovery) and preserved across refresh — cleanup_session() reads without re-discovery
+- [Phase 10-01]: OidcDiscovery made pub with token_endpoint required and all CIBA/device-flow fields optional via serde(default)
+- [Phase 10-01]: ACR validation hard-fail always (no EnforcementMode) — security invariant; phrh satisfies phr but not reverse
+- [Phase 10-01]: CibaClient is parameter-builder only, no HTTP — keeps PAM crate free of async I/O for CIBA
+- [Phase 10-01]: CIBA_GRANT_TYPE uses urn:openid:params not urn:ietf:params per CIBA Core 1.0 §2; binding_message strips args for security
 
 ### Pending Todos
 
@@ -112,6 +117,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T02:27:34.729Z
-Stopped at: Completed 09-03-PLAN.md
+Last session: 2026-03-11T03:36:39.682Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None

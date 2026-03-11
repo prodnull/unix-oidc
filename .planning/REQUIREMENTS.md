@@ -41,9 +41,9 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 ### Step-Up Authentication
 
 - [ ] **STP-01**: CIBA poll-mode step-up implemented in agent daemon (not PAM thread)
-- [ ] **STP-02**: CIBA binding_message carries the command being authorized for phishing context
-- [ ] **STP-03**: CIBA backchannel discovery from IdP OIDC metadata (backchannel_authentication_endpoint)
-- [ ] **STP-04**: FIDO2 step-up via CIBA ACR delegation (request phishing-resistant ACR from IdP)
+- [x] **STP-02**: CIBA binding_message carries the command being authorized for phishing context
+- [x] **STP-03**: CIBA backchannel discovery from IdP OIDC metadata (backchannel_authentication_endpoint)
+- [x] **STP-04**: FIDO2 step-up via CIBA ACR delegation (request phishing-resistant ACR from IdP)
 - [ ] **STP-05**: Step-up IPC protocol extensions (StepUp, StepUpPending, StepUpComplete messages)
 - [ ] **STP-06**: IdP discovery-based endpoint resolution replacing Keycloak-hardcoded device flow URLs
 - [ ] **STP-07**: Configurable step-up timeout for CIBA polling (default 120s)
@@ -126,9 +126,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SES-07 | Phase 9 | Complete |
 | SES-08 | Phase 9 | Complete |
 | STP-01 | Phase 10 | Pending |
-| STP-02 | Phase 10 | Pending |
-| STP-03 | Phase 10 | Pending |
-| STP-04 | Phase 10 | Pending |
+| STP-02 | Phase 10 | Complete |
+| STP-03 | Phase 10 | Complete |
+| STP-04 | Phase 10 | Complete |
 | STP-05 | Phase 10 | Pending |
 | STP-06 | Phase 10 | Pending |
 | STP-07 | Phase 10 | Pending |

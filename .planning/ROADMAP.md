@@ -110,7 +110,7 @@ Plans:
   3. The CIBA backchannel endpoint is discovered from the IdP's OIDC metadata, not hardcoded to a Keycloak URL
   4. Configuring `step_up_method = "fido2"` triggers a CIBA request with a phishing-resistant ACR value; the resulting token's `acr` claim is validated to confirm the IdP honored the request
   5. When a step-up request times out, the `sudo` attempt is denied and the user sees an actionable message
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 10-01-PLAN.md — OIDC discovery extension + CIBA types/client + ACR validation (STP-02, STP-03, STP-04)
@@ -142,5 +142,5 @@ Plans:
 | 7. DPoP Nonce Issuance | 2/2 | Complete   | 2026-03-10 | - |
 | 8. Username Mapping + Group Policy + Break-Glass | 3/3 | Complete   | 2026-03-10 | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | 3/3 | Complete   | 2026-03-11 | - |
-| 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/3 | Planned | - |
+| 10. CIBA Step-Up + FIDO2 via ACR Delegation | 1/3 | In Progress|  | - |
 | 11. Operational Hardening | v2.0 | 0/? | Not started | - |
