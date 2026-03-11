@@ -128,7 +128,11 @@ Plans:
   2. The `unix-oidc-test` Keycloak realm issues DPoP-bound access tokens (`cnf.jkt` present) and the PAM module validates the thumbprint match in a CI integration test
   3. `dpop-cross-language-tests/run-cross-language-tests.sh` runs in CI and validates Rust/Go/Python interop
   4. An integration test starts the agent daemon, sends IPC commands (Status, GetProof, Shutdown), and validates responses
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Token exchange CI wiring + DPoP-bound token E2E validation (TEST-01, TEST-02)
+- [ ] 11-02-PLAN.md — Cross-language DPoP interop CI job + agent daemon lifecycle test (TEST-03, TEST-04)
 
 ### Phase 12: Rigorous Integration Testing
 **Goal**: New test infrastructure validates the critical paths that currently have zero integration coverage — CIBA backchannel, step-up IPC full flow, break-glass failover, and optionally FIDO2 authenticator simulation
@@ -167,6 +171,6 @@ Plans:
 | 8. Username Mapping + Group Policy + Break-Glass | 3/3 | Complete   | 2026-03-10 | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | 3/3 | Complete   | 2026-03-11 | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | 3/3 | Complete   | 2026-03-11 | - |
-| 11. Implementation Completion | v2.0 | 0/? | Not started | - |
+| 11. Implementation Completion | v2.0 | 0/2 | Planning | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
 | 13. Operational Hardening | v2.0 | 0/? | Not started | - |
