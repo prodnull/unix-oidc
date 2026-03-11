@@ -28,7 +28,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 - [x] **Phase 6: PAM Panic Elimination + Security Mode Infrastructure** - Remove all `.expect()`/`.unwrap()` from PAM-reachable paths and wire configurable strict/warn/disabled enforcement modes (completed 2026-03-10)
 - [x] **Phase 7: DPoP Nonce Issuance** - Implement server-side DPoP nonces per RFC 9449 §8 to close the proof-replay window (completed 2026-03-10)
-- [ ] **Phase 8: Username Mapping + Group Policy + Break-Glass** - Enterprise identity integration: claim transforms, group-based access control, and break-glass enforcement
+- [x] **Phase 8: Username Mapping + Group Policy + Break-Glass** - Enterprise identity integration: claim transforms, group-based access control, and break-glass enforcement (completed 2026-03-10)
 - [x] **Phase 9: Token Introspection + Session Lifecycle + Token Refresh** - Full session management: RFC 7662 introspection, open/close session records, RFC 7009 revocation, and automatic token refresh (completed 2026-03-11)
 - [ ] **Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation** - IdP-agnostic step-up authentication via CIBA poll mode and FIDO2 through phishing-resistant ACR claim delegation
 - [ ] **Phase 11: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes
@@ -76,12 +76,12 @@ Plans:
   3. Two IdP identities that would map to the same Unix username cause the daemon to refuse to start with a clear config error, preventing identity collision
   4. A `sudo` attempt by a user not in `sudo_groups` is denied at the PAM step-up gate
   5. Authentication as a break-glass account bypasses OIDC entirely, passes to the next PAM module, and emits an audit log entry recording the break-glass event
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 08-01-PLAN.md — Config types, identity mapper, collision detection, NSS groups, TokenClaims, audit event (IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07)
-- [ ] 08-02-PLAN.md — Wire break-glass, mapper, group policy into auth/sudo flows (IDN-01, IDN-02, IDN-04, IDN-05, IDN-06, IDN-07)
-- [ ] 08-03-PLAN.md — Enforce collision hard-fail in collision.rs and auth.rs (IDN-03)
+- [x] 08-01-PLAN.md — Config types, identity mapper, collision detection, NSS groups, TokenClaims, audit event (IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07)
+- [x] 08-02-PLAN.md — Wire break-glass, mapper, group policy into auth/sudo flows (IDN-01, IDN-02, IDN-04, IDN-05, IDN-06, IDN-07)
+- [x] 08-03-PLAN.md — Enforce collision hard-fail in collision.rs and auth.rs (IDN-03)
 
 ### Phase 9: Token Introspection + Session Lifecycle + Token Refresh
 **Goal**: SSH sessions have bounded lifetimes tied to token validity; revoked tokens take effect within the introspection cache TTL; the agent refreshes tokens before mid-session expiry
@@ -110,7 +110,12 @@ Plans:
   3. The CIBA backchannel endpoint is discovered from the IdP's OIDC metadata, not hardcoded to a Keycloak URL
   4. Configuring `step_up_method = "fido2"` triggers a CIBA request with a phishing-resistant ACR value; the resulting token's `acr` claim is validated to confirm the IdP honored the request
   5. When a step-up request times out, the `sudo` attempt is denied and the user sees an actionable message
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — OIDC discovery extension + CIBA types/client + ACR validation (STP-02, STP-03, STP-04)
+- [ ] 10-02-PLAN.md — Step-up IPC protocol messages + DeviceFlowClient discovery fix (STP-05, STP-06)
+- [ ] 10-03-PLAN.md — Agent CIBA handler + PAM sudo step-up wiring (STP-01, STP-07)
 
 ### Phase 11: Operational Hardening
 **Goal**: The agent daemon ships with production-ready service integration, peer-authenticated IPC, configurable network and cache parameters, and structured observability
@@ -135,7 +140,7 @@ Plans:
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
 | 7. DPoP Nonce Issuance | 2/2 | Complete   | 2026-03-10 | - |
-| 8. Username Mapping + Group Policy + Break-Glass | 2/3 | In Progress|  | - |
+| 8. Username Mapping + Group Policy + Break-Glass | 3/3 | Complete   | 2026-03-10 | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | 3/3 | Complete   | 2026-03-11 | - |
-| 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/? | Not started | - |
+| 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/3 | Planned | - |
 | 11. Operational Hardening | v2.0 | 0/? | Not started | - |
