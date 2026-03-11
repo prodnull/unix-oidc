@@ -34,6 +34,9 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [ ] **Phase 11: Implementation Completion** - Wire existing but unwired test assets into CI, fill DPoP-bound token E2E gaps, cross-language interop in CI, agent daemon lifecycle test
 - [ ] **Phase 12: Rigorous Integration Testing** - CIBA live IdP test infrastructure, step-up IPC full-flow, break-glass fallback, FIDO2 authenticator simulation
 - [x] **Phase 13: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes (completed 2026-03-11)
+- [ ] **Phase 14: Critical Integration Bug Fixes** - Fix SessionClosed IPC newline, SSH client-side DPoP nonce handler, clock skew config wiring to PAM module
+- [ ] **Phase 15: Phase 11 Verification + Traceability Fix** - Verify Phase 11 completion, update REQUIREMENTS.md traceability, fix ROADMAP status
+- [ ] **Phase 16: Rigorous Integration Testing (Gap Closure)** - CIBA live IdP tests, step-up IPC full-flow, break-glass fallback, ACR validation against live Keycloak
 
 ## Phase Details
 
@@ -164,6 +167,42 @@ Plans:
 - [ ] 13-04-PLAN.md — launchd plist template + install/uninstall subcommands (OPS-03)
 - [ ] 13-05-PLAN.md — Tracing instrumentation + JSON output + GetProof logging (OPS-11, OPS-13)
 
+### Phase 14: Critical Integration Bug Fixes
+**Goal**: Fix the two critical cross-phase integration bugs that break E2E flows (SessionClosed IPC newline, SSH DPoP nonce handler) and wire clock skew config to PAM module
+**Depends on**: Phase 13
+**Requirements**: SEC-05 (integration fix), SES-04, SES-07, SES-08 (integration fix), OPS-09 (PAM-side wiring)
+**Gap Closure:** Closes integration and flow gaps from v2.0 audit
+**Success Criteria** (what must be TRUE):
+  1. `pam_sm_close_session` sends SessionClosed IPC with trailing `\n`; agent's `cleanup_session()` fires within 100ms (not after 2s timeout)
+  2. SSH login with `dpop_required=Strict` completes successfully — the SSH client bridges the PAM `DPOP_NONCE:` prompt to the agent's `GetProof` IPC
+  3. `clock_skew_future_secs` and `clock_skew_staleness_secs` from operator config are read by the PAM module's `ValidationConfig`, not hardcoded
+  4. socket.rs:1288 unwrap() replaced with safe pattern; `DPoPAuthConfig::from_env()` dead code removed or wired
+**Plans**: TBD
+
+### Phase 15: Phase 11 Verification + Traceability Fix
+**Goal**: Verify Phase 11 work is genuinely complete, update traceability, and close the verification gap
+**Depends on**: Phase 14
+**Requirements**: TEST-01, TEST-02
+**Gap Closure:** Closes verification gaps from v2.0 audit
+**Success Criteria** (what must be TRUE):
+  1. TEST-01 and TEST-02 are verified: test scripts exist, run, and pass (or are confirmed incomplete and re-planned)
+  2. REQUIREMENTS.md traceability shows correct status for TEST-01 and TEST-02
+  3. Phase 11 has a VERIFICATION.md
+  4. ROADMAP.md Phase 11 status reflects reality
+**Plans**: TBD
+
+### Phase 16: Rigorous Integration Testing (Gap Closure)
+**Goal**: Build the integration test infrastructure that Phase 12 was meant to deliver — CIBA live IdP, step-up IPC full-flow, break-glass failover, and ACR validation
+**Depends on**: Phase 14, Phase 15
+**Requirements**: INT-01, INT-02, INT-03, INT-04
+**Gap Closure:** Closes all orphaned Phase 12 requirements from v2.0 audit
+**Success Criteria** (what must be TRUE):
+  1. A CIBA-enabled Keycloak realm exists in CI; an integration test initiates a backchannel auth request, auto-approves via Admin API, polls for token, and validates the ACR claim
+  2. An integration test exercises the full step-up IPC flow (PAM sends StepUp -> agent spawns CIBA poll -> agent returns StepUpPending -> PAM polls StepUpResult -> StepUpComplete) using wiremock-rs as the IdP
+  3. With Keycloak stopped, a break-glass account can still authenticate via local PAM; OIDC login fails gracefully (no hang/crash); restarting Keycloak restores OIDC
+  4. ACR validation is tested against live tokens from Keycloak with ACR LoA mapping configured
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -181,3 +220,6 @@ Plans:
 | 11. Implementation Completion | 1/2 | In Progress|  | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
 | 13. Operational Hardening | 5/5 | Complete    | 2026-03-11 | - |
+| 14. Critical Integration Bug Fixes | v2.0 | 0/? | Not started | - |
+| 15. Phase 11 Verification + Traceability Fix | v2.0 | 0/? | Not started | - |
+| 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 0/? | Not started | - |
