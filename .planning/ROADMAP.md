@@ -93,7 +93,12 @@ Plans:
   3. An SSH session open at minute 0 with a 60-minute token is still alive at minute 50 because the agent automatically refreshed the token at the 80% threshold
   4. A server restart that loses in-process state does not prevent `pam_sm_close_session` from locating and closing the session record written by `pam_sm_open_session`
   5. When the introspection endpoint is unreachable, authentication succeeds (fail-open default) and a warning is logged
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Config types, session record module, audit events, PAM open/close_session with putenv/getenv correlation (SES-01, SES-02, SES-03)
+- [ ] 09-02-PLAN.md — RFC 7662 introspection client + moka cache, wired into authenticate() (SES-05, SES-06)
+- [ ] 09-03-PLAN.md — Agent IPC SessionClosed, auto-refresh background task, RFC 7009 revocation, credential cleanup (SES-04, SES-07, SES-08)
 
 ### Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation
 **Goal**: Users can approve privileged operations via a push notification to their phone or a FIDO2 authenticator, with the step-up flow handled entirely in the agent daemon so the PAM module never blocks
@@ -131,6 +136,6 @@ Plans:
 | 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
 | 7. DPoP Nonce Issuance | 2/2 | Complete   | 2026-03-10 | - |
 | 8. Username Mapping + Group Policy + Break-Glass | 2/3 | In Progress|  | - |
-| 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |
+| 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/3 | Planned | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/? | Not started | - |
 | 11. Operational Hardening | v2.0 | 0/? | Not started | - |
