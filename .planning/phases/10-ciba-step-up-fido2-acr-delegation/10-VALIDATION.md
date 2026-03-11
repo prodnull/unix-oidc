@@ -2,8 +2,8 @@
 phase: 10
 slug: ciba-step-up-fido2-acr-delegation
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-11
 ---
 
@@ -36,41 +36,45 @@ created: 2026-03-11
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 10-01-01 | 01 | 1 | STP-01 | unit (mock IdP) | `cargo test -p unix-oidc-agent -- ciba::poll` | ❌ W0 | ⬜ pending |
-| 10-01-02 | 01 | 1 | STP-02 | unit | `cargo test -p pam-unix-oidc -- ciba::binding_message` | ❌ W0 | ⬜ pending |
-| 10-01-03 | 01 | 1 | STP-03 | unit (mock discovery) | `cargo test -p pam-unix-oidc -- ciba::discovery` | ❌ W0 | ⬜ pending |
-| 10-01-04 | 01 | 1 | STP-04 | unit | `cargo test -p pam-unix-oidc -- ciba::acr` | ❌ W0 | ⬜ pending |
-| 10-02-01 | 02 | 1 | STP-05 | unit | `cargo test -p unix-oidc-agent -- daemon::protocol::step_up` | ❌ W0 | ⬜ pending |
-| 10-02-02 | 02 | 1 | STP-06 | unit (regression) | `cargo test -p pam-unix-oidc -- device_flow::discovery` | ❌ W0 | ⬜ pending |
-| 10-02-03 | 02 | 1 | STP-07 | unit | `cargo test -p unix-oidc-agent -- ciba::timeout` | ❌ W0 | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
+|---------|------|------|-------------|-----------|-------------------|--------|
+| 10-01-T1 | 01 | 1 | STP-02, STP-03, STP-04 | unit (inline TDD) | `cargo test -p pam-unix-oidc --lib -- ciba::types && cargo test -p pam-unix-oidc --lib -- oidc::jwks` | ⬜ pending |
+| 10-01-T2 | 01 | 1 | STP-02, STP-03 | unit (inline TDD) | `cargo test -p pam-unix-oidc --lib -- ciba` | ⬜ pending |
+| 10-02-T1 | 02 | 1 | STP-05 | unit (inline TDD) | `cargo test -p unix-oidc-agent --lib -- daemon::protocol` | ⬜ pending |
+| 10-02-T2 | 02 | 1 | STP-06 | unit (inline TDD) | `cargo test -p pam-unix-oidc --lib -- device_flow` | ⬜ pending |
+| 10-03-T1 | 03 | 2 | STP-01 | unit (inline TDD) | `cargo test -p unix-oidc-agent --lib -- daemon::socket && cargo test -p unix-oidc-agent --lib -- ciba` | ⬜ pending |
+| 10-03-T2 | 03 | 2 | STP-07 | unit (inline TDD, mock IPC) | `cargo test -p pam-unix-oidc --lib -- sudo` | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
-## Wave 0 Requirements
+## Wave 0 Strategy
 
-- [ ] `pam-unix-oidc/src/ciba/mod.rs` + `client.rs` + `types.rs` — new module skeleton (STP-01, STP-02, STP-03, STP-04)
-- [ ] `pam-unix-oidc/src/ciba/tests/` — unit test fixtures (mock CIBA responses for each error code)
-- [ ] `unix-oidc-agent/src/daemon/protocol.rs` — StepUp/StepUpPending/StepUpComplete/StepUpTimedOut variants (STP-05)
-- [ ] `unix-oidc-agent/src/daemon/socket.rs` — handle_step_up() handler function (STP-01, STP-05)
-- [ ] No new framework install required — cargo test is already in CI
+All plans in Phase 10 use inline TDD (`tdd="true"` on each task). Tests are written as part of each task's RED-GREEN-REFACTOR cycle, not in a separate Wave 0 step. This satisfies the Nyquist requirement because:
+
+1. Each task's `<behavior>` block defines testable expectations before implementation.
+2. The `<verify>` command runs the tests written during the task.
+3. No task produces code without a corresponding test in the same commit.
+
+Wave 0 file scaffolds (module skeletons) are created as Step 1 within each task's action — they exist before tests are written.
 
 ---
 
 ## Adversarial Tests (Mandatory per ROADMAP testing mandate)
 
-| Scenario | Test Type | Reason |
-|----------|-----------|--------|
-| CIBA response with wrong ACR — hard-fail, never warn | unit | Security invariant |
-| auth_req_id expired before poll completes | unit | `expired_token` error code path |
-| slow_down response increases interval | unit | Spec compliance |
-| IdP returns access_denied | unit | User denial path |
-| No `backchannel_authentication_endpoint` in discovery | unit | Config error, not panic |
-| binding_message > 64 chars truncated | unit | UI safety |
-| Concurrent StepUp requests for same user | unit | Guard against double-initiation |
+| Scenario | Test Type | Plan-Task | Reason |
+|----------|-----------|-----------|--------|
+| CIBA response with wrong ACR — hard-fail, never warn | unit | 10-01-T1 | Security invariant |
+| auth_req_id expired before poll completes | unit | 10-03-T1 | `expired_token` error code path |
+| slow_down response increases interval | unit | 10-03-T1 | Spec compliance |
+| IdP returns access_denied | unit | 10-03-T1 | User denial path |
+| No `backchannel_authentication_endpoint` in discovery | unit | 10-01-T2 | Config error, not panic |
+| binding_message > 64 chars truncated | unit | 10-01-T2 | UI safety |
+| Concurrent StepUp requests for same user | unit | 10-03-T1 | Guard against double-initiation |
+| PAM poll loop timeout expiry | unit (mock IPC) | 10-03-T2 | StepUpTimedOut(timeout) branch |
+| PAM poll loop user denial | unit (mock IPC) | 10-03-T2 | StepUpTimedOut(denied) branch |
+| PAM IPC connection refused | unit (mock IPC) | 10-03-T2 | SudoError::StepUp branch |
 
 ---
 
@@ -85,11 +89,11 @@ created: 2026-03-11
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify — inline TDD approach satisfies Nyquist
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covered by inline TDD (tests written before implementation in each task)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ready
