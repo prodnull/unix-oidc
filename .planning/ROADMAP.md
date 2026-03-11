@@ -76,11 +76,12 @@ Plans:
   3. Two IdP identities that would map to the same Unix username cause the daemon to refuse to start with a clear config error, preventing identity collision
   4. A `sudo` attempt by a user not in `sudo_groups` is denied at the PAM step-up gate
   5. Authentication as a break-glass account bypasses OIDC entirely, passes to the next PAM module, and emits an audit log entry recording the break-glass event
-**Plans:** 1/2 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 08-01-PLAN.md — Config types, identity mapper, collision detection, NSS groups, TokenClaims, audit event (IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07)
 - [ ] 08-02-PLAN.md — Wire break-glass, mapper, group policy into auth/sudo flows (IDN-01, IDN-02, IDN-04, IDN-05, IDN-06, IDN-07)
+- [ ] 08-03-PLAN.md — Enforce collision hard-fail in collision.rs and auth.rs (IDN-03)
 
 ### Phase 9: Token Introspection + Session Lifecycle + Token Refresh
 **Goal**: SSH sessions have bounded lifetimes tied to token validity; revoked tokens take effect within the introspection cache TTL; the agent refreshes tokens before mid-session expiry
@@ -129,7 +130,7 @@ Plans:
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
 | 7. DPoP Nonce Issuance | 2/2 | Complete   | 2026-03-10 | - |
-| 8. Username Mapping + Group Policy + Break-Glass | 1/2 | In Progress|  | - |
+| 8. Username Mapping + Group Policy + Break-Glass | 2/3 | In Progress|  | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 0/? | Not started | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 0/? | Not started | - |
 | 11. Operational Hardening | v2.0 | 0/? | Not started | - |
