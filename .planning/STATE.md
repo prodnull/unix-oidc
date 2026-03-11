@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
-status: planning
-stopped_at: Completed 10-03-PLAN.md
-last_updated: "2026-03-11T03:53:26Z"
+status: completed
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-03-11T05:16:45.702Z"
 last_activity: 2026-03-11 — Phase 10 Plan 03 complete; CIBA step-up end-to-end wired
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
+  total_phases: 8
+  completed_phases: 5
+  total_plans: 16
+  completed_plans: 15
   percent: 71
 ---
 
@@ -65,6 +65,7 @@ Progress: [███████░░░] 71%
 | Phase 10-ciba-step-up-fido2-acr-delegation P01 | 10 | 2 tasks | 5 files |
 | Phase 10-ciba-step-up-fido2-acr-delegation P02 | 277 | 2 tasks | 5 files |
 | Phase 10-ciba-step-up-fido2-acr-delegation P03 | 90 | 2 tasks | 4 files |
+| Phase 11 P02 | 150 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Recent decisions affecting current work:
 - [Phase 10-03]: PAM IPC pattern: short 2s-timeout blocking calls per poll cycle; CIBA 120s loop runs in agent Tokio runtime — avoids SSH LoginGraceTime race
 - [Phase 10-03]: challenge_timeout default raised from 60s to 120s (STP-07) to accommodate typical CIBA push notification round-trip
 - [Phase 10-03]: login_hint uses Unix username directly; IdP must accept username-based login_hint; config enhancement deferred (RESEARCH.md Open Question #1)
+- [Phase 11]: Shutdown lifecycle test sends command without reading response; polls try_wait for process exit
 
 ### Pending Todos
 
@@ -124,6 +126,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T03:53:26Z
-Stopped at: Completed 10-03-PLAN.md
+Last session: 2026-03-11T05:16:45.700Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
