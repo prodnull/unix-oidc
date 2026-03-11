@@ -37,22 +37,27 @@ Requirements: IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07
 - Treat as an extensible strategy — initial implementation covers static transform analysis, can add explicit collision maps later
 
 ### Group-Based Login Policy (IDN-04)
-- Groups sourced from configurable OIDC claim (default: `groups`), config field: `identity.groups_claim`
+- **Groups resolved from SSSD/NSS, NOT from OIDC token claims** — FreeIPA (or whatever manages the Unix realm) is the authoritative source for Unix group membership
+- After username mapping resolves the local Unix username, query NSS for that user's group memberships
 - `login_groups` allow-list in `[ssh_login]` section of policy.yaml — array of group name strings
 - Exact string match only, case-sensitive (no wildcards, no regex — avoids ReDoS and keeps policy auditable)
-- Missing groups claim behavior driven by enforcement mode: `groups_enforcement` in `[security_modes]` section
-  - strict: deny login
+- If the mapped user's NSS groups do not intersect `login_groups`, deny login
+- When `login_groups` is empty/absent, no group restriction applied (backward compat with v1.0)
+- Denial logged with the user's resolved groups for audit trail (success criteria #2)
+- Token `groups` claim (if present) logged for audit enrichment but NOT used for access decisions
+- **Rationale:** SSSD group resolution eliminates Entra group overage (>200 groups), GUID-vs-name issues, and multi-IdP group format inconsistencies. The Unix directory is the source of truth for Unix access.
+- `groups_enforcement` in `[security_modes]` controls behavior when NSS group lookup fails:
+  - strict: deny login (group membership cannot be verified)
   - warn: log warning, skip groups check, allow login
   - disabled: skip groups check entirely
-- When `login_groups` is empty/absent, no group restriction applied (backward compat with v1.0)
-- Denial logged with the user's groups claim values for audit trail (success criteria #2)
 
 ### Group-Based Sudo Policy (IDN-05)
 - `sudo_groups` list in `[sudo]` section of policy.yaml — array of group name strings
 - Separate from `login_groups` — being in sudo_groups does NOT imply login access (least privilege)
 - Exact string match, case-sensitive (matches login_groups behavior)
-- If user's groups claim does not intersect sudo_groups, deny at PAM step-up gate
-- Same `groups_enforcement` mode applies for missing groups claim
+- Groups resolved from SSSD/NSS (same source as login_groups — consistency)
+- If user's NSS groups do not intersect sudo_groups, deny at PAM step-up gate
+- Same `groups_enforcement` mode applies for NSS group lookup failures
 
 ### Break-Glass Account Bypass (IDN-06)
 - Break-glass accounts identified by username list: `break_glass.accounts: ['breakglass', 'emergency-admin']`
@@ -73,9 +78,10 @@ Requirements: IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07
 - Internal design of the transform pipeline (trait vs enum, execution model)
 - How to extract arbitrary claims from JWT (serde_json::Value traversal vs typed struct extension)
 - Exact config validation error messages beyond collision detection
-- Whether to add a `groups` field to TokenClaims or use dynamic claim extraction
+- Whether to add a `groups` field to TokenClaims for audit enrichment logging
 - Test strategy for collision detection edge cases
 - Whether `groups_enforcement` gets its own field in SecurityModes or reuses an existing pattern
+- How to extend `sssd/user.rs` to resolve group memberships (uzers crate group queries or getgrouplist(3))
 
 </decisions>
 
@@ -87,6 +93,8 @@ Requirements: IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07
 - Balance security, least privilege, and enterprise-grade flexibility — except where flexibility would severely dilute security
 - All security decisions and their rationale should be documented in public-facing docs or a security guide
 - Post-context audit: run security and least-privilege analysis of all decisions to verify no principle violations
+- Design validated against FreeIPA+Entra hybrid scenario: SSSD group resolution avoids Entra group overage (>200 groups), GUID-vs-name issues, and multi-IdP format inconsistencies
+- Identity rationalization strategy (how FreeIPA and Entra coexist, UPN-to-uid mapping patterns, domain trust models) is a separate future engagement to document
 
 </specifics>
 
@@ -99,7 +107,7 @@ Requirements: IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07
 - `SshConfig` (`pam-unix-oidc/src/policy/config.rs:291-310`): Existing struct — add `login_groups: Vec<String>` field
 - `EnforcementMode` (`pam-unix-oidc/src/policy/config.rs:58-64`): Reuse for `groups_enforcement`
 - `SecurityModes` (`pam-unix-oidc/src/policy/config.rs`): Add `groups_enforcement` field
-- `TokenClaims` (`pam-unix-oidc/src/oidc/token.rs:16-56`): Needs `groups` field and/or dynamic claim extraction
+- `TokenClaims` (`pam-unix-oidc/src/oidc/token.rs:16-56`): Needs dynamic claim extraction for username; optional `groups` field for audit enrichment only
 - `AuditEvent` (`pam-unix-oidc/src/audit.rs:38-115`): Add `BreakGlassAuth` variant
 - `UserInfo` (`pam-unix-oidc/src/sssd/user.rs:23-30`): Used after username mapping resolves to local user
 - Fuzz target (`fuzz/fuzz_targets/username_mapper.rs`): Transform types already sketched — production module should align
@@ -115,7 +123,7 @@ Requirements: IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07
 ### Integration Points
 - `pam-unix-oidc/src/lib.rs:51`: `authenticate()` entry point — add break-glass check BEFORE OIDC flow
 - `pam-unix-oidc/src/auth.rs:105-106`: `claims.preferred_username` hardcoded — replace with configurable claim extraction + transform pipeline
-- `pam-unix-oidc/src/auth.rs:108`: `user_exists(username)` — insert group policy check between username extraction and user lookup
+- `pam-unix-oidc/src/auth.rs:108`: `user_exists(username)` — insert SSSD group policy check AFTER user lookup (need user to exist before querying their groups)
 - `pam-unix-oidc/src/policy/config.rs:398-413`: `PolicyConfig` struct — add `identity: IdentityConfig` field
 - `pam-unix-oidc/src/audit.rs`: Add `BreakGlassAuth` variant and `break_glass_auth()` constructor
 
@@ -129,6 +137,8 @@ Requirements: IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-07
 - SCIM-based group sync from IdP to local system — separate provisioning milestone (PROV-02)
 - UID-range-based break-glass detection — alternative strategy, not needed with username list approach
 - Break-glass bypass for sudo step-up — intentionally excluded for least-privilege; revisit if operational need emerges
+- Token-claim-based group policy (alternative to SSSD) — deferred; would need Graph API fallback for Entra overage. SSSD resolution is the current strategy.
+- Identity rationalization strategy (FreeIPA + Entra coexistence patterns) — future dedicated context/guide
 
 </deferred>
 
