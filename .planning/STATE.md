@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-03-11T02:22:12.625Z"
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-03-11T02:27:34.731Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08-username-mapping-group-policy-break-glass P03 | 252 | 2 tasks | 3 files |
 | Phase 09 P01 | 428 | 2 tasks | 5 files |
 | Phase 09 P02 | 259 | 2 tasks | 4 files |
+| Phase 09 P03 | 600 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 09]: notify_agent_session_closed uses blocking std UnixStream with 2s timeout; socket via UNIX_OIDC_AGENT_SOCKET env or XDG_RUNTIME_DIR fallback
 - [Phase 09]: Inactive (active=false) results not cached — revoked tokens re-checked every auth attempt rather than blocked for full cache TTL
 - [Phase 09]: IntrospectionConfig gains client_secret field (RFC 7662 §2.1 requirement); default None for backward compat
+- [Phase 09]: SessionAcknowledged uses acknowledged:bool discriminant field + placed before Ok{} in untagged AgentResponseData enum to prevent serde collision
+- [Phase 09]: spawn_refresh_task() exported pub; cleanup_session() is module-private — only handle_connection calls it
+- [Phase 09]: revocation_endpoint stored in token metadata at login (from OIDC discovery) and preserved across refresh — cleanup_session() reads without re-discovery
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T02:22:12.623Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-03-11T02:27:34.729Z
+Stopped at: Completed 09-03-PLAN.md
 Resume file: None

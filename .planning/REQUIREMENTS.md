@@ -32,11 +32,11 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **SES-01**: `pam_sm_open_session` writes session record to tmpfs store (`/run/unix-oidc/sessions/`)
 - [x] **SES-02**: `pam_sm_close_session` deletes session record and emits session-close audit event with duration
 - [x] **SES-03**: Session correlation via `pam_set_data()` between authenticate and open_session calls
-- [ ] **SES-04**: Automatic token refresh in agent daemon at configurable TTL threshold (default 80%)
+- [x] **SES-04**: Automatic token refresh in agent daemon at configurable TTL threshold (default 80%)
 - [x] **SES-05**: Token introspection (RFC 7662) as opt-in validation step with configurable fail-open/fail-closed
 - [x] **SES-06**: Introspection result caching via moka with TTL bounded by min(60s, token exp - now)
-- [ ] **SES-07**: RFC 7009 token revocation on session close (best-effort, 5s timeout)
-- [ ] **SES-08**: Agent SessionClosed IPC event to schedule orphaned DPoP key cleanup
+- [x] **SES-07**: RFC 7009 token revocation on session close (best-effort, 5s timeout)
+- [x] **SES-08**: Agent SessionClosed IPC event to schedule orphaned DPoP key cleanup
 
 ### Step-Up Authentication
 
@@ -120,11 +120,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SES-01 | Phase 9 | Complete |
 | SES-02 | Phase 9 | Complete |
 | SES-03 | Phase 9 | Complete |
-| SES-04 | Phase 9 | Pending |
+| SES-04 | Phase 9 | Complete |
 | SES-05 | Phase 9 | Complete |
 | SES-06 | Phase 9 | Complete |
-| SES-07 | Phase 9 | Pending |
-| SES-08 | Phase 9 | Pending |
+| SES-07 | Phase 9 | Complete |
+| SES-08 | Phase 9 | Complete |
 | STP-01 | Phase 10 | Pending |
 | STP-02 | Phase 10 | Pending |
 | STP-03 | Phase 10 | Pending |
