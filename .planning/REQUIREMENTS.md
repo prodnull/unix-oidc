@@ -48,6 +48,20 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **STP-06**: IdP discovery-based endpoint resolution replacing Keycloak-hardcoded device flow URLs
 - [x] **STP-07**: Configurable step-up timeout for CIBA polling (default 120s)
 
+### Test Completion
+
+- [ ] **TEST-01**: Token exchange tests (shell + Python) wired into CI via `docker-compose.token-exchange.yaml` with DPoP cnf.jkt rebinding validation
+- [ ] **TEST-02**: DPoP-bound access token E2E — Keycloak test realm configured with `dpop.bound.access.tokens: true`; CI test validates cnf.jkt thumbprint match
+- [ ] **TEST-03**: Cross-language DPoP interop tests (Rust/Go/Python) running in CI via `dpop-cross-language-tests/`
+- [ ] **TEST-04**: Agent daemon lifecycle integration test — start daemon, send IPC commands, validate responses, clean shutdown
+
+### Integration Testing
+
+- [ ] **INT-01**: CIBA-enabled Keycloak test realm with poll-mode backchannel auth, ACR LoA mapping, and Admin API auto-approval in CI
+- [ ] **INT-02**: Step-up IPC full-flow integration test using wiremock-rs mock CIBA endpoint (StepUp -> StepUpPending -> poll -> StepUpComplete)
+- [ ] **INT-03**: Break-glass fallback test — OIDC unavailable, local auth succeeds, OIDC recovery on IdP restart
+- [ ] **INT-04**: ACR validation against live Keycloak tokens with configured ACR LoA mapping (optional FIDO2 simulation)
+
 ### Operational Readiness
 
 - [ ] **OPS-01**: systemd user service unit with hardening directives (NoNewPrivileges, ProtectSystem, MemoryDenyWriteExecute)
@@ -132,23 +146,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STP-05 | Phase 10 | Complete |
 | STP-06 | Phase 10 | Complete |
 | STP-07 | Phase 10 | Complete |
-| OPS-01 | Phase 11 | Pending |
-| OPS-02 | Phase 11 | Pending |
-| OPS-03 | Phase 11 | Pending |
-| OPS-04 | Phase 11 | Pending |
-| OPS-05 | Phase 11 | Pending |
-| OPS-06 | Phase 11 | Pending |
-| OPS-07 | Phase 11 | Pending |
-| OPS-08 | Phase 11 | Pending |
-| OPS-09 | Phase 11 | Pending |
-| OPS-10 | Phase 11 | Pending |
-| OPS-11 | Phase 11 | Pending |
-| OPS-12 | Phase 11 | Pending |
-| OPS-13 | Phase 11 | Pending |
+| TEST-01 | Phase 11 | Pending |
+| TEST-02 | Phase 11 | Pending |
+| TEST-03 | Phase 11 | Pending |
+| TEST-04 | Phase 11 | Pending |
+| INT-01 | Phase 12 | Pending |
+| INT-02 | Phase 12 | Pending |
+| INT-03 | Phase 12 | Pending |
+| INT-04 | Phase 12 | Pending |
+| OPS-01 | Phase 13 | Pending |
+| OPS-02 | Phase 13 | Pending |
+| OPS-03 | Phase 13 | Pending |
+| OPS-04 | Phase 13 | Pending |
+| OPS-05 | Phase 13 | Pending |
+| OPS-06 | Phase 13 | Pending |
+| OPS-07 | Phase 13 | Pending |
+| OPS-08 | Phase 13 | Pending |
+| OPS-09 | Phase 13 | Pending |
+| OPS-10 | Phase 13 | Pending |
+| OPS-11 | Phase 13 | Pending |
+| OPS-12 | Phase 13 | Pending |
+| OPS-13 | Phase 13 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 42 total (note: original count of 37 was incorrect; full enumeration gives 42)
-- Mapped to phases: 42
+- v2.0 requirements: 50 total
+- Mapped to phases: 50
 - Unmapped: 0 ✓
 
 ---

@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 Client-Side Key Protection Hardening** — Phases 1-5 (shipped 2026-03-10)
-- 📋 **v2.0 Production Hardening & Enterprise Readiness** — Phases 6-11 (planned)
+- 📋 **v2.0 Production Hardening & Enterprise Readiness** — Phases 6-13 (planned)
 
 ## Phases
 
@@ -31,7 +31,9 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 8: Username Mapping + Group Policy + Break-Glass** - Enterprise identity integration: claim transforms, group-based access control, and break-glass enforcement (completed 2026-03-10)
 - [x] **Phase 9: Token Introspection + Session Lifecycle + Token Refresh** - Full session management: RFC 7662 introspection, open/close session records, RFC 7009 revocation, and automatic token refresh (completed 2026-03-11)
 - [x] **Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation** - IdP-agnostic step-up authentication via CIBA poll mode and FIDO2 through phishing-resistant ACR claim delegation (completed 2026-03-11)
-- [ ] **Phase 11: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes
+- [ ] **Phase 11: Implementation Completion** - Wire existing but unwired test assets into CI, fill DPoP-bound token E2E gaps, cross-language interop in CI, agent daemon lifecycle test
+- [ ] **Phase 12: Rigorous Integration Testing** - CIBA live IdP test infrastructure, step-up IPC full-flow, break-glass fallback, FIDO2 authenticator simulation
+- [ ] **Phase 13: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes
 
 ## Phase Details
 
@@ -117,7 +119,29 @@ Plans:
 - [ ] 10-02-PLAN.md — Step-up IPC protocol messages + DeviceFlowClient discovery fix (STP-05, STP-06)
 - [ ] 10-03-PLAN.md — Agent CIBA handler + PAM sudo step-up wiring (STP-01, STP-07)
 
-### Phase 11: Operational Hardening
+### Phase 11: Implementation Completion
+**Goal**: All existing but unwired test assets run in CI; DPoP-bound token validation is verified end-to-end against Keycloak; cross-language DPoP interop tests are automated; the agent daemon has a lifecycle integration test
+**Depends on**: Phase 10
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
+**Success Criteria** (what must be TRUE):
+  1. `test_token_exchange.sh` runs as a CI job using `docker-compose.token-exchange.yaml` and validates DPoP cnf.jkt rebinding
+  2. The `unix-oidc-test` Keycloak realm issues DPoP-bound access tokens (`cnf.jkt` present) and the PAM module validates the thumbprint match in a CI integration test
+  3. `dpop-cross-language-tests/run-cross-language-tests.sh` runs in CI and validates Rust/Go/Python interop
+  4. An integration test starts the agent daemon, sends IPC commands (Status, GetProof, Shutdown), and validates responses
+**Plans**: TBD
+
+### Phase 12: Rigorous Integration Testing
+**Goal**: New test infrastructure validates the critical paths that currently have zero integration coverage — CIBA backchannel, step-up IPC full flow, break-glass failover, and optionally FIDO2 authenticator simulation
+**Depends on**: Phase 11
+**Requirements**: INT-01, INT-02, INT-03, INT-04
+**Success Criteria** (what must be TRUE):
+  1. A CIBA-enabled Keycloak realm exists in CI; an integration test initiates a backchannel auth request, auto-approves via Admin API, polls for token, and validates the ACR claim
+  2. An integration test exercises the full step-up IPC flow (PAM sends StepUp -> agent spawns CIBA poll -> agent returns StepUpPending -> PAM polls StepUpResult -> StepUpComplete) using wiremock-rs as the IdP
+  3. With Keycloak stopped, a break-glass account can still authenticate via local PAM; OIDC login fails gracefully (no hang/crash); restarting Keycloak restores OIDC
+  4. ACR validation is tested against live tokens from Keycloak with ACR LoA mapping configured
+**Plans**: TBD
+
+### Phase 13: Operational Hardening
 **Goal**: The agent daemon ships with production-ready service integration, peer-authenticated IPC, configurable network and cache parameters, and structured observability
 **Depends on**: Phase 9
 **Requirements**: OPS-01, OPS-02, OPS-03, OPS-04, OPS-05, OPS-06, OPS-07, OPS-08, OPS-09, OPS-10, OPS-11, OPS-12, OPS-13
@@ -143,4 +167,6 @@ Plans:
 | 8. Username Mapping + Group Policy + Break-Glass | 3/3 | Complete   | 2026-03-10 | - |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | 3/3 | Complete   | 2026-03-11 | - |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | 3/3 | Complete   | 2026-03-11 | - |
-| 11. Operational Hardening | v2.0 | 0/? | Not started | - |
+| 11. Implementation Completion | v2.0 | 0/? | Not started | - |
+| 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
+| 13. Operational Hardening | v2.0 | 0/? | Not started | - |
