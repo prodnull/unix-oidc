@@ -70,12 +70,12 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [ ] **OPS-04**: sd-notify READY=1 after socket bind + config validation + initial JWKS fetch
 - [ ] **OPS-05**: SO_PEERCRED (Linux) / getpeereid (macOS) peer UID validation on IPC socket
 - [ ] **OPS-06**: IPC idle timeout (configurable, default 60s) to prevent Tokio task leaks
-- [ ] **OPS-07**: Configurable JWKS HTTP timeout (default 10s, operator-tunable)
-- [ ] **OPS-08**: Configurable device flow HTTP timeout (default 30s, operator-tunable)
-- [ ] **OPS-09**: Configurable clock skew tolerance (default 5s future / 60s staleness)
-- [ ] **OPS-10**: Configurable JWKS cache TTL wired to env var (default 300s)
+- [x] **OPS-07**: Configurable JWKS HTTP timeout (default 10s, operator-tunable)
+- [x] **OPS-08**: Configurable device flow HTTP timeout (default 30s, operator-tunable)
+- [x] **OPS-09**: Configurable clock skew tolerance (default 5s future / 60s staleness)
+- [x] **OPS-10**: Configurable JWKS cache TTL wired to env var (default 300s)
 - [ ] **OPS-11**: Tracing spans across full authentication flow (JWKS fetch, validation, DPoP verify, user lookup)
-- [ ] **OPS-12**: Audit hostname resolution via gethostname() syscall instead of env vars
+- [x] **OPS-12**: Audit hostname resolution via gethostname() syscall instead of env vars
 - [ ] **OPS-13**: Proof request logging at INFO level (username, target, signer type)
 
 ## Future Requirements (v2.1+)
@@ -160,12 +160,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-04 | Phase 13 | Pending |
 | OPS-05 | Phase 13 | Pending |
 | OPS-06 | Phase 13 | Pending |
-| OPS-07 | Phase 13 | Pending |
-| OPS-08 | Phase 13 | Pending |
-| OPS-09 | Phase 13 | Pending |
-| OPS-10 | Phase 13 | Pending |
+| OPS-07 | Phase 13 | Complete |
+| OPS-08 | Phase 13 | Complete |
+| OPS-09 | Phase 13 | Complete |
+| OPS-10 | Phase 13 | Complete |
 | OPS-11 | Phase 13 | Pending |
-| OPS-12 | Phase 13 | Pending |
+| OPS-12 | Phase 13 | Complete |
 | OPS-13 | Phase 13 | Pending |
 
 **Coverage:**

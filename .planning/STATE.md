@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: executing
-stopped_at: Phase 13 context gathered
-last_updated: "2026-03-11T05:32:46.874Z"
-last_activity: 2026-03-11 — Phase 11 Plan 01 complete; token exchange CI + DPoP binding E2E tests wired
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-11T12:11:22.502Z"
+last_activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 21
+  completed_plans: 17
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 
 ## Current Position
 
-Phase: 11 of 11 (Implementation Completion)
-Plan: 01 of 02 (completed)
-Status: Phase 11 in progress
-Last activity: 2026-03-11 — Phase 11 Plan 01 complete; token exchange CI + DPoP binding E2E tests wired
+Phase: 13 of 13 (Operational Hardening)
+Plan: 01 of 03 (completed)
+Status: Phase 13 in progress
+Last activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
 
 Progress: [██████████] 100%
 
@@ -67,6 +67,7 @@ Progress: [██████████] 100%
 | Phase 10-ciba-step-up-fido2-acr-delegation P03 | 90 | 2 tasks | 4 files |
 | Phase 11-implementation-completion P01 | 175 | 2 tasks | 3 files |
 | Phase 11 P02 | 150 | 2 tasks | 2 files |
+| Phase 13-operational-hardening P01 | 14 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 10-03]: login_hint uses Unix username directly; IdP must accept username-based login_hint; config enhancement deferred (RESEARCH.md Open Question #1)
 - [Phase 11-01]: CLIENT_SECRET default in test_dpop_binding.sh uses unix-oidc-test-secret matching realm JSON, not plan-specified test-secret
 - [Phase 11]: Shutdown lifecycle test sends command without reading response; polls try_wait for process exit
+- [Phase 13-operational-hardening]: figment UNIX_OIDC_TIMEOUTS__FIELD pattern (double-underscore) for nested env var overrides; UNIX_OIDC_JWKS_CACHE_TTL preserved as legacy direct override
+- [Phase 13-operational-hardening]: DPoPAuthConfig::clock_skew_future_secs added to thread value to DPoPConfig without changing authenticate_with_dpop() signature
+- [Phase 13-operational-hardening]: get_hostname() now uses gethostname(2) syscall; HOSTNAME/HOST env vars removed; UNIX_OIDC_HOSTNAME preserved for CNAME/container override scenarios
 
 ### Pending Todos
 
@@ -128,6 +132,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T05:32:46.871Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-operational-hardening/13-CONTEXT.md
+Last session: 2026-03-11T12:11:22.499Z
+Stopped at: Completed 13-01-PLAN.md
+Resume file: None
