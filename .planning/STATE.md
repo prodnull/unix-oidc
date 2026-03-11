@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: executing
-stopped_at: Completed 13-04-PLAN.md
-last_updated: "2026-03-11T12:29:34.525Z"
+stopped_at: Completed 13-03-PLAN.md
+last_updated: "2026-03-11T12:30:19.583Z"
 last_activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
   percent: 100
 ---
 
@@ -70,6 +70,7 @@ Progress: [██████████] 100%
 | Phase 13-operational-hardening P01 | 14 | 3 tasks | 10 files |
 | Phase 13-operational-hardening P02 | 8 | 2 tasks | 6 files |
 | Phase 13-operational-hardening P04 | 9 | 2 tasks | 3 files |
+| Phase 13 P03 | 331 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,8 @@ Recent decisions affecting current work:
 - [Phase 13-operational-hardening]: install subcommand derives socket path from $TMPDIR (macOS per-user temp dir) for multi-user isolation
 - [Phase 13-operational-hardening]: plist template embedded via include_str!() at compile time — no runtime dependency on contrib/ directory
 - [Phase 13-operational-hardening]: launchd_socket::take() returns None on ESRCH (not under launchd) — fallthrough to standalone is correct behavior
+- [Phase 13]: idle_timeout stored in AgentServer as Duration field with with_idle_timeout() builder; default 60s; per-read timeout (not per-connection total) wraps each read_line call
+- [Phase 13]: main.rs captures ipc_idle_timeout_secs from AgentConfig::load() at Gate 2; fallback to 60s if config load fails
 
 ### Pending Todos
 
@@ -140,6 +143,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T12:29:34.523Z
-Stopped at: Completed 13-04-PLAN.md
+Last session: 2026-03-11T12:30:19.580Z
+Stopped at: Completed 13-03-PLAN.md
 Resume file: None

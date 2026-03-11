@@ -68,8 +68,8 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **OPS-02**: systemd socket activation support with standalone fallback
 - [x] **OPS-03**: launchd plist template for macOS agent daemon
 - [x] **OPS-04**: sd-notify READY=1 after socket bind + config validation + initial JWKS fetch
-- [ ] **OPS-05**: SO_PEERCRED (Linux) / getpeereid (macOS) peer UID validation on IPC socket
-- [ ] **OPS-06**: IPC idle timeout (configurable, default 60s) to prevent Tokio task leaks
+- [x] **OPS-05**: SO_PEERCRED (Linux) / getpeereid (macOS) peer UID validation on IPC socket
+- [x] **OPS-06**: IPC idle timeout (configurable, default 60s) to prevent Tokio task leaks
 - [x] **OPS-07**: Configurable JWKS HTTP timeout (default 10s, operator-tunable)
 - [x] **OPS-08**: Configurable device flow HTTP timeout (default 30s, operator-tunable)
 - [x] **OPS-09**: Configurable clock skew tolerance (default 5s future / 60s staleness)
@@ -158,8 +158,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-02 | Phase 13 | Complete |
 | OPS-03 | Phase 13 | Complete |
 | OPS-04 | Phase 13 | Complete |
-| OPS-05 | Phase 13 | Pending |
-| OPS-06 | Phase 13 | Pending |
+| OPS-05 | Phase 13 | Complete |
+| OPS-06 | Phase 13 | Complete |
 | OPS-07 | Phase 13 | Complete |
 | OPS-08 | Phase 13 | Complete |
 | OPS-09 | Phase 13 | Complete |
