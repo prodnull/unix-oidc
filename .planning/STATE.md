@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: planning
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-03-11T00:51:28.201Z"
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-03-11T01:10:44.717Z"
 last_activity: 2026-03-10 — v2.0 roadmap created; 42 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 0
 ---
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-dpop-nonce-issuance P02 | 3 | 2 tasks | 1 files |
 | Phase 08-username-mapping-group-policy-break-glass P01 | 560 | 3 tasks | 10 files |
 | Phase 08-username-mapping-group-policy-break-glass P02 | 310 | 2 tasks | 3 files |
+| Phase 08-username-mapping-group-policy-break-glass P03 | 252 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,7 @@ Recent decisions affecting current work:
 - [Phase 08-01]: groups_enforcement defaults to Warn; empty allowed_groups always permits (backward compat invariant for v1.0 deployments)
 - [Phase 08-01]: Regex (?P<username>...) validated at config load (not auth time); macOS getgrouplist returns Some for unknown users — enforcement-mode logic tested via simulation helper
 - [Phase 08-02]: Break-glass check is unconditionally FIRST in authenticate() before rate limiting; authenticate_with_config gains optional mapper param (None=backward compat); sudo group check before device flow initiation; empty sudo_groups skips NSS lookup
+- [Phase 08-username-mapping-group-policy-break-glass]: check_collision_safety() hard-fail gatekeeper wraps validate_collision_safety() warnings as Err — single source of heuristics, unconditional non-configurable fail same class as signature verification
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T00:51:28.199Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-03-11T01:10:44.715Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None
