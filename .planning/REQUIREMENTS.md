@@ -66,7 +66,7 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 - [x] **OPS-01**: systemd user service unit with hardening directives (NoNewPrivileges, ProtectSystem, MemoryDenyWriteExecute)
 - [x] **OPS-02**: systemd socket activation support with standalone fallback
-- [ ] **OPS-03**: launchd plist template for macOS agent daemon
+- [x] **OPS-03**: launchd plist template for macOS agent daemon
 - [x] **OPS-04**: sd-notify READY=1 after socket bind + config validation + initial JWKS fetch
 - [ ] **OPS-05**: SO_PEERCRED (Linux) / getpeereid (macOS) peer UID validation on IPC socket
 - [ ] **OPS-06**: IPC idle timeout (configurable, default 60s) to prevent Tokio task leaks
@@ -156,7 +156,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INT-04 | Phase 12 | Pending |
 | OPS-01 | Phase 13 | Complete |
 | OPS-02 | Phase 13 | Complete |
-| OPS-03 | Phase 13 | Pending |
+| OPS-03 | Phase 13 | Complete |
 | OPS-04 | Phase 13 | Complete |
 | OPS-05 | Phase 13 | Pending |
 | OPS-06 | Phase 13 | Pending |
