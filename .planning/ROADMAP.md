@@ -180,4 +180,4 @@ Plans:
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | 3/3 | Complete   | 2026-03-11 | - |
 | 11. Implementation Completion | 1/2 | In Progress|  | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
-| 13. Operational Hardening | 5/5 | Complete   | 2026-03-11 | - |
+| 13. Operational Hardening | 5/5 | Complete    | 2026-03-11 | - |
