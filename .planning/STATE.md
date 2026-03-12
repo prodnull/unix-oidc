@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-12T12:45:31.332Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-12T12:55:21.114Z"
 last_activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
 progress:
   total_phases: 11
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
   percent: 100
 ---
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 13 P03 | 331 | 2 tasks | 4 files |
 | Phase 13-operational-hardening P05 | 8 | 2 tasks | 5 files |
 | Phase 14-critical-integration-bug-fixes P02 | 12 | 1 tasks | 2 files |
+| Phase 14-critical-integration-bug-fixes P01 | 10 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,9 @@ Recent decisions affecting current work:
 - [Phase 13]: main.rs captures ipc_idle_timeout_secs from AgentConfig::load() at Gate 2; fallback to 60s if config load fails
 - [Phase 13]: init_tracing() uses try_init() — prevents double-registration panics; tracing-journald gated to Linux cfg; peer_pid forwarded to handle_connection (no second syscall); extract_jwk_from_proof() NOT instrumented (untrusted input); GetProof INFO log emitted before signer check
 - [Phase 14-critical-integration-bug-fixes]: askpass.rs is a binary module (mod askpass in main.rs); uses unix_oidc_agent:: prefix for daemon types; PPID keying prevents cross-session collision; token cached between DPOP_PROOF and OIDC Token rounds via tmpfile
+- [Phase 14]: DPoPAuthConfig::from_env() dead code removed; from_policy(&PolicyConfig) is the replacement
+- [Phase 14]: PamTimeoutsConfig in PolicyConfig is single source of truth for PAM clock skew — wired to both DPoPAuthConfig.max_proof_age and ValidationConfig.clock_skew_tolerance_secs
+- [Phase 14]: TOCTOU guard in handle_step_up_result returns STEP_UP_CONSUMED at second HashMap::get() to distinguish concurrent consumption from unknown correlation ID
 
 ### Pending Todos
 
@@ -147,6 +151,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T12:45:24.059Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-12T12:55:21.112Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
