@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-03-12T14:27:31.045Z"
-last_activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
+stopped_at: "Completed 15-01-PLAN.md"
+last_updated: "2026-03-12T20:15:00Z"
+last_activity: 2026-03-12 — Phase 15 Plan 01 complete; TEST-01 and TEST-02 verified locally; CI fixes committed; pre-existing unwrap_used violations deferred
 progress:
   total_phases: 11
   completed_phases: 8
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 
 ## Current Position
 
-Phase: 13 of 13 (Operational Hardening)
-Plan: 01 of 03 (completed)
-Status: Phase 13 in progress
-Last activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
+Phase: 15 of 15 (Phase 11 Verification & Traceability)
+Plan: 01 of 02 (completed)
+Status: Phase 15 Plan 01 complete — Phase 15 Plan 02 pending (VERIFICATION.md creation)
+Last activity: 2026-03-12 — Phase 15 Plan 01 complete; all three test scripts verified passing locally against live Keycloak 26.2; CI check job unblocked from formatting/compilation errors; CI token-exchange job pending resolution of pre-existing unwrap_used violations
 
 Progress: [██████████] 100%
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 13-operational-hardening P05 | 8 | 2 tasks | 5 files |
 | Phase 14-critical-integration-bug-fixes P02 | 12 | 1 tasks | 2 files |
 | Phase 14-critical-integration-bug-fixes P01 | 10 | 2 tasks | 5 files |
+| Phase 15-phase-11-verification-traceability P01 | 120 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,11 @@ Recent decisions affecting current work:
 - [Phase 14]: DPoPAuthConfig::from_env() dead code removed; from_policy(&PolicyConfig) is the replacement
 - [Phase 14]: PamTimeoutsConfig in PolicyConfig is single source of truth for PAM clock skew — wired to both DPoPAuthConfig.max_proof_age and ValidationConfig.clock_skew_tolerance_secs
 - [Phase 14]: TOCTOU guard in handle_step_up_result returns STEP_UP_CONSUMED at second HashMap::get() to distinguish concurrent consumption from unknown correlation ID
+- [Phase 15-01]: Keycloak 26 V2 standard token exchange works WITHOUT audience parameter — sending audience=target triggers "Client not allowed to exchange"; infers audience from client's configured scope
+- [Phase 15-01]: tss-esapi v7.6 API breaks: EccScheme in structures (not interface_types::algorithm), PersistentTpmHandle in handles, Provision in interface_types::resource_handles, Public is enum with named-field variants (not Public::unique() method), tss_esapi::constants::tpm removed
+- [Phase 15-01]: Bash $(cat) in command substitution corrupts binary bytes containing backslash sequences — always use direct pipe for binary data (EC coordinates, SHA-256 digests, ECDSA signatures)
+- [Phase 15-01]: DER ECDSA signature OFFSET must be 6 (skip SEQUENCE header 30 XX = 4 hex, then INTEGER tag 02 = 2 hex) — OFFSET=4 reads INTEGER tag as R length
+- [Phase 15-01]: Pre-existing unwrap_used violations in pam-unix-oidc audit.rs, ciba/client.rs, ciba/types.rs, device_flow/client.rs, sudo.rs block CI check job — require dedicated lint-fix phase
 
 ### Pending Todos
 

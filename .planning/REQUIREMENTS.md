@@ -50,8 +50,8 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Test Completion
 
-- [ ] **TEST-01**: Token exchange tests (shell + Python) wired into CI via `docker-compose.token-exchange.yaml` with DPoP cnf.jkt rebinding validation
-- [ ] **TEST-02**: DPoP-bound access token E2E — Keycloak test realm configured with `dpop.bound.access.tokens: true`; CI test validates cnf.jkt thumbprint match
+- [x] **TEST-01**: Token exchange tests (shell + Python) wired into CI via `docker-compose.token-exchange.yaml` with DPoP cnf.jkt rebinding validation
+- [x] **TEST-02**: DPoP-bound access token E2E — Keycloak test realm configured with `dpop.bound.access.tokens: true`; CI test validates cnf.jkt thumbprint match
 - [x] **TEST-03**: Cross-language DPoP interop tests (Rust/Go/Python) running in CI via `dpop-cross-language-tests/`
 - [x] **TEST-04**: Agent daemon lifecycle integration test — start daemon, send IPC commands, validate responses, clean shutdown
 
@@ -146,8 +146,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STP-05 | Phase 10 | Complete |
 | STP-06 | Phase 10 | Complete |
 | STP-07 | Phase 10 | Complete |
-| TEST-01 | Phase 15 | Pending |
-| TEST-02 | Phase 15 | Pending |
+| TEST-01 | Phase 15 | Complete |
+| TEST-02 | Phase 15 | Complete |
 | TEST-03 | Phase 11 | Complete |
 | TEST-04 | Phase 11 | Complete |
 | INT-01 | Phase 16 | Pending |
