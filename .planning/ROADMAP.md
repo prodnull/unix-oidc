@@ -193,7 +193,11 @@ Plans:
   2. REQUIREMENTS.md traceability shows correct status for TEST-01 and TEST-02
   3. Phase 11 has a VERIFICATION.md
   4. ROADMAP.md Phase 11 status reflects reality
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Local + CI verification of TEST-01/TEST-02 (TEST-01, TEST-02)
+- [ ] 15-02-PLAN.md — VERIFICATION.md + traceability audit (TEST-01, TEST-02)
 
 ### Phase 16: Rigorous Integration Testing (Gap Closure)
 **Goal**: Build the integration test infrastructure that Phase 12 was meant to deliver — CIBA live IdP, step-up IPC full-flow, break-glass failover, and ACR validation
@@ -216,14 +220,14 @@ Plans:
 | 3. Hardware Signer Backends | v1.0 | 3/3 | Complete | 2026-03-10 |
 | 4. Fix Hardware Signer Refresh Persistence | v1.0 | 1/1 | Complete | 2026-03-10 |
 | 5. Audit Documentation Cleanup | v1.0 | 1/1 | Complete | 2026-03-10 |
-| 6. PAM Panic Elimination + Security Mode Infrastructure | 3/3 | Complete   | 2026-03-10 | - |
-| 7. DPoP Nonce Issuance | 2/2 | Complete   | 2026-03-10 | - |
-| 8. Username Mapping + Group Policy + Break-Glass | 3/3 | Complete   | 2026-03-10 | - |
-| 9. Token Introspection + Session Lifecycle + Token Refresh | 3/3 | Complete   | 2026-03-11 | - |
-| 10. CIBA Step-Up + FIDO2 via ACR Delegation | 3/3 | Complete   | 2026-03-11 | - |
-| 11. Implementation Completion | 1/2 | In Progress|  | - |
+| 6. PAM Panic Elimination + Security Mode Infrastructure | v2.0 | 3/3 | Complete | 2026-03-10 |
+| 7. DPoP Nonce Issuance | v2.0 | 2/2 | Complete | 2026-03-10 |
+| 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 3/3 | Complete | 2026-03-10 |
+| 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 3/3 | Complete | 2026-03-11 |
+| 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 3/3 | Complete | 2026-03-11 |
+| 11. Implementation Completion | v2.0 | 1/2 | In Progress | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
-| 13. Operational Hardening | 5/5 | Complete    | 2026-03-11 | - |
-| 14. Critical Integration Bug Fixes | 2/2 | Complete    | 2026-03-12 | - |
-| 15. Phase 11 Verification + Traceability Fix | v2.0 | 0/? | Not started | - |
+| 13. Operational Hardening | v2.0 | 5/5 | Complete | 2026-03-11 |
+| 14. Critical Integration Bug Fixes | v2.0 | 2/2 | Complete | 2026-03-12 |
+| 15. Phase 11 Verification + Traceability Fix | v2.0 | 0/2 | In Progress | - |
 | 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 0/? | Not started | - |
