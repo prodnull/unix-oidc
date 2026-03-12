@@ -177,7 +177,7 @@ Plans:
   2. SSH login with `dpop_required=Strict` completes successfully — the SSH client bridges the PAM `DPOP_NONCE:` prompt to the agent's `GetProof` IPC
   3. `clock_skew_future_secs` and `clock_skew_staleness_secs` from operator config are read by the PAM module's `ValidationConfig`, not hardcoded
   4. socket.rs:1288 unwrap() replaced with safe pattern; `DPoPAuthConfig::from_env()` dead code removed or wired
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 14-01-PLAN.md — SessionClosed IPC newline fix + clock skew config wiring + socket.rs unwrap cleanup (SES-04, SES-07, SES-08, OPS-09)
@@ -224,6 +224,6 @@ Plans:
 | 11. Implementation Completion | 1/2 | In Progress|  | - |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
 | 13. Operational Hardening | 5/5 | Complete    | 2026-03-11 | - |
-| 14. Critical Integration Bug Fixes | v2.0 | 0/2 | Not started | - |
+| 14. Critical Integration Bug Fixes | 1/2 | In Progress|  | - |
 | 15. Phase 11 Verification + Traceability Fix | v2.0 | 0/? | Not started | - |
 | 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 0/? | Not started | - |

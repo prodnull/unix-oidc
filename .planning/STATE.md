@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: executing
-stopped_at: Completed 13-05-PLAN.md
-last_updated: "2026-03-11T12:45:57.515Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-12T12:45:31.332Z"
 last_activity: 2026-03-11 — Phase 13 Plan 01 complete; figment config, TimeoutsConfig, gethostname syscall, all timeout consumers wired
 progress:
-  total_phases: 8
+  total_phases: 11
   completed_phases: 7
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 23
+  completed_plans: 22
   percent: 100
 ---
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 13-operational-hardening P04 | 9 | 2 tasks | 3 files |
 | Phase 13 P03 | 331 | 2 tasks | 4 files |
 | Phase 13-operational-hardening P05 | 8 | 2 tasks | 5 files |
+| Phase 14-critical-integration-bug-fixes P02 | 12 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,7 @@ Recent decisions affecting current work:
 - [Phase 13]: idle_timeout stored in AgentServer as Duration field with with_idle_timeout() builder; default 60s; per-read timeout (not per-connection total) wraps each read_line call
 - [Phase 13]: main.rs captures ipc_idle_timeout_secs from AgentConfig::load() at Gate 2; fallback to 60s if config load fails
 - [Phase 13]: init_tracing() uses try_init() — prevents double-registration panics; tracing-journald gated to Linux cfg; peer_pid forwarded to handle_connection (no second syscall); extract_jwk_from_proof() NOT instrumented (untrusted input); GetProof INFO log emitted before signer check
+- [Phase 14-critical-integration-bug-fixes]: askpass.rs is a binary module (mod askpass in main.rs); uses unix_oidc_agent:: prefix for daemon types; PPID keying prevents cross-session collision; token cached between DPOP_PROOF and OIDC Token rounds via tmpfile
 
 ### Pending Todos
 
@@ -145,6 +147,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-11T12:39:14.143Z
-Stopped at: Completed 13-05-PLAN.md
+Last session: 2026-03-12T12:45:24.059Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
