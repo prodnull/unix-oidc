@@ -36,7 +36,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 13: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes (completed 2026-03-11)
 - [x] **Phase 14: Critical Integration Bug Fixes** - Fix SessionClosed IPC newline, SSH client-side DPoP nonce handler, clock skew config wiring to PAM module (completed 2026-03-12)
 - [x] **Phase 15: Phase 11 Verification + Traceability Fix** - Verify Phase 11 completion, update REQUIREMENTS.md traceability, fix ROADMAP status (completed 2026-03-12)
-- [ ] **Phase 16: Rigorous Integration Testing (Gap Closure)** - CIBA live IdP tests, step-up IPC full-flow, break-glass fallback, ACR validation against live Keycloak
+- [x] **Phase 16: Rigorous Integration Testing (Gap Closure)** - CIBA live IdP tests, step-up IPC full-flow, break-glass fallback, ACR validation against live Keycloak (completed 2026-03-12)
 
 ## Phase Details
 
@@ -209,7 +209,12 @@ Plans:
   2. An integration test exercises the full step-up IPC flow (PAM sends StepUp -> agent spawns CIBA poll -> agent returns StepUpPending -> PAM polls StepUpResult -> StepUpComplete) using wiremock-rs as the IdP
   3. With Keycloak stopped, a break-glass account can still authenticate via local PAM; OIDC login fails gracefully (no hang/crash); restarting Keycloak restores OIDC
   4. ACR validation is tested against live tokens from Keycloak with ACR LoA mapping configured
-**Plans**: TBD
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 16-01-PLAN.md — CIBA-enabled Keycloak realm + docker-compose + CI job + ACR validation (INT-01, INT-04)
+- [x] 16-02-PLAN.md — Step-up IPC full-flow integration test with wiremock-rs (INT-02)
+- [x] 16-03-PLAN.md — Break-glass fallback + OIDC failure graceful degradation (INT-03)
 
 ## Progress
 
@@ -226,8 +231,8 @@ Plans:
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 3/3 | Complete | 2026-03-11 |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 3/3 | Complete | 2026-03-11 |
 | 11. Implementation Completion | v2.0 | 2/2 | Complete | 2026-03-11 |
-| 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
+| 12. Rigorous Integration Testing | v2.0 | 0/? | Superseded by Phase 16 | - |
 | 13. Operational Hardening | v2.0 | 5/5 | Complete | 2026-03-11 |
 | 14. Critical Integration Bug Fixes | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 15. Phase 11 Verification + Traceability Fix | v2.0 | 2/2 | Complete | 2026-03-12 |
-| 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 0/? | Not started | - |
+| 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 3/3 | Complete | 2026-03-12 |

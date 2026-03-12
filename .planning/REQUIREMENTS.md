@@ -57,10 +57,10 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Integration Testing
 
-- [ ] **INT-01**: CIBA-enabled Keycloak test realm with poll-mode backchannel auth, ACR LoA mapping, and Admin API auto-approval in CI
-- [ ] **INT-02**: Step-up IPC full-flow integration test using wiremock-rs mock CIBA endpoint (StepUp -> StepUpPending -> poll -> StepUpComplete)
-- [ ] **INT-03**: Break-glass fallback test — OIDC unavailable, local auth succeeds, OIDC recovery on IdP restart
-- [ ] **INT-04**: ACR validation against live Keycloak tokens with configured ACR LoA mapping (optional FIDO2 simulation)
+- [x] **INT-01**: CIBA-enabled Keycloak test realm with poll-mode backchannel auth, ACR LoA mapping, and Admin API auto-approval in CI
+- [x] **INT-02**: Step-up IPC full-flow integration test using wiremock-rs mock CIBA endpoint (StepUp -> StepUpPending -> poll -> StepUpComplete)
+- [x] **INT-03**: Break-glass fallback test — OIDC unavailable, local auth succeeds, OIDC recovery on IdP restart
+- [x] **INT-04**: ACR validation against live Keycloak tokens with configured ACR LoA mapping (optional FIDO2 simulation)
 
 ### Operational Readiness
 
@@ -150,10 +150,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-02 | Phase 11 | Complete |
 | TEST-03 | Phase 11 | Complete |
 | TEST-04 | Phase 11 | Complete |
-| INT-01 | Phase 16 | Pending |
-| INT-02 | Phase 16 | Pending |
-| INT-03 | Phase 16 | Pending |
-| INT-04 | Phase 16 | Pending |
+| INT-01 | Phase 16 | Complete |
+| INT-02 | Phase 16 | Complete |
+| INT-03 | Phase 16 | Complete |
+| INT-04 | Phase 16 | Complete |
 | OPS-01 | Phase 13 | Complete |
 | OPS-02 | Phase 13 | Complete |
 | OPS-03 | Phase 13 | Complete |
