@@ -31,11 +31,11 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 8: Username Mapping + Group Policy + Break-Glass** - Enterprise identity integration: claim transforms, group-based access control, and break-glass enforcement (completed 2026-03-10)
 - [x] **Phase 9: Token Introspection + Session Lifecycle + Token Refresh** - Full session management: RFC 7662 introspection, open/close session records, RFC 7009 revocation, and automatic token refresh (completed 2026-03-11)
 - [x] **Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation** - IdP-agnostic step-up authentication via CIBA poll mode and FIDO2 through phishing-resistant ACR claim delegation (completed 2026-03-11)
-- [ ] **Phase 11: Implementation Completion** - Wire existing but unwired test assets into CI, fill DPoP-bound token E2E gaps, cross-language interop in CI, agent daemon lifecycle test
+- [x] **Phase 11: Implementation Completion** - Wire existing but unwired test assets into CI, fill DPoP-bound token E2E gaps, cross-language interop in CI, agent daemon lifecycle test (completed 2026-03-11, verified 2026-03-12)
 - [ ] **Phase 12: Rigorous Integration Testing** - CIBA live IdP test infrastructure, step-up IPC full-flow, break-glass fallback, FIDO2 authenticator simulation
 - [x] **Phase 13: Operational Hardening** - systemd/launchd service integration, IPC security, configurable timeouts, tracing spans, and audit fixes (completed 2026-03-11)
 - [x] **Phase 14: Critical Integration Bug Fixes** - Fix SessionClosed IPC newline, SSH client-side DPoP nonce handler, clock skew config wiring to PAM module (completed 2026-03-12)
-- [ ] **Phase 15: Phase 11 Verification + Traceability Fix** - Verify Phase 11 completion, update REQUIREMENTS.md traceability, fix ROADMAP status
+- [x] **Phase 15: Phase 11 Verification + Traceability Fix** - Verify Phase 11 completion, update REQUIREMENTS.md traceability, fix ROADMAP status (completed 2026-03-12)
 - [ ] **Phase 16: Rigorous Integration Testing (Gap Closure)** - CIBA live IdP tests, step-up IPC full-flow, break-glass fallback, ACR validation against live Keycloak
 
 ## Phase Details
@@ -53,9 +53,9 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — parking_lot migration + panic elimination (SEC-01, SEC-07)
-- [ ] 06-02-PLAN.md — SecurityModes/CacheConfig types + figment config loading (SEC-03, SEC-04)
-- [ ] 06-03-PLAN.md — Wire enforcement modes into validation + deny lint activation (SEC-02, SEC-03)
+- [x] 06-01-PLAN.md — parking_lot migration + panic elimination (SEC-01, SEC-07)
+- [x] 06-02-PLAN.md — SecurityModes/CacheConfig types + figment config loading (SEC-03, SEC-04)
+- [x] 06-03-PLAN.md — Wire enforcement modes into validation + deny lint activation (SEC-02, SEC-03)
 
 ### Phase 7: DPoP Nonce Issuance
 **Goal**: The server issues a fresh single-use nonce with every DPoP challenge, making captured DPoP proofs unreplayable even within their `iat`/`exp` window
@@ -68,8 +68,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 07-01-PLAN.md — DPoP nonce cache (moka-backed), nonce generation, CacheConfig extension, enforcement mode threading (SEC-05, SEC-06)
-- [ ] 07-02-PLAN.md — Two-round PAM conversation for nonce challenge/response + human verification (SEC-05)
+- [x] 07-01-PLAN.md — DPoP nonce cache (moka-backed), nonce generation, CacheConfig extension, enforcement mode threading (SEC-05, SEC-06)
+- [x] 07-02-PLAN.md — Two-round PAM conversation for nonce challenge/response + human verification (SEC-05)
 
 ### Phase 8: Username Mapping + Group Policy + Break-Glass
 **Goal**: Enterprise deployments can map IdP claim values to local Unix usernames, restrict login to specific OIDC groups, and rely on break-glass accounts being enforced with an audit trail
@@ -101,9 +101,9 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 09-01-PLAN.md — Config types, session record module, audit events, PAM open/close_session with putenv/getenv correlation (SES-01, SES-02, SES-03)
-- [ ] 09-02-PLAN.md — RFC 7662 introspection client + moka cache, wired into authenticate() (SES-05, SES-06)
-- [ ] 09-03-PLAN.md — Agent IPC SessionClosed, auto-refresh background task, RFC 7009 revocation, credential cleanup (SES-04, SES-07, SES-08)
+- [x] 09-01-PLAN.md — Config types, session record module, audit events, PAM open/close_session with putenv/getenv correlation (SES-01, SES-02, SES-03)
+- [x] 09-02-PLAN.md — RFC 7662 introspection client + moka cache, wired into authenticate() (SES-05, SES-06)
+- [x] 09-03-PLAN.md — Agent IPC SessionClosed, auto-refresh background task, RFC 7009 revocation, credential cleanup (SES-04, SES-07, SES-08)
 
 ### Phase 10: CIBA Step-Up + FIDO2 via ACR Delegation
 **Goal**: Users can approve privileged operations via a push notification to their phone or a FIDO2 authenticator, with the step-up flow handled entirely in the agent daemon so the PAM module never blocks
@@ -118,9 +118,9 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 10-01-PLAN.md — OIDC discovery extension + CIBA types/client + ACR validation (STP-02, STP-03, STP-04)
-- [ ] 10-02-PLAN.md — Step-up IPC protocol messages + DeviceFlowClient discovery fix (STP-05, STP-06)
-- [ ] 10-03-PLAN.md — Agent CIBA handler + PAM sudo step-up wiring (STP-01, STP-07)
+- [x] 10-01-PLAN.md — OIDC discovery extension + CIBA types/client + ACR validation (STP-02, STP-03, STP-04)
+- [x] 10-02-PLAN.md — Step-up IPC protocol messages + DeviceFlowClient discovery fix (STP-05, STP-06)
+- [x] 10-03-PLAN.md — Agent CIBA handler + PAM sudo step-up wiring (STP-01, STP-07)
 
 ### Phase 11: Implementation Completion
 **Goal**: All existing but unwired test assets run in CI; DPoP-bound token validation is verified end-to-end against Keycloak; cross-language DPoP interop tests are automated; the agent daemon has a lifecycle integration test
@@ -131,11 +131,11 @@ Plans:
   2. The `unix-oidc-test` Keycloak realm issues DPoP-bound access tokens (`cnf.jkt` present) and the PAM module validates the thumbprint match in a CI integration test
   3. `dpop-cross-language-tests/run-cross-language-tests.sh` runs in CI and validates Rust/Go/Python interop
   4. An integration test starts the agent daemon, sends IPC commands (Status, GetProof, Shutdown), and validates responses
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 11-01-PLAN.md — Token exchange CI wiring + DPoP-bound token E2E validation (TEST-01, TEST-02)
-- [ ] 11-02-PLAN.md — Cross-language DPoP interop CI job + agent daemon lifecycle test (TEST-03, TEST-04)
+- [x] 11-01-PLAN.md — Token exchange CI wiring + DPoP-bound token E2E validation (TEST-01, TEST-02)
+- [x] 11-02-PLAN.md — Cross-language DPoP interop CI job + agent daemon lifecycle test (TEST-03, TEST-04)
 
 ### Phase 12: Rigorous Integration Testing
 **Goal**: New test infrastructure validates the critical paths that currently have zero integration coverage — CIBA backchannel, step-up IPC full flow, break-glass failover, and optionally FIDO2 authenticator simulation
@@ -161,11 +161,11 @@ Plans:
 **Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 13-01-PLAN.md — Configurable timeouts (figment) + audit hostname fix (OPS-07, OPS-08, OPS-09, OPS-10, OPS-12)
-- [ ] 13-02-PLAN.md — systemd service units + socket activation + sd-notify + graceful shutdown (OPS-01, OPS-02, OPS-04)
-- [ ] 13-03-PLAN.md — IPC peer authentication + idle timeout (OPS-05, OPS-06)
-- [ ] 13-04-PLAN.md — launchd plist template + install/uninstall subcommands (OPS-03)
-- [ ] 13-05-PLAN.md — Tracing instrumentation + JSON output + GetProof logging (OPS-11, OPS-13)
+- [x] 13-01-PLAN.md — Configurable timeouts (figment) + audit hostname fix (OPS-07, OPS-08, OPS-09, OPS-10, OPS-12)
+- [x] 13-02-PLAN.md — systemd service units + socket activation + sd-notify + graceful shutdown (OPS-01, OPS-02, OPS-04)
+- [x] 13-03-PLAN.md — IPC peer authentication + idle timeout (OPS-05, OPS-06)
+- [x] 13-04-PLAN.md — launchd plist template + install/uninstall subcommands (OPS-03)
+- [x] 13-05-PLAN.md — Tracing instrumentation + JSON output + GetProof logging (OPS-11, OPS-13)
 
 ### Phase 14: Critical Integration Bug Fixes
 **Goal**: Fix the two critical cross-phase integration bugs that break E2E flows (SessionClosed IPC newline, SSH DPoP nonce handler) and wire clock skew config to PAM module
@@ -180,8 +180,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 14-01-PLAN.md — SessionClosed IPC newline fix + clock skew config wiring + socket.rs unwrap cleanup (SES-04, SES-07, SES-08, OPS-09)
-- [ ] 14-02-PLAN.md — SSH_ASKPASS nonce handler subcommand (SEC-05)
+- [x] 14-01-PLAN.md — SessionClosed IPC newline fix + clock skew config wiring + socket.rs unwrap cleanup (SES-04, SES-07, SES-08, OPS-09)
+- [x] 14-02-PLAN.md — SSH_ASKPASS nonce handler subcommand (SEC-05)
 
 ### Phase 15: Phase 11 Verification + Traceability Fix
 **Goal**: Verify Phase 11 work is genuinely complete, update traceability, and close the verification gap
@@ -193,11 +193,11 @@ Plans:
   2. REQUIREMENTS.md traceability shows correct status for TEST-01 and TEST-02
   3. Phase 11 has a VERIFICATION.md
   4. ROADMAP.md Phase 11 status reflects reality
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 15-01-PLAN.md — Local + CI verification of TEST-01/TEST-02 (TEST-01, TEST-02)
-- [ ] 15-02-PLAN.md — VERIFICATION.md + traceability audit (TEST-01, TEST-02)
+- [x] 15-01-PLAN.md — Local + CI verification of TEST-01/TEST-02 (TEST-01, TEST-02)
+- [x] 15-02-PLAN.md — VERIFICATION.md + traceability audit (TEST-01, TEST-02)
 
 ### Phase 16: Rigorous Integration Testing (Gap Closure)
 **Goal**: Build the integration test infrastructure that Phase 12 was meant to deliver — CIBA live IdP, step-up IPC full-flow, break-glass failover, and ACR validation
@@ -225,9 +225,9 @@ Plans:
 | 8. Username Mapping + Group Policy + Break-Glass | v2.0 | 3/3 | Complete | 2026-03-10 |
 | 9. Token Introspection + Session Lifecycle + Token Refresh | v2.0 | 3/3 | Complete | 2026-03-11 |
 | 10. CIBA Step-Up + FIDO2 via ACR Delegation | v2.0 | 3/3 | Complete | 2026-03-11 |
-| 11. Implementation Completion | v2.0 | 1/2 | In Progress | - |
+| 11. Implementation Completion | v2.0 | 2/2 | Complete | 2026-03-11 |
 | 12. Rigorous Integration Testing | v2.0 | 0/? | Not started | - |
 | 13. Operational Hardening | v2.0 | 5/5 | Complete | 2026-03-11 |
 | 14. Critical Integration Bug Fixes | v2.0 | 2/2 | Complete | 2026-03-12 |
-| 15. Phase 11 Verification + Traceability Fix | 1/2 | In Progress|  | - |
+| 15. Phase 11 Verification + Traceability Fix | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 0/? | Not started | - |

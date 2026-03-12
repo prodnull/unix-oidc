@@ -146,8 +146,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STP-05 | Phase 10 | Complete |
 | STP-06 | Phase 10 | Complete |
 | STP-07 | Phase 10 | Complete |
-| TEST-01 | Phase 15 | Complete |
-| TEST-02 | Phase 15 | Complete |
+| TEST-01 | Phase 11 | Complete |
+| TEST-02 | Phase 11 | Complete |
 | TEST-03 | Phase 11 | Complete |
 | TEST-04 | Phase 11 | Complete |
 | INT-01 | Phase 16 | Pending |
@@ -175,4 +175,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 — traceability populated by v2.0 roadmap creation*
+*Last updated: 2026-03-12 — TEST-01/TEST-02 traceability corrected from Phase 15 to Phase 11 (Phase 11 did implementation; Phase 15 verified)*
