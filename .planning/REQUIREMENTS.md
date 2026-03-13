@@ -1,192 +1,134 @@
-# Requirements: unix-oidc v2.0
+# Requirements: unix-oidc v2.1 Integration Testing Infrastructure
 
-**Defined:** 2026-03-10
-**Core Value:** DPoP private keys must be protected at rest, in memory, and on deletion — because a stolen DPoP key defeats the entire proof-of-possession security model that distinguishes unix-oidc from bearer-token systems.
+**Defined:** 2026-03-13
+**Core Value:** DPoP private keys must be protected at rest, in memory, and on deletion — and integration tests must verify this with real cryptographic validation, not TEST_MODE bypasses.
 
-## v2.0 Requirements
+## v2.1 Requirements
 
-Requirements for production hardening and enterprise readiness. Each maps to roadmap phases.
+### Blocker Fixes
 
-### Security Foundations
+- [ ] **BFIX-01**: Keycloak issuer URL aligned between token `iss` claim and PAM `OIDC_ISSUER` validation
+- [ ] **BFIX-02**: `unix-oidc-agent` binary installed and startable in test-host container
+- [ ] **BFIX-03**: Device flow token polling sends DPoP proof header per RFC 9449 §4.2
+- [ ] **BFIX-04**: IPC `notify_agent_session_closed()` sends newline terminator to prevent `read_line` hang
 
-- [x] **SEC-01**: All `.expect()` and `.unwrap()` calls removed from PAM-reachable code paths
-- [x] **SEC-02**: `#![deny(clippy::expect_used, clippy::unwrap_used)]` lint active in `pam-unix-oidc`
-- [x] **SEC-03**: Configurable enforcement modes (strict/warn/disabled) for JTI, DPoP requirement, ACR/AMR claims
-- [x] **SEC-04**: figment-based config loading with backward-compatible defaults matching v1.0 behavior
-- [x] **SEC-05**: Server-side DPoP nonce issuance per RFC 9449 §8 with PAM challenge delivery
-- [x] **SEC-06**: DPoP nonce single-use enforcement and TTL-bounded moka cache
-- [x] **SEC-07**: JTI cache size aligned between code and documentation (resolve 10k vs 100k)
+### E2E Infrastructure
 
-### Enterprise Identity
+- [ ] **INFR-01**: New `docker-compose.e2e.yaml` with Keycloak 26.4+, no `UNIX_OIDC_TEST_MODE`, aligned issuer URLs
+- [ ] **INFR-02**: Keycloak health check uses `/health/ready` endpoint (not TCP port check)
+- [ ] **INFR-03**: Sentinel assertion at CI job start verifying `UNIX_OIDC_TEST_MODE` is NOT set
+- [ ] **INFR-04**: Realm JSON fixes (`deviceAuthorizationGrantEnabled` boolean, DPoP GA settings for Keycloak 26.4+)
 
-- [x] **IDN-01**: Username claim mapping with configurable claim source (sub, email, preferred_username, custom)
-- [x] **IDN-02**: Username transform functions (strip domain suffix, regex with capture group, lowercase)
-- [x] **IDN-03**: Username uniqueness validation at config load time to prevent many-to-one collisions
-- [x] **IDN-04**: Group-based login access policy from OIDC groups claim with configurable allow-list
-- [x] **IDN-05**: Group-based sudo access policy (sudo_groups) gating step-up authorization
-- [x] **IDN-06**: Break-glass account enforcement — skip OIDC for configured accounts, pass to next PAM module
-- [x] **IDN-07**: Break-glass audit event emitted on every break-glass authentication
+### Playwright Automation
 
-### Session & Token Lifecycle
+- [ ] **PLAY-01**: Playwright spec automates Keycloak device flow consent (navigate to verification URI, fill credentials, grant)
+- [ ] **PLAY-02**: Tmpfile coordination between Playwright spec and shell poll loop for token handoff
+- [ ] **PLAY-03**: CI-compatible headless execution on GitHub Actions runners
 
-- [x] **SES-01**: `pam_sm_open_session` writes session record to tmpfs store (`/run/unix-oidc/sessions/`)
-- [x] **SES-02**: `pam_sm_close_session` deletes session record and emits session-close audit event with duration
-- [x] **SES-03**: Session correlation via `pam_set_data()` between authenticate and open_session calls
-- [x] **SES-04**: Automatic token refresh in agent daemon at configurable TTL threshold (default 80%)
-- [x] **SES-05**: Token introspection (RFC 7662) as opt-in validation step with configurable fail-open/fail-closed
-- [x] **SES-06**: Introspection result caching via moka with TTL bounded by min(60s, token exp - now)
-- [x] **SES-07**: RFC 7009 token revocation on session close (best-effort, 5s timeout)
-- [x] **SES-08**: Agent SessionClosed IPC event to schedule orphaned DPoP key cleanup
-- [x] **SES-09**: Background session expiry sweep in agent daemon (configurable interval, default 300s) to reap orphaned session records from crashed sshd workers
+### SSH E2E Test
 
-### Step-Up Authentication
+- [ ] **E2E-01**: Full auth chain: `agent login` → `agent serve` → SSH with `SSH_ASKPASS` → PAM conversation (3 rounds) → JWKS signature verification → shell access
+- [ ] **E2E-02**: Auth log verification confirms structured audit event for successful authentication
+- [ ] **E2E-03**: Negative tests: expired token rejected, wrong issuer rejected, replayed DPoP proof rejected
 
-- [x] **STP-01**: CIBA poll-mode step-up implemented in agent daemon (not PAM thread)
-- [x] **STP-02**: CIBA binding_message carries the command being authorized for phishing context
-- [x] **STP-03**: CIBA backchannel discovery from IdP OIDC metadata (backchannel_authentication_endpoint)
-- [x] **STP-04**: FIDO2 step-up via CIBA ACR delegation (request phishing-resistant ACR from IdP)
-- [x] **STP-05**: Step-up IPC protocol extensions (StepUp, StepUpPending, StepUpComplete messages)
-- [x] **STP-06**: IdP discovery-based endpoint resolution replacing Keycloak-hardcoded device flow URLs
-- [x] **STP-07**: Configurable step-up timeout for CIBA polling (default 120s)
+### CI Integration
 
-### Test Completion
+- [ ] **CI-01**: `keycloak-e2e` GitHub Actions job depending on build-matrix artifact
+- [ ] **CI-02**: Parallel Playwright + shell test execution within the job
+- [ ] **CI-03**: Entra ID secrets-gated CI job (`entra-integration`)
 
-- [x] **TEST-01**: Token exchange tests (shell + Python) wired into CI via `docker-compose.token-exchange.yaml` with DPoP cnf.jkt rebinding validation
-- [x] **TEST-02**: DPoP-bound access token E2E — Keycloak test realm configured with `dpop.bound.access.tokens: true`; CI test validates cnf.jkt thumbprint match
-- [x] **TEST-03**: Cross-language DPoP interop tests (Rust/Go/Python) running in CI via `dpop-cross-language-tests/`
-- [x] **TEST-04**: Agent daemon lifecycle integration test — start daemon, send IPC commands, validate responses, clean shutdown
+### Multi-IdP Configuration
 
-### Integration Testing
+- [ ] **MIDP-01**: `issuers[]` array in policy.yaml with per-issuer config blocks (issuer_url, client_id, client_secret)
+- [ ] **MIDP-02**: Per-issuer DPoP enforcement mode (strict/warn/disabled)
+- [ ] **MIDP-03**: Per-issuer claim mapping rules (username extraction, strip-domain, regex)
+- [ ] **MIDP-04**: Per-issuer ACR value mapping (e.g., Keycloak `urn:keycloak:acr:loa2` vs Entra `c1`/`c2`)
+- [ ] **MIDP-05**: Per-issuer group mapping (token claim path vs NSS-only, group name translation)
+- [ ] **MIDP-06**: PAM module matches incoming token `iss` to configured issuer; rejects unknown issuers
+- [ ] **MIDP-07**: JWKS cache keyed by issuer URL (multi-issuer concurrent caching)
+- [ ] **MIDP-08**: Graceful degradation: missing optional per-issuer fields fall back to safe defaults with WARN logging
 
-- [x] **INT-01**: CIBA-enabled Keycloak test realm with poll-mode backchannel auth, ACR LoA mapping, and Admin API auto-approval in CI
-- [x] **INT-02**: Step-up IPC full-flow integration test using wiremock-rs mock CIBA endpoint (StepUp -> StepUpPending -> poll -> StepUpComplete)
-- [x] **INT-03**: Break-glass fallback test — OIDC unavailable, local auth succeeds, OIDC recovery on IdP restart
-- [x] **INT-04**: ACR validation against live Keycloak tokens with configured ACR LoA mapping (optional FIDO2 simulation)
+### Entra ID Integration
 
-### Operational Readiness
+- [ ] **ENTR-01**: Entra app registration with device code flow enabled (public client)
+- [ ] **ENTR-02**: OIDC discovery + JWKS endpoint validation against live Entra tenant
+- [ ] **ENTR-03**: RS256 token signature verification through PAM module (not just ES256)
+- [ ] **ENTR-04**: UPN claim mapping (`alice@corp.com` → `alice`) validated end-to-end
+- [ ] **ENTR-05**: Bearer-only mode (DPoP disabled) produces successful auth with full audit trail
 
-- [x] **OPS-01**: systemd user service unit with hardening directives (NoNewPrivileges, ProtectSystem, MemoryDenyWriteExecute)
-- [x] **OPS-02**: systemd socket activation support with standalone fallback
-- [x] **OPS-03**: launchd plist template for macOS agent daemon
-- [x] **OPS-04**: sd-notify READY=1 after socket bind + config validation + initial JWKS fetch
-- [x] **OPS-05**: SO_PEERCRED (Linux) / getpeereid (macOS) peer UID validation on IPC socket
-- [x] **OPS-06**: IPC idle timeout (configurable, default 60s) to prevent Tokio task leaks
-- [x] **OPS-07**: Configurable JWKS HTTP timeout (default 10s, operator-tunable)
-- [x] **OPS-08**: Configurable device flow HTTP timeout (default 30s, operator-tunable)
-- [x] **OPS-09**: Configurable clock skew tolerance (default 5s future / 60s staleness)
-- [x] **OPS-10**: Configurable JWKS cache TTL wired to env var (default 300s)
-- [x] **OPS-11**: Tracing spans across full authentication flow (JWKS fetch, validation, DPoP verify, user lookup)
-- [x] **OPS-12**: Audit hostname resolution via gethostname() syscall instead of env vars
-- [x] **OPS-13**: Proof request logging at INFO level (username, target, signer type)
+## Testing Coverage Requirements
 
-### Observability
+Every requirement above must have corresponding tests that cover:
+- **Happy path**: Feature works as designed
+- **Negative/adversarial**: Malformed input, expired tokens, wrong issuers, replayed proofs, forged claims
+- **Degraded mode**: IdP unreachable, missing optional claims, clock skew, partial config
+- **Cross-IdP**: Features that interact with multi-IdP config tested with at least 2 issuers
+- **Observability**: All auth events (success AND failure) produce structured audit events
 
-- [x] **OBS-1**: Agent-side structured audit events (target: unix_oidc_audit) for authentication, token refresh, session close, and step-up operations with event_type, timestamp, session_id, username, and outcome fields
-- [x] **OBS-3**: Sudo step-up session linking — parent_session_id propagated through StepUp IPC for end-to-end audit correlation between SSH sessions and sudo privilege escalation
+## Future Requirements (v2.2+)
 
-### Memory Protection
+### Additional IdP Integrations
 
-- [x] **MEM-07**: ML-DSA-65 key material mlock'd in HybridPqcSigner via Box-only constructors, matching ProtectedSigningKey pattern (best-effort, warn on failure)
+- **IDPX-01**: Okta integration tests (CIBA push-only mode detection)
+- **IDPX-02**: Auth0 integration tests (device flow + token validation)
+- **IDPX-03**: Google Cloud Identity integration tests
 
-## Future Requirements (v2.1+)
+### Multi-IdP Advanced
 
-### Scalability
-
-- **SCALE-01**: Distributed JTI cache backend (Redis/Valkey) for multi-node deployments
-- **SCALE-02**: VDI/agent socket forwarding mechanism
-
-### Token Exchange
-
-- **TXEX-01**: RFC 8693 token exchange for service-to-service delegation
-- **TXEX-02**: Agent-to-server token exchange flow (see ADR-005)
-
-### Provisioning
-
-- **PROV-01**: SCIM endpoint for automated user provisioning
-- **PROV-02**: Group sync from IdP to local system
-
-### Advanced Auth
-
-- **AUTH-01**: Direct CTAP2/WebAuthn in PAM with credential registration store
-- **AUTH-02**: Post-quantum algorithm migration (ML-DSA-65 alongside ES256)
+- **MIDP-09**: IdP priority ordering (try issuers in configured order)
+- **MIDP-10**: IdP health monitoring (mark issuer degraded if JWKS fetch fails)
+- **MIDP-11**: Hot-reload of issuer config without daemon restart
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| CIBA ping/push modes | Require HTTP notification endpoint — structurally incompatible with PAM module |
-| Interactive PIN/OTP in PAM auth | Unreliable under non-interactive SSH (BatchMode, ProxyJump, scripts) |
-| Browser WebAuthn at PAM | PAM is non-browser; CTAP2 is the correct non-browser analog (deferred to v2.1) |
-| Agent forwarding | Breaks proof-of-possession threat model — remote host gains the private key |
-| Distributed JTI cache | High operational complexity; per-node LRU is correct for v2.0 single-host model |
-| Token exchange (RFC 8693) | Separate milestone per user instruction; see ADR-005 |
+| Multi-IdP federation (Keycloak federating Entra) | Deployment architecture, not unix-oidc config — documented in ops guide |
+| SAML integration | unix-oidc is OIDC-only by design |
+| DPoP with Entra ID | Entra uses proprietary SHR, not RFC 9449 — no interop path exists |
+| reqwest 0.11→0.13 upgrade | Separate hardening task, not integration testing |
+| SCIM provisioning | Separate provisioning milestone |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 6 | Complete |
-| SEC-02 | Phase 6 | Complete |
-| SEC-03 | Phase 6 | Complete |
-| SEC-04 | Phase 6 | Complete |
-| SEC-07 | Phase 6 | Complete |
-| SEC-05 | Phase 7 | Complete |
-| SEC-06 | Phase 7 | Complete |
-| IDN-01 | Phase 8 | Complete |
-| IDN-02 | Phase 8 | Complete |
-| IDN-03 | Phase 8 | Complete |
-| IDN-04 | Phase 8 | Complete |
-| IDN-05 | Phase 8 | Complete |
-| IDN-06 | Phase 8 | Complete |
-| IDN-07 | Phase 8 | Complete |
-| SES-01 | Phase 9 | Complete |
-| SES-02 | Phase 9 | Complete |
-| SES-03 | Phase 9 | Complete |
-| SES-04 | Phase 9 | Complete |
-| SES-05 | Phase 9 | Complete |
-| SES-06 | Phase 9 | Complete |
-| SES-07 | Phase 9 | Complete |
-| SES-08 | Phase 9 | Complete |
-| STP-01 | Phase 10 | Complete |
-| STP-02 | Phase 10 | Complete |
-| STP-03 | Phase 10 | Complete |
-| STP-04 | Phase 10 | Complete |
-| STP-05 | Phase 10 | Complete |
-| STP-06 | Phase 10 | Complete |
-| STP-07 | Phase 10 | Complete |
-| TEST-01 | Phase 11 | Complete |
-| TEST-02 | Phase 11 | Complete |
-| TEST-03 | Phase 11 | Complete |
-| TEST-04 | Phase 11 | Complete |
-| INT-01 | Phase 16 | Complete |
-| INT-02 | Phase 16 | Complete |
-| INT-03 | Phase 16 | Complete |
-| INT-04 | Phase 16 | Complete |
-| OPS-01 | Phase 13 | Complete |
-| OPS-02 | Phase 13 | Complete |
-| OPS-03 | Phase 13 | Complete |
-| OPS-04 | Phase 13 | Complete |
-| OPS-05 | Phase 13 | Complete |
-| OPS-06 | Phase 13 | Complete |
-| OPS-07 | Phase 13 | Complete |
-| OPS-08 | Phase 13 | Complete |
-| OPS-09 | Phase 13 | Complete |
-| OPS-10 | Phase 13 | Complete |
-| OPS-11 | Phase 13 | Complete |
-| OPS-12 | Phase 13 | Complete |
-| OPS-13 | Phase 13 | Complete |
-| OBS-1 | Phase 17 | Planned |
-| OBS-3 | Phase 17 | Planned |
-| SES-09 | Phase 17 | Planned |
-| MEM-07 | Phase 17 | Planned |
+| BFIX-01 | — | Pending |
+| BFIX-02 | — | Pending |
+| BFIX-03 | — | Pending |
+| BFIX-04 | — | Pending |
+| INFR-01 | — | Pending |
+| INFR-02 | — | Pending |
+| INFR-03 | — | Pending |
+| INFR-04 | — | Pending |
+| PLAY-01 | — | Pending |
+| PLAY-02 | — | Pending |
+| PLAY-03 | — | Pending |
+| E2E-01 | — | Pending |
+| E2E-02 | — | Pending |
+| E2E-03 | — | Pending |
+| CI-01 | — | Pending |
+| CI-02 | — | Pending |
+| CI-03 | — | Pending |
+| MIDP-01 | — | Pending |
+| MIDP-02 | — | Pending |
+| MIDP-03 | — | Pending |
+| MIDP-04 | — | Pending |
+| MIDP-05 | — | Pending |
+| MIDP-06 | — | Pending |
+| MIDP-07 | — | Pending |
+| MIDP-08 | — | Pending |
+| ENTR-01 | — | Pending |
+| ENTR-02 | — | Pending |
+| ENTR-03 | — | Pending |
+| ENTR-04 | — | Pending |
+| ENTR-05 | — | Pending |
 
 **Coverage:**
-- v2.0 requirements: 54 total
-- Mapped to phases: 54
-- Unmapped: 0
+- v2.1 requirements: 30 total
+- Mapped to phases: 0
+- Unmapped: 30
 
 ---
-*Requirements defined: 2026-03-10*
-*Last updated: 2026-03-13 — Added OBS-1, OBS-3, SES-09, MEM-07 for Phase 17 P2 enhancements*
+*Requirements defined: 2026-03-13*
+*Last updated: 2026-03-13 after initial definition*
