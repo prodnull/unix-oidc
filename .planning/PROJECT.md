@@ -26,18 +26,16 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 
 ### Active
 
-## Current Milestone: v2.0 Production Hardening & Enterprise Readiness
+## Current Milestone: v2.1 Integration Testing Infrastructure
 
-**Goal:** Eliminate every security gap, doc/code mismatch, and operational deficiency to make unix-oidc production-deployable at enterprise scale.
+**Goal:** Full E2E integration testing with real signature verification and real IdP integration — no TEST_MODE bypasses.
 
 **Target features:**
-- PAM panic elimination and server-side DPoP nonce issuance (RFC 9449 §8)
-- Configurable security modes (Issue #10: strict/warn/disabled)
-- IdP-agnostic step-up with Push (CIBA) and FIDO2 (WebAuthn) methods
-- Full session lifecycle (introspection, revocation, session store)
-- Username mapping, group-based policies, break-glass enforcement
-- Configurable timeouts, IPC hardening, automatic token refresh
-- Operational readiness (systemd/launchd, tracing spans, audit fixes)
+- Fix issuer URL mismatch, agent binary in test-host, DPoP binding in device flow token request
+- Real-signature integration tests (Keycloak, no TEST_MODE)
+- Full SSH E2E: agent login → serve → SSH_ASKPASS → PAM conversation → JWKS verify
+- Playwright-based device flow automation for CI
+- Azure Entra ID integration tests (app registration, token validation, JWKS, claim mapping)
 
 ### Out of Scope
 
@@ -76,4 +74,4 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 - **Hardware**: YubiKey requires pcscd; TPM requires tpm2-abrmd; both Linux-only for TPM
 
 ---
-*Last updated: 2026-03-10 after v2.0 milestone start*
+*Last updated: 2026-03-13 after v2.1 milestone start*

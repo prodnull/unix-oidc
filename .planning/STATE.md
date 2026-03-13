@@ -1,33 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Production Hardening & Enterprise Readiness
-status: verifying
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-03-13T04:54:18.243Z"
-last_activity: 2026-03-12 — Phase 15 Plan 01 complete; all three test scripts verified passing locally against live Keycloak 26.2; CI check job unblocked from formatting/compilation errors; CI token-exchange job pending resolution of pre-existing unwrap_used violations
+milestone: v2.1
+milestone_name: Integration Testing Infrastructure
+status: planning
+stopped_at: null
+last_updated: "2026-03-13"
+last_activity: 2026-03-13 — Milestone v2.1 started
 progress:
-  total_phases: 12
-  completed_phases: 10
-  total_plans: 31
-  completed_plans: 28
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-10)
+See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** v2.0 — Phase 11: Implementation Completion
+**Current focus:** v2.1 — Integration Testing Infrastructure
 
 ## Current Position
 
-Phase: 15 of 15 (Phase 11 Verification & Traceability)
-Plan: 01 of 02 (completed)
-Status: Phase 15 Plan 01 complete — Phase 15 Plan 02 pending (VERIFICATION.md creation)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-13 — Milestone v2.1 started
 Last activity: 2026-03-12 — Phase 15 Plan 01 complete; all three test scripts verified passing locally against live Keycloak 26.2; CI check job unblocked from formatting/compilation errors; CI token-exchange job pending resolution of pre-existing unwrap_used violations
 
 Progress: [██████████] 100%
