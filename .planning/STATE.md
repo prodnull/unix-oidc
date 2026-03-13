@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Integration Testing Infrastructure
 status: planning
-stopped_at: Completed 21-02-PLAN.md
-last_updated: "2026-03-13T19:20:09.105Z"
+stopped_at: Completed 21-03-PLAN.md
+last_updated: "2026-03-13T19:27:11.987Z"
 last_activity: 2026-03-13 — v2.1 roadmap created; all 30 requirements mapped to phases 18-22
 progress:
   total_phases: 16
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 34
-  completed_plans: 30
+  completed_plans: 31
   percent: 0
 ---
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 - Total execution time: ~58h (v2.0)
 
 **Recent Trend:**
-- Last 5 plans: Phase 21-02 (10m), Phase 21-01 (6m), Phase 17-03 (8m), 17-01 (5m), 17-02 (4m)
+- Last 5 plans: Phase 21-03 (3m), Phase 21-02 (10m), Phase 21-01 (6m), Phase 17-03 (8m), 17-01 (5m)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 
 ### Key Decisions Affecting v2.1
 
+- [21-03]: GroupMappingConfig::default_claim() is serde-only; Rust Default yields empty string — test verifies serde path via figment round-trip; documented in test comments
 - [21-02]: JWKS_REGISTRY is static Lazy<IssuerJwksRegistry> in lib.rs for cache persistence across PAM calls without a persistent daemon struct
 - [21-02]: JTI scoping at call site (format!("{iss}:{jti}")) — JtiCache struct unchanged; per-issuer collision prevention is a calling-convention
 - [21-02]: JWKS TTL/timeout hardcoded (300s/10s) in authenticate_multi_issuer(); future per-issuer config possible if needed
@@ -78,6 +79,6 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 
 ## Session Continuity
 
-Last session: 2026-03-13T19:20:09.102Z
-Stopped at: Completed 21-02-PLAN.md
+Last session: 2026-03-13T19:27:11.982Z
+Stopped at: Completed 21-03-PLAN.md
 Resume file: None

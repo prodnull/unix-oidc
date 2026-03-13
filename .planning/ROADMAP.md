@@ -50,7 +50,7 @@ Full details: see Phase Details section below (preserved for reference).
 - [ ] **Phase 18: Blocker Fixes + E2E Infrastructure** - Fix four pre-existing bugs and stand up the real-signature compose stack
 - [ ] **Phase 19: Playwright Device Flow Automation** - Automate Keycloak browser consent for headless CI
 - [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Complete the milestone deliverable: real-signature SSH auth chain in CI
-- [ ] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config
+- [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
 - [ ] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping
 
 ## Phase Details
@@ -98,7 +98,7 @@ Full details: see Phase Details section below (preserved for reference).
   3. A user whose Keycloak `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the issuer's claim mapping sets `strip_domain: true`; a second issuer with no strip_domain config uses the raw claim value unchanged
   4. The JWKS cache maintains independent entries keyed by issuer URL; fetching a JWKS for one issuer does not evict or overwrite the cache entry for another issuer
   5. An `issuers[]` entry that omits optional fields (no `acr_mapping`, no `group_mapping`) loads successfully with safe defaults and logs a WARN; authentication against that issuer still succeeds
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 21-01-PLAN.md — IssuerConfig types + JWKS registry + config validation (MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-08)
@@ -140,7 +140,7 @@ Plans:
 | 18. Blocker Fixes + E2E Infrastructure | v2.1 | 0/? | Not started | - |
 | 19. Playwright Device Flow Automation | v2.1 | 0/? | Not started | - |
 | 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Not started | - |
-| 21. Multi-IdP Configuration | 2/3 | In Progress|  | - |
+| 21. Multi-IdP Configuration | 3/3 | Complete   | 2026-03-13 | - |
 | 22. Entra ID Integration | v2.1 | 0/? | Not started | - |
 
 ---
