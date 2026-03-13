@@ -86,7 +86,7 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Memory Protection
 
-- [ ] **MEM-07**: ML-DSA-65 key material mlock'd in HybridPqcSigner via Box-only constructors, matching ProtectedSigningKey pattern (best-effort, warn on failure)
+- [x] **MEM-07**: ML-DSA-65 key material mlock'd in HybridPqcSigner via Box-only constructors, matching ProtectedSigningKey pattern (best-effort, warn on failure)
 
 ## Future Requirements (v2.1+)
 
