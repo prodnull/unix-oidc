@@ -1,13 +1,13 @@
 ---
 phase: 22
 slug: entra-id-integration
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-13
 ---
 
-# Phase 22 — Validation Strategy
+# Phase 22 -- Validation Strategy
 
 > Per-phase validation contract for feedback sampling during execution.
 
@@ -38,23 +38,31 @@ created: 2026-03-13
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | 01 | 1 | ENTR-01 | manual | N/A (documentation) | N/A | pending |
-| TBD | 01 | 1 | ENTR-02 | integration | `cargo test -p pam-unix-oidc -- entra_rs256_token_validates` | Wave 0 | pending |
-| TBD | 01 | 1 | ENTR-03 | integration | `cargo test -p pam-unix-oidc -- entra_rs256_token_validates` | Wave 0 | pending |
-| TBD | 01 | 1 | ENTR-04 | integration | `cargo test -p pam-unix-oidc -- entra_upn_strip_domain_maps` | Wave 0 | pending |
-| TBD | 01 | 1 | ENTR-05 | integration | `cargo test -p pam-unix-oidc -- entra_bearer_auth_audit_trail` | Wave 0 | pending |
-| TBD | 02 | 2 | CI-03 | CI | Inspect `provider-tests.yml` diff | Wave 0 | pending |
+| 22-01-T1 | 01 | 1 | ENTR-03, ENTR-04 | unit | `cargo test -p pam-unix-oidc --features test-mode -- expected_audience allow_unsafe collision_safety` | Created inline | pending |
+| 22-01-T2 | 01 | 1 | ENTR-01 | manual | N/A (documentation) | Created inline | pending |
+| 22-02-T1 | 02 | 2 | ENTR-02, ENTR-03, ENTR-04, ENTR-05 | integration | `cargo test --release -p pam-unix-oidc --test entra_integration -- --ignored --test-threads=1` | Created inline | pending |
+| 22-03-T1 | 03 | 3 | CI-03 | shell | `bash -n test/scripts/get-entra-token.sh` | Created inline | pending |
+| 22-03-T2 | 03 | 3 | CI-03, ENTR-05 | CI | `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/provider-tests.yml'))"` | Created inline | pending |
 
-*Status: pending · green · red · flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
-## Wave 0 Requirements
+## Wave 0 Note
 
-- [ ] `pam-unix-oidc/tests/entra_integration.rs` — stubs for ENTR-02, ENTR-03, ENTR-04, ENTR-05
-- [ ] `test/fixtures/policy/policy-entra.yaml` — Entra issuer fixture
-- [ ] `test/scripts/get-entra-token.sh` — ROPC token acquisition for CI
-- [ ] `docs/entra-setup-guide.md` — step-by-step app registration guide (ENTR-01)
+Wave 0 files (test files, fixtures, scripts, documentation) are created inline within
+Wave 1/2/3 tasks rather than in a separate Wave 0 plan. Each task creates its own
+artifacts:
+
+- **22-01-T1:** Creates tests in `multi_idp_integration.rs` (existing file, new tests)
+- **22-01-T2:** Creates `test/fixtures/policy/policy-entra.yaml`, `docs/entra-setup-guide.md`
+- **22-02-T1:** Creates `pam-unix-oidc/tests/entra_integration.rs`
+- **22-03-T1:** Creates `test/scripts/get-entra-token.sh`
+- **22-03-T2:** Modifies `.github/workflows/provider-tests.yml`
+
+This approach is valid because each plan's tasks are sequential within the plan, and
+cross-plan dependencies (22-02 depends on 22-01; 22-03 depends on 22-01 and 22-02)
+ensure files exist before they are referenced.
 
 ---
 
@@ -62,17 +70,17 @@ created: 2026-03-13
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| App registration guide completeness | ENTR-01 | Documentation deliverable | Review `docs/entra-setup-guide.md` against App Registration Checklist in RESEARCH.md |
+| App registration guide completeness | ENTR-01 | Documentation deliverable | Review `docs/entra-setup-guide.md` against App Registration Checklist in RESEARCH.md (6 items: public client flag, single-tenant, redirect URI, Allow public client flows, API permissions with admin consent, optional claims) |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or inline artifact creation
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 artifacts created inline within plan tasks (no separate Wave 0 plan needed)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved

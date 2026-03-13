@@ -19,7 +19,8 @@ Out of scope: DPoP with Entra (Entra uses proprietary SHR, not RFC 9449), v1.0 t
 - Device code flow grant type (public client) — matches real-world unix-oidc usage
 - ROPC (password grant) bootstrap in CI to avoid browser automation against Entra login pages — ROPC exchanges test user credentials for a refresh token, then refresh token exchanges for access tokens
 - v2.0 endpoint only — issuer format: `https://login.microsoftonline.com/{tenant}/v2.0`
-- Scopes: `openid profile email User.Read` for maximum claim coverage
+- **Scopes for PAM validation tokens:** `openid profile email` (NOT `User.Read`)
+  - **Revision (planning phase):** The original locked decision specified `openid profile email User.Read`. Research (22-RESEARCH.md, Pitfall 3) confirmed that including `User.Read` (a Microsoft Graph permission) causes Entra to set the token audience to `https://graph.microsoft.com` instead of the app's client ID. This makes the token fail PAM audience validation. The scope is revised to `openid profile email` only for tokens used in PAM authentication. `User.Read` may still be configured in the app registration for other purposes (e.g., Graph API calls with a separate token).
 - Planning phase must produce a **step-by-step Entra tenant/app registration guide** the user can follow to set up their tenant
 
 ### UPN Claim Mapping
@@ -54,6 +55,7 @@ Out of scope: DPoP with Entra (Entra uses proprietary SHR, not RFC 9449), v1.0 t
 - User wants a step-by-step guide for setting up the Entra tenant/app registration — they haven't done this yet and want Claude to guide them through it
 - "As comprehensive as technically possible, even if it means additional infrastructure" — user explicitly chose depth over simplicity for test coverage
 - User wants max claim coverage — `User.Read` scope added specifically for richer profile data
+  - **Note:** `User.Read` is still configured as an API permission in the app registration (Step 5 of setup guide), but is NOT included in ROPC token request scopes for PAM validation tokens. Including it in the token request changes the audience to Microsoft Graph, breaking PAM validation. See 22-RESEARCH.md Pitfall 3.
 - Existing `test/fixtures/policy/policy-multi-idp.yaml` already has an Entra-like issuer entry — use as reference but update with real tenant values
 
 </specifics>
