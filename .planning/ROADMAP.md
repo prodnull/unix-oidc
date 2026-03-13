@@ -52,6 +52,7 @@ Full details: see Phase Details section below (preserved for reference).
 - [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Complete the milestone deliverable: real-signature SSH auth chain in CI
 - [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
 - [x] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping (completed 2026-03-13)
+- [ ] **Phase 23: Integration Gap Fixes** - Multi-issuer DPoP nonce consumption + Entra policy fixture test coverage (gap closure from v2.1 audit)
 
 ## Phase Details
 
@@ -121,6 +122,16 @@ Plans:
 - [ ] 22-02-PLAN.md — Entra live integration test suite (ENTR-02, ENTR-03, ENTR-04, ENTR-05)
 - [ ] 22-03-PLAN.md — ROPC token script + CI job in provider-tests.yml (CI-03, ENTR-05)
 
+### Phase 23: Integration Gap Fixes (Multi-Issuer Nonce + Entra Fixture)
+**Goal**: Fix two cross-phase integration bugs found by v2.1 milestone audit: multi-issuer DPoP nonce consumption (security) and Entra policy fixture test coverage
+**Depends on**: Phase 21, Phase 22
+**Requirements**: MIDP-02 (integration fix), ENTR-01 (integration fix)
+**Gap Closure:** Closes 2 integration gaps from v2.1 audit
+**Success Criteria** (what must be TRUE):
+  1. `apply_per_issuer_dpop()` calls `global_nonce_cache().consume()` for the multi-issuer path; a replayed DPoP proof in the multi-issuer auth flow is rejected even when its `iat`/`exp` and JTI are valid
+  2. A non-`#[ignore]` integration test loads `policy-entra.yaml` via `PolicyConfig::load_from()` and validates deserialization; breaking the YAML structure causes a test failure
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -147,6 +158,7 @@ Plans:
 | 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Not started | - |
 | 21. Multi-IdP Configuration | 3/3 | Complete    | 2026-03-13 | - |
 | 22. Entra ID Integration | 3/3 | Complete    | 2026-03-13 | - |
+| 23. Integration Gap Fixes | v2.1 | 0/? | Not started | - |
 
 ---
 
