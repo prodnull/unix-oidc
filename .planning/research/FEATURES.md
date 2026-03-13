@@ -1,181 +1,150 @@
-# Feature Landscape: v2.0 Production Hardening and Enterprise Readiness
+# Feature Research: v2.1 E2E Integration Testing
 
-**Domain:** OIDC PAM module + agent daemon — production hardening, enterprise auth methods, session lifecycle
-**Researched:** 2026-03-10
-**Confidence:** HIGH (RFC primary sources + codebase inspection) | MEDIUM (CIBA/WebAuthn integration patterns)
+**Domain:** E2E integration testing infrastructure — OIDC PAM module with real IdPs, no TEST_MODE
+**Researched:** 2026-03-13
+**Confidence:** HIGH for Keycloak/device-flow patterns (codebase examined directly); MEDIUM-HIGH for Entra ID (verified against official Microsoft Learn docs 2025-2026)
 
-> **Scope note:** This file covers only features new to v2.0. Features already delivered in v1.0
-> (software/YubiKey/TPM signers, storage backends, memory protection, secure deletion, audit events,
-> step-up sudo via device authorization grant) are not re-catalogued here. The existing v1.0
-> FEATURES.md entry still applies to the agent key-protection domain.
-
----
-
-## Framing: What "Production Ready" Means for This Domain
-
-A PAM module that only works at the happy path is a liability in production. Production readiness
-for a Linux authentication component means: it fails safely, it handles session revocation, it
-integrates with how enterprises actually manage users (claim-based groups, IdP-agnostic MFA), and
-it gives operators enough configuration surface to tune security without modifying code.
-
-The eight features under research fall into two categories:
-
-- **Security completeness:** DPoP nonce issuance, configurable enforcement modes, session lifecycle
-  and revocation. These are gaps in the current implementation that represent security risks at
-  scale.
-- **Enterprise integration:** CIBA push, FIDO2 step-up, username mapping, group policies. These
-  are what enterprises need to adopt the system alongside existing IdP infrastructure.
+> **Scope note:** This file covers features NEW to the v2.1 milestone only — real-signature E2E
+> testing, device flow automation, and Entra ID integration. Features already shipped (PAM module
+> validation logic, agent daemon, DPoP proof generation, existing shell test suite, docker-compose
+> environment) are not re-catalogued. See `FEATURES.md` revision dated 2026-03-10 for v2.0 features.
 
 ---
 
-## Table Stakes (Users Expect These)
+## Existing Test Infrastructure (Do Not Rebuild)
 
-Features that production operators assume exist. Missing these blocks adoption in any non-trivial
-deployment.
+Direct codebase inspection identified these as already present and working.
 
-| Feature | Why Expected | Complexity | RFC/Spec | Notes |
-|---------|--------------|------------|----------|-------|
-| **DPoP nonce issuance (RFC 9449 §8)** | Without server-issued nonces, DPoP proofs have unbounded replay window — any proof valid during token lifetime can be replayed later. The RFC designates nonces as the mechanism for limiting proof lifetime to server-controlled intervals. Major IdPs (Okta, Auth0) have begun requiring nonces. | MEDIUM | RFC 9449 §8 | PAM module acts as the resource server in the auth model. Nonce issued in the PAM challenge phase; validated in the DPoP proof. Client must implement the `use_dpop_nonce` 400 retry cycle. |
-| **Configurable security enforcement modes** | Enterprises span a spectrum from "strict RFC compliance required" (FAPI-grade finance) to "legacy IdP that omits JTI claims — please don't lock us out." The current codebase has a single hardcoded warn-vs-reject decision. Issue #10 tracks this. | LOW | IETF OAuth / internal | Three-level enum: `strict` (reject), `warn` (log and allow), `disabled` (skip check). Applies to: JTI enforcement, DPoP requirement, ACR/AMR claims. Config-file driven. HARD-FAIL checks (signature, issuer, audience, expiry, algorithm) are never configurable. |
-| **Username claim mapping and transforms** | Every enterprise has a gap between OIDC `preferred_username` (e.g. `alice@corp.example.com`) and the Linux username (`alice`). Without mapping, authentication fails for 100% of users at large organizations. All comparable PAM-OIDC modules (Salesforce `pam_oidc`, `oidc-pam`) implement this. | LOW | OIDC Core §5 | Template expression (Go-template or Tera) applied to token claims. Required functions: `trimSuffix`, `trimPrefix`, `replace`, `lower`. Example: `{{.preferred_username \| trimSuffix "@corp.example.com"}}`. Claim source configurable: `sub`, `email`, `preferred_username`, or custom claim. |
-| **Group-based access policy from OIDC claims** | Enterprises enforce "only members of the `linux-admins` group can SSH to production." Without OIDC-group gating at the PAM layer, organizations must maintain a separate out-of-band group membership sync (SCIM/LDAP) alongside the OIDC auth. This is the #1 adoption blocker at the org level. | MEDIUM | OIDC Core (custom claims) | PAM module reads a configured claim name (default: `groups`), checks user membership against a configured allow-list. Two policy levels: `login_groups` (can any session open) and `sudo_groups` (can step-up occur). Fail-open vs fail-closed configurable at deploy time. |
-| **Automatic token refresh during session** | OIDC access tokens have short TTLs (typically 1h). A developer SSH session lasting 4 hours will fail mid-session when the token expires and the PAM module re-validates. The agent already holds refresh tokens but does not use them for background renewal. | MEDIUM | RFC 6749 §6 | Agent daemon refreshes access token in background before expiry (at configurable threshold, e.g. 80% of TTL elapsed). PAM module re-validates against current token on each sudo/step-up, not just at session open. Requires agent IPC: `RefreshToken` command path. |
-| **Break-glass account enforcement** | Every production security guide (NIST SP 800-53 AC-2, CIS Controls) requires an emergency local account that bypasses OIDC. Without explicit configuration, deployers forget this step and get locked out when the IdP goes down. The CLAUDE.md for this project already calls it mandatory. | LOW | NIST SP 800-53 AC-2 | Config field `break_glass_users: [list]`. PAM module skips OIDC validation for these usernames and passes to next PAM module in stack. Audit event emitted on every break-glass use. Not a bypass — it is an intentional fallback chain. |
+| Existing Asset | What It Covers | Gap |
+|----------------|----------------|-----|
+| `test_keycloak_reachable.sh` | Container networking | None |
+| `test_sssd_user.sh` | LDAP user lookup | None |
+| `test_get_token.sh` | ROPC token acquisition | ROPC is deprecated; does not exercise device flow |
+| `test_dpop_binding.sh` | DPoP proof → cnf.jkt via ROPC | Does not use device flow; client-only, no PAM validation |
+| `test_dpop_e2e.sh` | Cross-language DPoP + unit tests | No real SSH E2E; relies on TEST_MODE |
+| `test_ssh_oidc_valid.sh` | SSH + PAM | Uses `UNIX_OIDC_TEST_MODE=true`; bypasses all crypto |
+| `test_break_glass_fallback.sh` | IdP-down → local account | Passes; no changes needed |
+| `test_ciba_integration.sh` | CIBA + ACR validation | Passes; no changes needed |
+| `test_sudo_step_up.sh` | Sudo step-up IPC | Passes; no changes needed |
+| `demo/tests/*.spec.ts` | Playwright demo for recordings | Demo tool only; not wired into CI |
+| `test/scripts/test-device-flow.sh` | Device flow smoke test | Step 2 uses ROPC (not device flow completion); Step 3 correctly gets `authorization_pending` but never completes the flow |
+| `docker-compose.test.yaml` | Keycloak 24, OpenLDAP, test-host | `UNIX_OIDC_TEST_MODE=true` is set globally |
 
----
-
-## Differentiators (Competitive Advantage)
-
-Features that set unix-oidc apart from comparable tools. None of the three major PAM-OIDC
-alternatives (Salesforce `pam_oidc`, `pam-keycloak-oidc`, `oidc-pam`) implement these.
-
-| Feature | Value Proposition | Complexity | RFC/Spec | Notes |
-|---------|-------------------|------------|----------|-------|
-| **CIBA push notification step-up** | Current step-up uses Device Authorization Grant (RFC 8628), which is Keycloak-specific and requires the user to navigate a browser URL. CIBA (OpenID CIBA Core 1.0) is IdP-agnostic and delivers a push notification to a mobile authenticator app — dramatically better UX for a `sudo` approval flow. Users get a phone notification; they tap approve; access granted. | HIGH | OpenID CIBA Core 1.0 | Implement **poll mode** only in v2.0. Push and ping modes require the client to register a notification endpoint — not viable for a PAM module. Poll mode: PAM initiates backchannel auth request → receives `auth_req_id` → polls token endpoint until complete or timeout. `binding_message` field used to correlate notification to terminal command. Keycloak, Auth0, Okta, PingFederate, IBM Security Verify all support CIBA. |
-| **FIDO2/WebAuthn hardware key step-up** | For high-security environments (e.g. access to production secrets), pressing a physical hardware key (YubiKey, SoloKey) as a second factor provides hardware-bound proof of presence that TOTP and push notifications cannot. This uses the CTAP2 assertion flow, not browser WebAuthn. | HIGH | W3C WebAuthn Level 2 / CTAP 2.1 | PAM module generates challenge, invokes CTAP2 assertion via `ctap-hid-fido2` or `libfido2` (C, well-maintained by Yubico). Credential ID stored per-user in a server-side registry (or in the token's `cnf` extension claim). Assertion verifies against registered public key. Requires: credential registration flow (out-of-band, not at PAM time), per-user credential store. **This is high complexity — evaluate whether CIBA push is sufficient before committing.** |
-| **Token introspection for session revocation** | JWT-based access tokens are stateless; once issued, the only revocation mechanism is expiry. Token introspection (RFC 7662) lets the PAM module ask the IdP "is this token still active?" on every re-authentication check. This means revoking a token at the IdP immediately blocks new sessions and step-up operations — critical for "terminate terminated employee's access NOW" enterprise requirements. | MEDIUM | RFC 7662, RFC 7009 | Introspection endpoint called with `token_type_hint=access_token`. Cache result with short TTL (30s) to avoid flooding IdP on rapid sudo invocations. Configurable: `introspection: always | on_step_up | never`. When set to `never`, revocation relies only on token expiry (current behavior). TLS mutual auth for introspection endpoint per RFC 7662 §4. |
-| **Full session lifecycle (open/close hooks)** | Current PAM module only implements `pam_sm_authenticate`. Production systems need `pam_sm_open_session` (record session start, anchor token to session) and `pam_sm_close_session` (revoke DPoP keys for the session, call RFC 7009 revocation endpoint, emit session-close audit event). This closes the gap where a token is still valid after the SSH session ends. | MEDIUM | Linux-PAM API, RFC 7009 | `pam_sm_open_session`: write `{token_thumbprint, session_id, username, remote_ip, opened_at}` to session store. `pam_sm_close_session`: call RFC 7009 revocation endpoint (best-effort), delete session record, emit `session_close` audit event. Session store: per-user state file under `/run/unix-oidc/sessions/` (tmpfs, 0600, root-owned). No panic paths — all failures logged and return `PAM_SUCCESS` to avoid session orphaning. |
+**Three pre-identified bugs that block real-signature tests** (from `.planning/v2.0-MILESTONE-AUDIT.md`):
+1. Issuer URL mismatch: `docker-compose.test.yaml` sets `OIDC_ISSUER=http://keycloak:8080/realms/unix-oidc-test` but PAM rejects tokens if the issuer claim doesn't match.
+2. Agent binary missing in test-host: the SSH_ASKPASS handler cannot work without the agent daemon inside the container.
+3. DPoP binding absent from device-flow token request: Keycloak (with `dpop.bound.access.tokens=true`) rejects token requests that lack a `DPoP:` proof header.
 
 ---
 
-## Anti-Features (Commonly Requested, Often Problematic)
+## Feature Landscape
 
-| Anti-Feature | Why Requested | Why Problematic | Alternative |
-|--------------|---------------|-----------------|-------------|
-| **CIBA ping/push mode** | Eliminates client-side polling; server pushes result | PAM module cannot register a notification endpoint. Ping mode requires the PAM module to run an HTTP listener — entirely wrong model for a PAM module. Push mode has the same problem plus delivers tokens to an endpoint that may not be the authenticating host. | Use CIBA poll mode — same UX for the user (mobile push notification), correct server-client model for PAM. |
-| **Interactive PIN/OTP prompt in PAM auth path** | Users expect to type their YubiKey OTP or TOTP at the terminal | PAM keyboard-interactive is unreliable under non-interactive SSH (`BatchMode yes`, ProxyJump, scripts), and the current step-up design uses the agent for all user interaction. Mixing direct terminal prompts with agent-based flows is fragile. | CIBA push or FIDO2 CTAP2 assertion (touch required, no PIN typing needed for presence check). |
-| **Distributed JTI cache (Redis/Valkey)** | Prevent replay attacks in multi-node deployments sharing a PAM module | High operational complexity, requires Redis availability as a PAM dependency — if Redis is unreachable, fallback behavior (allow or deny all) is dangerous either way. Adds a network call to every authentication. | Scoped to v2.1 scalability milestone as a separate, opt-in backend. For v2.0, per-node JTI cache with bounded LRU is correct. |
-| **Token exchange for server-to-server delegation** | Services running under a user session want a derived token for downstream calls | Requires RFC 8693 token exchange endpoint support, significant scope creep, and a separate ADR (ADR-005 already deferred to v2.1). The PAM module's job is user auth, not service-to-service identity propagation. | Separate milestone (v2.1). See ADR-005. |
-| **VDI/agent forwarding** | Users want DPoP keys available on remote hosts after SSH hop | Proof-of-possession requires the private key on the authenticating device. Forwarding the key to another host undermines the threat model — the remote host now possesses the key, defeating the binding. | ProxyJump for multi-hop SSH; token exchange for service delegation (v2.1). |
-| **SCIM provisioning** | Automatically create Linux accounts when a user logs in for the first time | Significant scope: SCIM endpoint, group sync, user lifecycle management. Conflicts with the PAM module's read-only posture (it should validate identity, not provision it). | Separate provisioning milestone. For v2.0, `sssd` or nss-pam-ldapd handles account existence; PAM handles authentication. |
-| **WebAuthn browser-based flows at PAM** | Users want to authenticate via passkey in their browser and have it flow to SSH | Browser WebAuthn requires a browser context and JavaScript API. PAM is non-browser. Passkeys via CTAP2 to a physical authenticator are the correct non-browser analog — but require the device to be physically present, which is incompatible with remote SSH. | CIBA push covers the "remote phone approval" case. FIDO2 CTAP2 covers the "physical key presence on the client machine" case. |
+### Table Stakes (Users Expect These)
+
+Features a credible OIDC PAM module's CI must have. Missing any → enterprise evaluators reject the project or must do their own validation.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Real-signature Keycloak tests (TEST_MODE off) | `UNIX_OIDC_TEST_MODE` is documented as a security bypass that must not appear in production; CI that uses it only validates token parsing, not the actual signature verification path that matters | MEDIUM | Requires fixing the three pre-identified bugs: issuer URL, agent binary, DPoP in device-flow. Once fixed, existing shell tests pass without TEST_MODE. |
+| Full SSH E2E: agent login → serve → SSH_ASKPASS → PAM → JWKS verify | The entire authentication chain must be exercised together; no partial-path test can substitute because the failure modes are at integration points between components | HIGH | Flow: `unix-oidc-agent login` (device flow with DPoP) → token stored in agent → `unix-oidc-agent serve` → `SSH_ASKPASS` program set → `ssh testuser@test-host` → PAM module reads token via SSH_ASKPASS → validates against Keycloak JWKS → session opens. Must run entirely inside docker-compose network. |
+| DPoP binding in device-flow token request | Device flow is the primary token acquisition path in production; tests that bypass it do not exercise the code path users actually hit | MEDIUM | Agent must include `DPoP: <proof>` header in the `POST /token` request with `grant_type=urn:ietf:params:oauth:grant-type:device_code`. The DPoP proof's `htu` claim must match the token endpoint URL exactly. |
+| Issuer URL fixture fix | PAM module performs exact string comparison of `iss` claim against configured issuer; mismatch causes every real-signature test to fail at issuer validation | LOW | Two valid approaches: (a) set `KC_HOSTNAME=keycloak` so Keycloak embeds the container hostname in tokens; (b) PAM config maps `http://keycloak:8080/realms/unix-oidc-test` as the expected issuer. Option (a) is cleaner — no config divergence between test and production. |
+| CI gate: no TEST_MODE in integration containers | TEST_MODE bypass is so dangerous that CI should assert its absence before running integration tests | LOW | Add a pre-test step: `docker compose exec test-host env | grep -c UNIX_OIDC_TEST_MODE && exit 1`. Fails fast if TEST_MODE is set. |
+| Agent binary in test-host container | SSH_ASKPASS handler is the agent binary; without it inside the container, the PAM keyboard-interactive conversation has nowhere to send the token | LOW | `docker-compose.test.yaml` already mounts `./target/release:/opt/unix-oidc:ro`. The agent binary just needs to be at a known path (`/usr/local/bin/unix-oidc-agent`) and the entrypoint script must symlink or copy it. |
+
+### Differentiators (Competitive Advantage)
+
+Features that distinguish unix-oidc's testing story. Competitors (`pam-keycloak-oidc`, `oidc-pam`, `pam_oidc`) have no automated E2E CI with real IdPs.
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Playwright-based device flow automation | Device Authorization Grant (RFC 8628) requires a browser step: user visits `verification_uri`, enters `user_code`, authenticates. Playwright automates this step, enabling fully automated CI without ROPC (deprecated) or client-credentials (not representative) shortcuts. | HIGH | Pattern: (1) `POST /realms/{realm}/protocol/openid-connect/auth/device` → get `device_code`, `verification_uri`, `user_code`; (2) Playwright navigates to `verification_uri`, fills `user_code`, clicks submit, fills credentials, clicks approve; (3) shell loop polls `POST /token` with `grant_type=device_code` until success or `expired_token` error. Infrastructure already present: `demo/` directory has `playwright.config.ts` and playwright-core in `node_modules`. Keycloak's device activation page is standard HTML — straightforward to automate. |
+| Azure Entra ID integration tests | Enterprise buyers evaluate against their existing Entra ID tenant; no Entra test coverage means they must validate the PAM module themselves. Documented Entra support in CI is a meaningful adoption differentiator. | HIGH | See Entra ID analysis section below. Requires external secrets (tenant ID, client ID, client secret). Run as separate CI job gated on `secrets.ENTRA_TENANT_ID`. |
+| Negative test suite: real-signature rejections | Tests that only verify the happy path give false confidence about the PAM module's security. Rejection tests with real tokens (wrong issuer, expired, missing `cnf.jkt`) verify the actual enforcement paths. | MEDIUM | For expired tokens: Keycloak short-lived token (e.g., `accessTokenLifespan=10s`) + wait. For wrong issuer: register a second Keycloak realm, get a token from it, present to PAM configured for the first realm. For missing `cnf.jkt`: use a non-DPoP client to get a bearer token, present to PAM with `dpop_required=strict`. |
+| Entra claim mapping validation | Entra `preferred_username` contains a UPN (`alice@corp.com`), not a Unix username (`alice`). Demonstrating automated end-to-end authentication with Entra, including UPN stripping, proves the PAM module is enterprise-ready for Entra deployments. | MEDIUM | Requires: claim mapping config (`strip_domain: true`) in PAM module, Entra test user with UPN matching an SSSD-provisioned Unix account, or a custom claim containing the Unix username. Dependency: claim mapping config must exist in PAM module (v2.0 feature). |
+| Multi-IdP CI matrix | A CI matrix with Keycloak + Entra in the same workflow produces auditable evidence of cross-IdP compatibility — useful for conference talks, whitepapers, and enterprise proof-of-concept engagements. | HIGH | Keycloak: local docker-compose, no secrets needed. Entra: external, gated on CI secrets. Matrix job prevents one IdP's changes from silently breaking the other. |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| ROPC as permanent device-flow substitute | Simple: one curl call, synchronous, no browser automation needed | ROPC (`grant_type=password`) is deprecated in OAuth 2.1 (draft). Keycloak 24+ disables it by default for public clients; Entra ID has disabled it for new tenants since 2022. More critically: ROPC bypasses MFA, meaning tests that use it don't cover the MFA step that real users hit. Tests built on ROPC break silently when IdP policy changes. | Playwright device flow automation for interactive tests; client-credentials for machine-to-machine test token issuance where the user-auth flow is not under test. |
+| Mock OIDC server (e.g., `oidc-server-mock`) as primary integration backend | Fast, no external dependencies, fully deterministic | Defeats the purpose of this milestone. Mock servers cannot reproduce real IdP signature formats, DPoP nonce behavior, claim shapes, error responses, or Keycloak-specific quirks. The entire point of v2.1 is real-signature testing — a mock reverts to the same testing quality as TEST_MODE. Mock OIDC is valid for PAM unit tests (validation.rs tests that test parsing logic in isolation); not for integration tests. | Use real Keycloak in docker-compose for Keycloak integration tests; real Entra for Entra tests. |
+| Running SSH E2E from the host machine | Seems simpler — just `ssh localhost -p 2222` | PAM runs inside the container with its own OIDC_ISSUER, LDAP, and SSSD config. The SSH_ASKPASS program must also be inside the container (or reachable via a shared socket). Credential passing from host to container creates IPC complexity that does not match production topology. Port 2222 mapping introduces NAT edge cases. | Run the SSH client from a dedicated `ssh-client` container in the same docker-compose network — matches production topology exactly. |
+| Interactive browser in headful mode in CI | Some OAuth flows genuinely need a browser | CI environments are headless; GitHub Actions and most CI systems do not have a display server. A test that requires a visible browser blocks indefinitely. | Playwright in headless mode completes device flow automation without a visible UI. Keycloak's device activation page is simple enough that `page.fill()` + `page.click()` covers it completely. |
+| Entra ID DPoP (RFC 9449) enforcement | Natural expectation given the project's core feature is RFC 9449 DPoP | Entra ID does NOT support RFC 9449 DPoP. Microsoft implements a proprietary "Signed HTTP Request" (SHR) mechanism — not the DPoP header, not the `cnf.jkt` claim. Source: [Microsoft Learn MSAL JS, 2025-08-14](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/access-token-proof-of-possession). Setting `dpop_required: strict` in the PAM config for an Entra test will cause every Entra token to be rejected because `cnf.jkt` is absent. | Entra integration tests must use `dpop_required: warn` or `off`. Document this limitation explicitly as a known Entra constraint, not a PAM module bug. |
+| VDI/agent forwarding across SSH hops | Users want to reuse a token on remote hosts after an SSH hop | Explicitly out of scope in PROJECT.md. Also breaks the DPoP threat model: the DPoP private key is the proof-of-possession credential; forwarding it to another host means that host now possesses the key, undermining the binding. | ProxyJump for multi-hop connectivity; RFC 8693 token exchange (v2.2 milestone) for service delegation. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-DPoP nonce issuance (RFC 9449 §8)
-    └── requires: existing DPoP proof generation (v1.0 - done)
-    └── requires: PAM challenge/response extension (new IPC message: NonceChallenge)
-    └── must land before: CIBA push (CIBA proofs also need nonce if IdP requires it)
+[Full SSH E2E test (no TEST_MODE)]
+    requires --> [Issuer URL fix]
+    requires --> [Agent binary in test-host]
+    requires --> [DPoP binding in device-flow token request]
+    requires --> [Playwright device flow automation] (provides the token without ROPC)
+    produces --> [Real-signature validation path is exercised in CI]
 
-Configurable security enforcement modes
-    └── no hard prerequisites; touches existing validation.rs
-    └── enables: safe deployment of DPoP nonce (can set to warn during rollout)
-    └── should land before: group policy (group enforcement also needs a mode level)
+[Playwright device flow automation]
+    requires --> [Keycloak device activation page accessible from test network]
+    enhances --> [Full SSH E2E test]
+    enables  --> [Device flow automation reusable for Entra tests]
 
-Username claim mapping
-    └── requires: existing claims parsing in validation.rs (v1.0 - done)
-    └── no prerequisite features
-    └── must land before: group policy (group membership check needs mapped username)
+[Entra ID integration tests]
+    requires --> [Entra app registration (external, tenant-specific)]
+    requires --> [Claim mapping config in PAM module (v2.0 feature)]
+    requires --> [PAM config fixture: dpop_required=off for Entra]
+    requires --> [CI secrets: ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET]
 
-Group-based access policy
-    └── requires: username mapping (group check must use final mapped identity)
-    └── requires: existing policy engine in pam-unix-oidc/src/policy/ (v1.0 - done)
+[Entra claim mapping validation]
+    requires --> [Entra ID integration tests]
+    requires --> [strip_domain claim transform in PAM config]
 
-Break-glass account enforcement
-    └── no prerequisites; config-file addition and PAM pass-through
-    └── should land in same phase as group policy (both are access control features)
+[Negative rejection test suite]
+    requires --> [Real-signature Keycloak tests passing]
+    requires --> [Second Keycloak realm for wrong-issuer test]
 
-Automatic token refresh
-    └── requires: agent daemon IPC (v1.0 - done)
-    └── requires: existing refresh_token storage in AgentState (v1.0 - done)
-    └── requires: session lifecycle (refresh must know if session is still open)
+[CI gate: TEST_MODE=false]
+    requires --> [docker-compose.test.yaml updated to remove UNIX_OIDC_TEST_MODE=true]
+    should run before --> [Full SSH E2E test]
 
-Session lifecycle (open/close hooks)
-    └── requires: DPoP nonce issuance (session open should anchor nonce to session)
-    └── requires: automatic token refresh (refresh runs within open session context)
-    └── enables: token introspection (introspection only meaningful within a session)
-    └── enables: RFC 7009 revocation on session close
-
-Token introspection (RFC 7662)
-    └── requires: session lifecycle (introspection result cached per session)
-    └── requires: configurable enforcement modes (introspection mode is another knob)
-    └── independent of: CIBA, FIDO2 (orthogonal concern)
-
-CIBA push step-up
-    └── requires: existing step-up policy engine (v1.0 - done)
-    └── requires: configurable enforcement modes (CIBA required vs fallback policy)
-    └── requires: DPoP nonce (CIBA token endpoint may require DPoP-bound tokens)
-    └── replaces: Keycloak-specific device_authorization step-up (kept as fallback)
-    └── independent of: FIDO2 (two different step-up methods, both valid)
-
-FIDO2/WebAuthn CTAP2 step-up
-    └── requires: existing step-up policy engine (v1.0 - done)
-    └── requires: credential registration store (new component; high complexity)
-    └── independent of: CIBA (orthogonal step-up method)
-    └── complexity risk: higher than all other v2.0 features; evaluate after CIBA ships
+[Multi-IdP CI matrix]
+    requires --> [Keycloak E2E tests passing]
+    requires --> [Entra ID integration tests passing]
 ```
 
 ### Dependency Notes
 
-- **Session lifecycle gates several features:** `pam_sm_open_session` / `pam_sm_close_session` must
-  be implemented before token refresh and introspection make full sense. Without a session record,
-  "refresh during session" has no session to track.
-
-- **Configurable modes are a prerequisite for safe rollout:** Every organization deploying v2.0
-  will want to start in `warn` mode and tighten to `strict` after confirming their IdP emits the
-  required claims. Ship configurable modes early.
-
-- **Username mapping before group policy:** The group membership check must execute against the
-  mapped username (the Linux identity), not the raw IdP identity, or the allow-list configuration
-  is inconsistent with what `nsswitch` resolves.
-
-- **FIDO2 step-up is independent but high-risk:** It does not block any other feature, but it
-  introduces a new credential registration store and libfido2 dependency. Treat as an optional
-  sub-feature of the step-up system; ship CIBA first.
+- **Three bugs must be fixed before any real-signature test can pass.** They are independent of each other but all three are blocking. Fix order does not matter technically; issuer URL is the lowest effort and should go first to unblock the others.
+- **Playwright is already installed** in `demo/node_modules`; no new tooling is needed. The CI job just needs a step that runs `npx playwright test` against a device-flow-specific spec instead of the demo spec.
+- **Entra DPoP conflict is definitive and documented.** This is not a gap in the PAM module — it is an Entra limitation. A separate PAM config fixture for Entra tests is mandatory; trying to share the Keycloak fixture (which has DPoP required) will cause all Entra tests to fail.
+- **Negative tests depend on the real-signature path being established first.** There is no point writing rejection tests if the acceptance path is still using TEST_MODE.
 
 ---
 
-## MVP Definition for v2.0 Milestone
+## MVP Definition
 
-### Phase A — Security Completeness (must ship; blocks enterprise production use)
+### Launch With (must land to close the v2.1 milestone)
 
-- [x] DPoP nonce issuance per RFC 9449 §8 — closes replay window gap
-- [x] Configurable security enforcement modes (strict/warn/disabled) — enables safe rollout
-- [x] Session lifecycle: `pam_sm_open_session` + `pam_sm_close_session` — closes token-after-logout gap
-- [x] Token introspection (RFC 7662) — enables immediate revocation for terminated users
-- [x] Automatic token refresh — closes mid-session expiry failure
+- [ ] **Issuer URL fix** — `KC_HOSTNAME=keycloak` in docker-compose or PAM config `issuer` mapped to container URL. Without this, every real-signature test fails at the first validation step.
+- [ ] **Agent binary in test-host** — `unix-oidc-agent` present at `/usr/local/bin/unix-oidc-agent` inside test-host container. The existing volume mount `./target/release:/opt/unix-oidc:ro` provides the binary; entrypoint.sh just needs to symlink it.
+- [ ] **DPoP binding in device-flow token request** — Agent's `login()` sends `DPoP: <proof>` header with the device-flow `POST /token`. Proof's `htu` = token endpoint URL; `htm` = "POST"; fresh `jti` and `iat`.
+- [ ] **TEST_MODE removed from docker-compose.test.yaml** — Delete `UNIX_OIDC_TEST_MODE: "true"` from `test-host` environment block. Add CI pre-flight assertion.
+- [ ] **Playwright device flow spec** — A `tests/device-flow.spec.ts` (or `test/scripts/playwright-device-flow.sh` that calls playwright) that completes the Keycloak activation page using a headless browser.
+- [ ] **Full SSH E2E test** — `test_ssh_e2e_real_sig.sh`: starts agent, runs login (device flow via Playwright-completed code), starts agent serve, sets SSH_ASKPASS, SSHes to test-host, verifies session opens and PAM log shows "Authentication successful" without TEST_MODE.
 
-### Phase B — Enterprise Integration (must ship; blocks org-level adoption)
+### Add After Validation (v2.1.x, if time permits this milestone)
 
-- [x] Username claim mapping with template transforms — blocks 100% of multi-domain enterprise deployments
-- [x] Group-based access policy from OIDC claims — blocks org-level adoption gating
-- [x] Break-glass account enforcement with audit trail — mandatory operational safety
+- [ ] **Entra ID integration tests** — Trigger: Keycloak E2E is green. Requires: Entra app registration, CI secrets, `dpop_required=off` fixture.
+- [ ] **Entra claim mapping validation** — Trigger: Entra tests in CI. UPN stripping verified end-to-end.
+- [ ] **Negative rejection test suite** — Trigger: real-signature path established. Three tests: expired, wrong-issuer, missing `cnf.jkt`.
 
-### Phase C — Advanced Auth Methods (high value; CIBA is prerequisite for FIDO2 phase)
+### Future Consideration (v2.2+)
 
-- [x] CIBA poll-mode step-up (IdP-agnostic) — replaces Keycloak-specific device_authorization flow
-- [ ] FIDO2/WebAuthn CTAP2 step-up — defer until CIBA is in production; evaluate complexity vs. value
-
-### Explicitly Deferred to v2.1+
-
-- Distributed JTI cache (Redis/Valkey)
-- RFC 8693 token exchange
-- VDI/agent forwarding
-- SCIM provisioning
-- Post-quantum algorithm migration
+- [ ] **Multi-IdP CI matrix** — Keycloak + Entra in a parallel matrix job. Blocked on Entra integration being stable first.
+- [ ] **Google Cloud Identity / Okta** — Community testing priority. Okta supports RFC 9449 DPoP natively.
 
 ---
 
@@ -183,185 +152,120 @@ FIDO2/WebAuthn CTAP2 step-up
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Configurable security enforcement modes | HIGH | LOW | P1 |
-| Username claim mapping | HIGH | LOW | P1 |
-| Break-glass enforcement | HIGH | LOW | P1 |
-| DPoP nonce issuance (RFC 9449 §8) | HIGH | MEDIUM | P1 |
-| Group-based access policy | HIGH | MEDIUM | P1 |
-| Session lifecycle (open/close hooks) | HIGH | MEDIUM | P1 |
-| Automatic token refresh | HIGH | MEDIUM | P1 |
-| Token introspection (RFC 7662) | HIGH | MEDIUM | P2 |
-| CIBA poll-mode step-up | MEDIUM | HIGH | P2 |
-| FIDO2/WebAuthn CTAP2 step-up | MEDIUM | VERY HIGH | P3 |
+| Issuer URL fix | HIGH | LOW | P1 |
+| Agent binary in test-host | HIGH | LOW | P1 |
+| DPoP binding in device-flow token request | HIGH | MEDIUM | P1 |
+| TEST_MODE removed from docker-compose | HIGH | LOW | P1 |
+| Playwright device flow spec | HIGH | MEDIUM | P1 |
+| Full SSH E2E test (no TEST_MODE) | HIGH | HIGH | P1 |
+| CI gate: TEST_MODE=false assertion | MEDIUM | LOW | P1 |
+| Entra ID integration tests | HIGH | HIGH | P2 |
+| Entra claim mapping validation | MEDIUM | MEDIUM | P2 |
+| Negative rejection test suite | MEDIUM | MEDIUM | P2 |
+| Multi-IdP CI matrix | MEDIUM | HIGH | P3 |
 
 **Priority key:**
-- P1: Must ship in v2.0 — blocks production deployments
-- P2: Should ship in v2.0 — significant security/UX improvement
-- P3: Conditional — evaluate after P1+P2 are complete and stable
+- P1: Unblocks the milestone — must land before v2.1 is closed
+- P2: Enterprise value — add in this milestone if time permits, else v2.1.x
+- P3: Future milestone
 
 ---
 
-## Detailed Feature Notes
+## Entra ID Integration Analysis
 
-### DPoP Nonce (RFC 9449 §8) — Implementation Detail
+This section warrants separate treatment because Entra has the most non-obvious constraints and the highest setup cost.
 
-The PAM module acts as the "resource server" in the RFC model. The nonce lifecycle:
+### What Works
 
-1. **Issue:** PAM generates a cryptographically random nonce (128-bit minimum, base64url encoded)
-   and delivers it to the client via the PAM challenge/response mechanism before the token
-   presentation step.
-2. **Verify:** Client includes `nonce` claim in the DPoP proof JWT. PAM verifies the nonce matches
-   what was issued for this session, within the configured nonce TTL (suggested: 60s).
-3. **Nonce error:** If the client presents a DPoP proof without a required nonce, PAM returns a
-   structured error analogous to the `use_dpop_nonce` HTTP 400 response in RFC 9449 §8. The client
-   agent retries with the nonce.
-4. **Freshness:** Nonces are single-use; once verified, add to the JTI cache to prevent replay.
-   Cache expiry at nonce TTL.
+| Capability | Status | Source |
+|------------|--------|--------|
+| OIDC discovery | Works | `https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration` |
+| JWKS endpoint | Works | `https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys` |
+| Token signature verification (RS256) | Works | PAM module JWKS validation is algorithm-agnostic |
+| Device Authorization Grant (RFC 8628) | Works | `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/devicecode` |
+| `preferred_username` optional claim | Works (with config) | Must be added to app manifest `optionalClaims.accessToken`; contains UPN, not Unix username |
+| `sub` claim | Always present | UUID — not usable as Unix username without a mapping table |
+| `acr`/`amr` claims | Present | Values differ from Keycloak conventions; ACR test fixture needs adjustment |
 
-**Confidence:** HIGH — RFC 9449 §8 is unambiguous. The PAM IPC adaptation is novel but
-mechanically straightforward.
+### What Does NOT Work
 
-### CIBA Poll Mode — Implementation Detail
+| Capability | Status | Authoritative Source |
+|------------|--------|----------------------|
+| RFC 9449 DPoP (`cnf.jkt` claim) | NOT SUPPORTED | [Microsoft Learn MSAL JS, updated 2025-08-14](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/access-token-proof-of-possession): Entra uses Signed HTTP Request (SHR), not RFC 9449 DPoP. `cnf.jkt` is not emitted. |
+| `preferred_username` as Unix username (direct) | NOT DIRECT | UPN format (`alice@corp.com`) requires `strip_domain: true` transform |
+| Guest user `preferred_username` | UNRELIABLE | Guest format: `foo_hometenant.com#EXT#@resourcetenant.com`; Unix derivation requires additional mapping logic |
+| `upn` claim in v2.0 tokens by default | Absent | Must be added as optional claim via app manifest |
 
-The step-up flow using CIBA poll mode:
+### Required PAM Config Fixture for Entra Tests
 
-1. PAM module (or agent on behalf of PAM) sends HTTP POST to IdP backchannel authentication
-   endpoint with: `login_hint` (the username), `binding_message` (the command being authorized,
-   e.g. `sudo systemctl restart nginx on prod-server-1`), `scope` (requested ACR), client
-   credentials.
-2. IdP responds with `auth_req_id`, `expires_in`, `interval` (minimum poll interval, typically
-   5s).
-3. Agent polls the IdP token endpoint with `grant_type=urn:openid:params:grant-type:ciba` and
-   `auth_req_id`. Responses: `authorization_pending` (keep polling), `slow_down` (double interval),
-   success (tokens returned), error (deny).
-4. PAM blocks (within its timeout budget) waiting for poll to complete. On success, validates the
-   returned token for the step-up ACR claim.
-5. `binding_message` is the key UX feature — the mobile push notification displays the exact
-   command the user is approving, giving meaningful context rather than a generic "approve request"
-   notification.
+```yaml
+# /etc/unix-oidc/config-entra.yaml — used ONLY in Entra integration test containers
+oidc:
+  issuer: "https://login.microsoftonline.com/{tenant_id}/v2.0"
+  client_id: "{client_id}"
+  audience: "{client_id}"
 
-**IdP support:** Keycloak (CIBA PR merged 2022+, poll mode supported), Auth0 (enterprise tier),
-Okta (preview 2024+), PingFederate 13.0+, IBM Security Verify. Pure poll mode is the most widely
-supported across IdPs.
+security:
+  dpop_required: "off"      # Entra does not support RFC 9449 DPoP
+  jti_enforcement: "warn"   # Entra access tokens may omit jti
 
-**PAM timeout:** The PAM module must respect a configurable total timeout (suggested: 120s). The
-user has this window to approve on their phone before the step-up fails with `PAM_AUTH_ERR`.
+claim_mapping:
+  username_claim: "preferred_username"
+  strip_domain: true         # alice@corp.com -> alice
+```
 
-**Confidence:** MEDIUM — CIBA poll mode is well-specified; the PAM integration pattern is derived
-from the existing device authorization grant step-up code, which is an analogous polling flow.
+### Required Entra App Registration Settings
 
-### FIDO2/WebAuthn CTAP2 — Why It Is P3
+| Setting | Value | Why |
+|---------|-------|-----|
+| Platform | Public client / Mobile+Desktop | Device flow requires public client |
+| Device code flow | Enabled | Authentication > Advanced settings > Allow public client flows |
+| Optional claim: `preferred_username` | Added to access token | Needed for username mapping; absent by default in v2.0 tokens |
+| Scope | `api://{client_id}/ssh.access` or `openid profile` | PAM must request a scope that returns `preferred_username` |
+| Test user | UPN matching SSSD-provisioned Unix account | E.g., `testuser@{tenant}.onmicrosoft.com` → Unix `testuser` |
 
-Browser WebAuthn (`navigator.credentials.get()`) is the wrong API for PAM. The correct mechanism
-for non-browser FIDO2 is CTAP2 directly over USB HID (or NFC), without any relying party server
-HTTP round-trip at authentication time (only at registration time).
+### Entra CI Job Structure
 
-The flow: PAM generates a random challenge → agent invokes `libfido2` (`fido_assert_new` +
-`fido_dev_get_assert`) → FIDO2 device signs challenge → PAM verifies assertion against stored
-public key. The credential ID and public key are registered once (out-of-band enrollment CLI)
-and stored in a per-user credential store (suggested: `/etc/unix-oidc/credentials/<username>.json`
-or the user's home directory `.config/unix-oidc/fido2_credentials`).
+```yaml
+# .github/workflows/ci.yml addition
+entra-integration:
+  if: secrets.ENTRA_TENANT_ID != ''
+  runs-on: ubuntu-latest
+  env:
+    ENTRA_TENANT_ID: ${{ secrets.ENTRA_TENANT_ID }}
+    ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
+    ENTRA_CLIENT_SECRET: ${{ secrets.ENTRA_CLIENT_SECRET }}
+  steps:
+    - name: Run Entra integration tests
+      run: test/tests/test_entra_oidc.sh
+```
 
-**Why P3:** Credential registration workflow is entirely separate from the PAM path and requires
-its own UX design. The credential store adds a new data management concern. For most enterprises,
-CIBA push (phone approval) is operationally simpler and covers the same security tier. Defer
-unless there is explicit demand for "physical key touch required" enforcement.
-
-**Confidence:** MEDIUM — CTAP2 over USB HID is well-understood (pam-u2f demonstrates this);
-the integration with the existing step-up ACR policy engine is novel.
-
-### Token Introspection (RFC 7662) — Caching Requirement
-
-Introspection adds a network call to every re-authentication check. Without caching, a rapid
-succession of `sudo` commands would flood the IdP introspection endpoint.
-
-**Required caching strategy:** Cache `{token_jti → {active, exp, username}}` with TTL = min(30s,
-`exp - now`). On cache hit: use cached result. On cache miss: call introspection endpoint, cache
-result. On introspection endpoint failure: configurable fallback — `allow` (current behavior,
-stateless) or `deny` (strict revocation enforcement). Mutually exclusive with `introspection: never`
-mode.
-
-**RFC 7662 §4 authentication:** The PAM module presents client credentials to the introspection
-endpoint (client_credentials or private_key_jwt). This means the PAM module needs a client_id and
-client_secret (or key pair) in its configuration. This is a new credential type not currently in
-the config schema.
-
-### Session Lifecycle — PAM Hook Model
-
-Linux PAM has four hook categories: `auth`, `account`, `password`, `session`. Currently only `auth`
-is implemented. The `session` category adds `pam_sm_open_session` and `pam_sm_close_session`.
-
-**Session store design:** `/run/unix-oidc/sessions/<username>-<session-id>` (one file per session).
-Contents: `{token_thumbprint, jti, username, remote_ip, opened_at, agent_socket_path}`. This is
-tmpfs-backed, cleared on reboot, 0600 permissions, root-owned. Accessed only by the PAM module.
-
-**Close session:** Called by sshd (and sudo) when the session ends. Must not panic. Must not block
-indefinitely. Uses a short timeout (5s) for the RFC 7009 revocation call; logs failure and proceeds
-regardless.
-
-**Conflict with DPoP:** When `pam_sm_close_session` revokes the access token, the DPoP key in
-the agent is now orphaned — it is bound to a revoked token. The agent should receive a
-`SessionClosed` IPC event and schedule the DPoP key for deletion after a short grace period (to
-allow in-flight operations to complete).
-
----
-
-## Competitor Feature Comparison
-
-| Feature | Salesforce `pam_oidc` | `pam-keycloak-oidc` | `oidc-pam` | unix-oidc v2.0 |
-|---------|----------------------|---------------------|------------|----------------|
-| DPoP binding | No | No | No | Yes (v1.0) |
-| Username transform | Yes (Go template) | Yes (config field) | Yes (regex) | Yes (template, v2.0) |
-| Group policy | Yes (allow-list) | No | Yes | Yes (v2.0) |
-| Session lifecycle hooks | No | No | No | Yes (v2.0) |
-| Token introspection | No | No | No | Yes (v2.0) |
-| CIBA step-up | No | No | No | Yes, poll mode (v2.0) |
-| FIDO2 step-up | No | No | No | Deferred (v2.1) |
-| DPoP nonce issuance | No | No | No | Yes (v2.0) |
-| Configurable enforcement | No | No | No | Yes (v2.0) |
-| Hardware signers | No | No | No | Yes (v1.0) |
-| Break-glass enforcement | No | Partial | No | Yes (v2.0) |
-
-unix-oidc has no direct feature-equivalent competitor for the full combination. The gap vs.
-commercial solutions (BeyondTrust, CyberArk) is largely in PAM-level token binding (DPoP) and the
-absence of a management plane — both are intentional scope decisions.
+Gating on `secrets.ENTRA_TENANT_ID != ''` ensures the job is skipped for forks and community PRs that lack the secrets, without failing the CI run.
 
 ---
 
 ## Sources
 
-**RFCs (HIGH confidence):**
-- RFC 9449 — OAuth 2.0 Demonstrating Proof of Possession (DPoP): https://www.rfc-editor.org/rfc/rfc9449 — Section 8 covers server-issued nonces; nonces are unpredictable, single-use, conveyed via `DPoP-Nonce` header; client retries on `use_dpop_nonce` 400 error
-- RFC 7662 — OAuth 2.0 Token Introspection: https://www.rfc-editor.org/rfc/rfc7662
-- RFC 7009 — OAuth 2.0 Token Revocation: https://www.rfc-editor.org/rfc/rfc7009
-- RFC 6749 §6 — Refreshing an Access Token: https://www.rfc-editor.org/rfc/rfc6749#section-6
-- RFC 8628 — OAuth 2.0 Device Authorization Grant: https://www.rfc-editor.org/rfc/rfc8628 (existing v1.0 step-up; keep as IdP-specific fallback)
-- OIDC Core 1.0 §5 — Standard Claims (preferred_username, email, sub): https://openid.net/specs/openid-connect-core-1_0.html
+**Official documentation (HIGH confidence):**
+- [Microsoft Learn: OIDC on Entra ID](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc) — issuer URL format (`https://login.microsoftonline.com/{tenant}/v2.0`), JWKS endpoint, discovery document (updated 2026-01-09)
+- [Microsoft Learn: Optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference) — `preferred_username` behavior, guest UPN format, `upn` as optional claim (updated 2025-10-02)
+- [Microsoft Learn: Access token Proof-of-Possession (MSAL JS)](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/access-token-proof-of-possession) — confirms Entra uses SHR (Signed HTTP Request), NOT RFC 9449 DPoP; `cnf.jkt` is not emitted (updated 2025-08-14)
+- [Playwright: Authentication docs](https://playwright.dev/docs/auth) — session state caching, CI token management best practices
+- [RFC 8628: OAuth 2.0 Device Authorization Grant](https://www.rfc-editor.org/rfc/rfc8628) — device flow protocol, polling mechanics, error codes
 
-**OpenID Foundation specs (HIGH confidence):**
-- OpenID CIBA Core 1.0: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html — Defines poll/ping/push modes, `auth_req_id`, `binding_message`, polling error codes (`authorization_pending`, `slow_down`)
+**Keycloak documentation (MEDIUM confidence):**
+- [Keycloak device code flow](https://www.janua.fr/device-code-flow-in-keycloak/) — device endpoint, user code activation page URL, polling mechanics
+- [Keycloak device flow design](https://github.com/keycloak/keycloak-community/blob/main/design/oauth2-device-authorization-grant.md) — Keycloak-specific implementation notes
 
-**W3C/FIDO specs (HIGH confidence for protocol; MEDIUM for PAM integration pattern):**
-- W3C WebAuthn Level 2: https://www.w3.org/TR/webauthn-2/
-- CTAP 2.1 spec: https://fidoalliance.org/specs/fido-v2.1-rd-20210615/fido-client-to-authenticator-protocol-v2.1-rd-20210615.html
-- Yubico pam-u2f (reference FIDO2 PAM implementation): https://developers.yubico.com/pam-u2f/ and https://github.com/Yubico/pam-u2f
-
-**NIST (HIGH confidence):**
-- NIST SP 800-53 Rev. 5, AC-2 (Account Management) — break-glass accounts as a required control
-
-**IdP documentation (MEDIUM confidence — verified at search time):**
-- Auth0 CIBA: https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-initiated-backchannel-authentication-flow
-- Keycloak CIBA design: https://github.com/keycloak/keycloak-community/blob/main/design/client-initiated-backchannel-authentication-flow.md
-- Okta DPoP nonce requirement: https://developer.okta.com/docs/guides/dpop/nonoktaresourceserver/main/
-- Connect2id token introspection: https://connect2id.com/products/server/docs/api/token-introspection
-
-**Comparable PAM-OIDC implementations (MEDIUM confidence):**
-- Salesforce pam_oidc (Go template username mapping): https://github.com/salesforce/pam_oidc
-- pam-keycloak-oidc: https://github.com/zhaow-de/pam-keycloak-oidc
-- oidc-pam (scttfrdmn): https://github.com/scttfrdmn/oidc-pam
+**Codebase (HIGH confidence — direct inspection):**
+- `test/scripts/test-device-flow.sh` — existing ROPC-based device flow shortcut; confirmed gap
+- `test/tests/test_dpop_binding.sh` — existing DPoP binding test; confirmed uses ROPC not device flow
+- `test/tests/test_ssh_oidc_valid.sh` — confirmed uses `UNIX_OIDC_TEST_MODE=true`
+- `docker-compose.test.yaml` — confirmed `UNIX_OIDC_TEST_MODE: "true"` in test-host environment
+- `demo/tests/*.spec.ts` — confirmed Playwright infrastructure exists but is demo-only
+- `.planning/v2.0-MILESTONE-AUDIT.md` — three pre-identified blocking bugs confirmed
 
 ---
 
-*Research completed: 2026-03-10*
-*Milestone: unix-oidc v2.0 — Production Hardening and Enterprise Readiness*
-*Ready for roadmap: yes*
+*Feature research for: unix-oidc v2.1 E2E Integration Testing milestone*
+*Researched: 2026-03-13*
