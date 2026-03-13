@@ -39,14 +39,14 @@
 
 ### Multi-IdP Configuration
 
-- [ ] **MIDP-01**: `issuers[]` array in policy.yaml with per-issuer config blocks (issuer_url, client_id, client_secret)
-- [ ] **MIDP-02**: Per-issuer DPoP enforcement mode (strict/warn/disabled)
-- [ ] **MIDP-03**: Per-issuer claim mapping rules (username extraction, strip-domain, regex)
-- [ ] **MIDP-04**: Per-issuer ACR value mapping (e.g., Keycloak `urn:keycloak:acr:loa2` vs Entra `c1`/`c2`)
-- [ ] **MIDP-05**: Per-issuer group mapping (token claim path vs NSS-only, group name translation)
+- [x] **MIDP-01**: `issuers[]` array in policy.yaml with per-issuer config blocks (issuer_url, client_id, client_secret)
+- [x] **MIDP-02**: Per-issuer DPoP enforcement mode (strict/warn/disabled)
+- [x] **MIDP-03**: Per-issuer claim mapping rules (username extraction, strip-domain, regex)
+- [x] **MIDP-04**: Per-issuer ACR value mapping (e.g., Keycloak `urn:keycloak:acr:loa2` vs Entra `c1`/`c2`)
+- [x] **MIDP-05**: Per-issuer group mapping (token claim path vs NSS-only, group name translation)
 - [ ] **MIDP-06**: PAM module matches incoming token `iss` to configured issuer; rejects unknown issuers
 - [ ] **MIDP-07**: JWKS cache keyed by issuer URL (multi-issuer concurrent caching)
-- [ ] **MIDP-08**: Graceful degradation: missing optional per-issuer fields fall back to safe defaults with WARN logging
+- [x] **MIDP-08**: Graceful degradation: missing optional per-issuer fields fall back to safe defaults with WARN logging
 
 ### Entra ID Integration
 
@@ -110,14 +110,14 @@ Every requirement above must have corresponding tests that cover:
 | CI-01 | Phase 20 | Pending |
 | CI-02 | Phase 20 | Pending |
 | CI-03 | Phase 22 | Pending |
-| MIDP-01 | Phase 21 | Pending |
-| MIDP-02 | Phase 21 | Pending |
-| MIDP-03 | Phase 21 | Pending |
-| MIDP-04 | Phase 21 | Pending |
-| MIDP-05 | Phase 21 | Pending |
+| MIDP-01 | Phase 21 | Complete |
+| MIDP-02 | Phase 21 | Complete |
+| MIDP-03 | Phase 21 | Complete |
+| MIDP-04 | Phase 21 | Complete |
+| MIDP-05 | Phase 21 | Complete |
 | MIDP-06 | Phase 21 | Pending |
 | MIDP-07 | Phase 21 | Pending |
-| MIDP-08 | Phase 21 | Pending |
+| MIDP-08 | Phase 21 | Complete |
 | ENTR-01 | Phase 22 | Pending |
 | ENTR-02 | Phase 22 | Pending |
 | ENTR-03 | Phase 22 | Pending |

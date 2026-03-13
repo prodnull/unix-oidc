@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Integration Testing Infrastructure
 status: planning
-stopped_at: null
-last_updated: "2026-03-13"
-last_activity: 2026-03-13 — v2.1 roadmap created; Phase 18 ready to plan
+stopped_at: Completed 21-01-PLAN.md
+last_updated: "2026-03-13T19:07:57.321Z"
+last_activity: 2026-03-13 — v2.1 roadmap created; all 30 requirements mapped to phases 18-22
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 16
+  completed_phases: 10
+  total_plans: 34
+  completed_plans: 29
   percent: 0
 ---
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 - Total execution time: ~58h (v2.0)
 
 **Recent Trend:**
-- Last 5 plans: Phase 17-03 (8m), 17-01 (5m), 17-02 (4m), 15-02 (3m), 15-01 (120m)
+- Last 5 plans: Phase 21-01 (6m), Phase 17-03 (8m), 17-01 (5m), 17-02 (4m), 15-02 (3m)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -49,6 +49,8 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 
 ### Key Decisions Affecting v2.1
 
+- [21-01]: IssuerConfig.dpop_enforcement defaults to Strict; Entra overrides to disabled (SHR not RFC 9449)
+- [21-01]: IssuerJwksRegistry is non-global, owned by auth routing struct (Plan 02); read-first RwLock for hot path
 - [v2.0]: reqwest stays on 0.11 — 0.11→0.13 upgrade is a separate hardening item (TLS layer audit required)
 - [Research]: Keycloak must be upgraded from 24.0 to 26.4 — DPoP is GA in 26.4; 24.x DPoP behavior in device flow is undefined
 - [Research]: Playwright runs on GHA host (not in Docker) — avoids Chromium `--no-sandbox` failures inside containers
@@ -73,6 +75,6 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 
 ## Session Continuity
 
-Last session: 2026-03-13
-Stopped at: Roadmap created for v2.1; Phase 18 ready to plan
+Last session: 2026-03-13T19:07:57.319Z
+Stopped at: Completed 21-01-PLAN.md
 Resume file: None
