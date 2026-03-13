@@ -146,7 +146,7 @@ Plans:
 | 19. Playwright Device Flow Automation | v2.1 | 0/? | Not started | - |
 | 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Not started | - |
 | 21. Multi-IdP Configuration | 3/3 | Complete    | 2026-03-13 | - |
-| 22. Entra ID Integration | 3/3 | Complete   | 2026-03-13 | - |
+| 22. Entra ID Integration | 3/3 | Complete    | 2026-03-13 | - |
 
 ---
 
