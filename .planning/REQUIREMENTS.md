@@ -37,7 +37,7 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **SES-06**: Introspection result caching via moka with TTL bounded by min(60s, token exp - now)
 - [x] **SES-07**: RFC 7009 token revocation on session close (best-effort, 5s timeout)
 - [x] **SES-08**: Agent SessionClosed IPC event to schedule orphaned DPoP key cleanup
-- [ ] **SES-09**: Background session expiry sweep in agent daemon (configurable interval, default 300s) to reap orphaned session records from crashed sshd workers
+- [x] **SES-09**: Background session expiry sweep in agent daemon (configurable interval, default 300s) to reap orphaned session records from crashed sshd workers
 
 ### Step-Up Authentication
 

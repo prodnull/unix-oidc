@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: verifying
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-03-12T20:05:51.356Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-03-13T04:39:01.526Z"
 last_activity: 2026-03-12 — Phase 15 Plan 01 complete; all three test scripts verified passing locally against live Keycloak 26.2; CI check job unblocked from formatting/compilation errors; CI token-exchange job pending resolution of pre-existing unwrap_used violations
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 9
-  total_plans: 25
-  completed_plans: 25
+  total_plans: 31
+  completed_plans: 27
   percent: 100
 ---
 
@@ -76,6 +76,8 @@ Progress: [██████████] 100%
 | Phase 14-critical-integration-bug-fixes P01 | 10 | 2 tasks | 5 files |
 | Phase 15-phase-11-verification-traceability P01 | 120 | 2 tasks | 6 files |
 | Phase 15 P02 | 3 | 2 tasks | 3 files |
+| Phase 17-p2-enhancements P02 | 4 | 2 tasks | 5 files |
+| Phase 17-p2-enhancements P01 | 5 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -147,11 +149,18 @@ Recent decisions affecting current work:
 - [Phase 15-01]: Pre-existing unwrap_used violations in pam-unix-oidc audit.rs, ciba/client.rs, ciba/types.rs, device_flow/client.rs, sudo.rs block CI check job — require dedicated lint-fix phase
 - [Phase 15]: TEST-01/TEST-02 traceability Phase column set to Phase 11 (implementation), not Phase 15 (verification)
 - [Phase 15]: CI token-exchange job blocked by pre-existing unwrap_used violations; local Keycloak evidence sufficient to close TEST-01/TEST-02
+- [Phase 17-02]: sweep_expired_sessions parses session files as serde_json::Value to avoid cross-crate SessionRecord dependency and stay resilient to schema evolution
+- [Phase 17-02]: sweep_interval minimum 60s in TimeoutsConfig::validate() prevents I/O thrashing; AgentServer sweep fields default to None (opt-in)
+- [Phase 17-01]: HybridPqcSigner::generate() and from_key_bytes() return Box<Self> — MEM-05 invariant; MlockGuard/try_mlock made pub(crate) for reuse; mlock covers full Box allocation; Arc::new(*pqc) dereferences Box before coercion to Arc<dyn DPoPSigner>
 
 ### Pending Todos
 
 - [Global]: Every phase must include adversarial/negative tests (malformed tokens, replayed nonces, forged claims, timing attacks, resource exhaustion) — not just happy-path tests
 - [Docs]: Create `docs/standards-compliance-matrix.md` — centralized RFC/NIST/standards tracker for publications (whitepapers, conference talks, WG outreach, blog posts). Currently refs scattered across ADRs, code comments, security guide, REQUIREMENTS.md. Need section-level RFC coverage map, NIST/SOC2 cross-refs, implementation status. `docs/ietf/` dir exists but empty. Full inventory in project memory `standards-tracking.md`.
+
+### Roadmap Evolution
+
+- Phase 17 added: P2 Enhancements — structured audit events, sudo session linking, session expiry sweep, mlock ML-DSA keys
 
 ### Blockers/Concerns
 
@@ -160,6 +169,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T20:05:51.354Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-03-13T04:39:01.524Z
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
