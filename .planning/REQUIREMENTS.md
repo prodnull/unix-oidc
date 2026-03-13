@@ -50,10 +50,10 @@
 
 ### Entra ID Integration
 
-- [ ] **ENTR-01**: Entra app registration with device code flow enabled (public client)
+- [x] **ENTR-01**: Entra app registration with device code flow enabled (public client)
 - [ ] **ENTR-02**: OIDC discovery + JWKS endpoint validation against live Entra tenant
-- [ ] **ENTR-03**: RS256 token signature verification through PAM module (not just ES256)
-- [ ] **ENTR-04**: UPN claim mapping (`alice@corp.com` → `alice`) validated end-to-end
+- [x] **ENTR-03**: RS256 token signature verification through PAM module (not just ES256)
+- [x] **ENTR-04**: UPN claim mapping (`alice@corp.com` → `alice`) validated end-to-end
 - [ ] **ENTR-05**: Bearer-only mode (DPoP disabled) produces successful auth with full audit trail
 
 ## Testing Coverage Requirements
@@ -118,10 +118,10 @@ Every requirement above must have corresponding tests that cover:
 | MIDP-06 | Phase 21 | Complete |
 | MIDP-07 | Phase 21 | Complete |
 | MIDP-08 | Phase 21 | Complete |
-| ENTR-01 | Phase 22 | Pending |
+| ENTR-01 | Phase 22 | Complete |
 | ENTR-02 | Phase 22 | Pending |
-| ENTR-03 | Phase 22 | Pending |
-| ENTR-04 | Phase 22 | Pending |
+| ENTR-03 | Phase 22 | Complete |
+| ENTR-04 | Phase 22 | Complete |
 | ENTR-05 | Phase 22 | Pending |
 
 **Coverage:**
