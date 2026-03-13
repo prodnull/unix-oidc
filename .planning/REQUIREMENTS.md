@@ -37,6 +37,7 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **SES-06**: Introspection result caching via moka with TTL bounded by min(60s, token exp - now)
 - [x] **SES-07**: RFC 7009 token revocation on session close (best-effort, 5s timeout)
 - [x] **SES-08**: Agent SessionClosed IPC event to schedule orphaned DPoP key cleanup
+- [ ] **SES-09**: Background session expiry sweep in agent daemon (configurable interval, default 300s) to reap orphaned session records from crashed sshd workers
 
 ### Step-Up Authentication
 
@@ -77,6 +78,15 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 - [x] **OPS-11**: Tracing spans across full authentication flow (JWKS fetch, validation, DPoP verify, user lookup)
 - [x] **OPS-12**: Audit hostname resolution via gethostname() syscall instead of env vars
 - [x] **OPS-13**: Proof request logging at INFO level (username, target, signer type)
+
+### Observability
+
+- [ ] **OBS-1**: Agent-side structured audit events (target: unix_oidc_audit) for authentication, token refresh, session close, and step-up operations with event_type, timestamp, session_id, username, and outcome fields
+- [ ] **OBS-3**: Sudo step-up session linking — parent_session_id propagated through StepUp IPC for end-to-end audit correlation between SSH sessions and sudo privilege escalation
+
+### Memory Protection
+
+- [ ] **MEM-07**: ML-DSA-65 key material mlock'd in HybridPqcSigner via Box-only constructors, matching ProtectedSigningKey pattern (best-effort, warn on failure)
 
 ## Future Requirements (v2.1+)
 
@@ -167,12 +177,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-11 | Phase 13 | Complete |
 | OPS-12 | Phase 13 | Complete |
 | OPS-13 | Phase 13 | Complete |
+| OBS-1 | Phase 17 | Planned |
+| OBS-3 | Phase 17 | Planned |
+| SES-09 | Phase 17 | Planned |
+| MEM-07 | Phase 17 | Planned |
 
 **Coverage:**
-- v2.0 requirements: 50 total
-- Mapped to phases: 50
-- Unmapped: 0 ✓
+- v2.0 requirements: 54 total
+- Mapped to phases: 54
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-12 — TEST-01/TEST-02 traceability corrected from Phase 15 to Phase 11 (Phase 11 did implementation; Phase 15 verified)*
+*Last updated: 2026-03-13 — Added OBS-1, OBS-3, SES-09, MEM-07 for Phase 17 P2 enhancements*
