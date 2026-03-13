@@ -51,7 +51,7 @@ Full details: see Phase Details section below (preserved for reference).
 - [ ] **Phase 19: Playwright Device Flow Automation** - Automate Keycloak browser consent for headless CI
 - [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Complete the milestone deliverable: real-signature SSH auth chain in CI
 - [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
-- [ ] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping
+- [x] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping (completed 2026-03-13)
 
 ## Phase Details
 
@@ -114,7 +114,7 @@ Plans:
   2. A user whose Entra `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the Entra issuer config sets `strip_domain: true`; the full auth chain produces a structured audit event with the mapped username
   3. Bearer-only mode (no `cnf.jkt` assertion, `dpop_required: off` in the Entra issuer config) produces a successful authentication with a complete audit trail; no DPoP-related errors appear in the log
   4. The `entra-integration` CI job in `provider-tests.yml` runs only when `secrets.ENTRA_TENANT_ID` is available; it exits 0 on a successful auth and reports structured results; negative test confirms a token from a different tenant is rejected
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 22-01-PLAN.md — expected_audience + allow_unsafe_identity_pipeline + Entra fixture + setup guide (ENTR-01, ENTR-03, ENTR-04)
@@ -146,7 +146,7 @@ Plans:
 | 19. Playwright Device Flow Automation | v2.1 | 0/? | Not started | - |
 | 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Not started | - |
 | 21. Multi-IdP Configuration | 3/3 | Complete    | 2026-03-13 | - |
-| 22. Entra ID Integration | 2/3 | In Progress|  | - |
+| 22. Entra ID Integration | 3/3 | Complete   | 2026-03-13 | - |
 
 ---
 

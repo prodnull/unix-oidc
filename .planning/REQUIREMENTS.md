@@ -35,7 +35,7 @@
 
 - [ ] **CI-01**: `keycloak-e2e` GitHub Actions job depending on build-matrix artifact
 - [ ] **CI-02**: Parallel Playwright + shell test execution within the job
-- [ ] **CI-03**: Entra ID secrets-gated CI job (`entra-integration`)
+- [x] **CI-03**: Entra ID secrets-gated CI job (`entra-integration`)
 
 ### Multi-IdP Configuration
 
@@ -51,10 +51,10 @@
 ### Entra ID Integration
 
 - [x] **ENTR-01**: Entra app registration with device code flow enabled (public client)
-- [ ] **ENTR-02**: OIDC discovery + JWKS endpoint validation against live Entra tenant
+- [x] **ENTR-02**: OIDC discovery + JWKS endpoint validation against live Entra tenant
 - [x] **ENTR-03**: RS256 token signature verification through PAM module (not just ES256)
 - [x] **ENTR-04**: UPN claim mapping (`alice@corp.com` → `alice`) validated end-to-end
-- [ ] **ENTR-05**: Bearer-only mode (DPoP disabled) produces successful auth with full audit trail
+- [x] **ENTR-05**: Bearer-only mode (DPoP disabled) produces successful auth with full audit trail
 
 ## Testing Coverage Requirements
 
@@ -109,7 +109,7 @@ Every requirement above must have corresponding tests that cover:
 | E2E-03 | Phase 20 | Pending |
 | CI-01 | Phase 20 | Pending |
 | CI-02 | Phase 20 | Pending |
-| CI-03 | Phase 22 | Pending |
+| CI-03 | Phase 22 | Complete |
 | MIDP-01 | Phase 21 | Complete |
 | MIDP-02 | Phase 21 | Complete |
 | MIDP-03 | Phase 21 | Complete |
@@ -119,10 +119,10 @@ Every requirement above must have corresponding tests that cover:
 | MIDP-07 | Phase 21 | Complete |
 | MIDP-08 | Phase 21 | Complete |
 | ENTR-01 | Phase 22 | Complete |
-| ENTR-02 | Phase 22 | Pending |
+| ENTR-02 | Phase 22 | Complete |
 | ENTR-03 | Phase 22 | Complete |
 | ENTR-04 | Phase 22 | Complete |
-| ENTR-05 | Phase 22 | Pending |
+| ENTR-05 | Phase 22 | Complete |
 
 **Coverage:**
 - v2.1 requirements: 30 total

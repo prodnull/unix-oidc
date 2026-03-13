@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Integration Testing Infrastructure
 status: executing
-stopped_at: Completed 22-02-PLAN.md
-last_updated: "2026-03-13T21:13:00Z"
-last_activity: 2026-03-13 — Phase 22 Plan 02 complete; 9 live Entra integration tests (RS256, UPN mapping, bearer-only, adversarial)
+stopped_at: Completed 22-03-PLAN.md
+last_updated: "2026-03-13T21:17:00Z"
+last_activity: 2026-03-13 — Phase 22 Plan 03 complete; ROPC token script and Entra secrets-gated CI job in provider-tests.yml
 progress:
   total_phases: 16
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 37
-  completed_plans: 33
-  percent: 0
+  completed_plans: 35
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 22 of 22 (Entra ID Integration)
-Plan: 02 of 02 complete
-Status: In progress
-Last activity: 2026-03-13 — Phase 22 Plan 02 complete; 9 live Entra integration tests (RS256, UPN mapping, bearer-only, adversarial)
+Plan: 03 of 03 complete
+Status: Phase 22 complete — all plans done
+Last activity: 2026-03-13 — Phase 22 Plan 03 complete; ROPC token script and Entra secrets-gated CI job in provider-tests.yml
 
-Progress: [█████████░] 92% (v2.1)
+Progress: [█████████░] 94% (v2.1)
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [█████████░] 92% (v2.1)
 - Total execution time: ~58h (v2.0)
 
 **Recent Trend:**
-- Last 5 plans: Phase 22-02 (3m), Phase 22-01 (6m), Phase 21-03 (3m), Phase 21-02 (10m), Phase 21-01 (6m)
+- Last 5 plans: Phase 22-03 (2m), Phase 22-02 (3m), Phase 22-01 (6m), Phase 21-03 (3m), Phase 21-02 (10m)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -49,6 +49,8 @@ Progress: [█████████░] 92% (v2.1)
 
 ### Key Decisions Affecting v2.1
 
+- [22-03]: Entra CI scopes limited to openid+profile+email; User.Read excluded to keep aud as tenant-specific URI (not graph.microsoft.com) — PAM audience validation requires tenant aud
+- [22-03]: Entra CI job is optional in provider-summary — non-blocking if secrets absent; matches Auth0/Google treatment
 - [22-01]: expected_audience is Option<String> with serde(default) — None falls back to client_id (RFC 7519 §4.1.3); supports Entra api:// audience URIs
 - [22-02]: reqwest blocking client required in tests — pam-unix-oidc uses reqwest 0.11 blocking-only; no tokio in dev-deps; async test annotations fail to compile
 - [22-02]: UserNotFound/IdentityMapping/UserResolution all accepted as terminal states in bearer test — SSSD absent in test env; all three confirm DPoP gate was passed
@@ -83,6 +85,6 @@ Progress: [█████████░] 92% (v2.1)
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:12:52Z
-Stopped at: Completed 22-02-PLAN.md
-Resume file: .planning/phases/22-entra-id-integration/22-02-SUMMARY.md
+Last session: 2026-03-13T21:17:00Z
+Stopped at: Completed 22-03-PLAN.md
+Resume file: .planning/phases/22-entra-id-integration/22-03-SUMMARY.md
