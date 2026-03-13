@@ -98,7 +98,12 @@ Full details: see Phase Details section below (preserved for reference).
   3. A user whose Keycloak `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the issuer's claim mapping sets `strip_domain: true`; a second issuer with no strip_domain config uses the raw claim value unchanged
   4. The JWKS cache maintains independent entries keyed by issuer URL; fetching a JWKS for one issuer does not evict or overwrite the cache entry for another issuer
   5. An `issuers[]` entry that omits optional fields (no `acr_mapping`, no `group_mapping`) loads successfully with safe defaults and logs a WARN; authentication against that issuer still succeeds
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — IssuerConfig types + JWKS registry + config validation (MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-08)
+- [ ] 21-02-PLAN.md — Multi-issuer auth routing + JTI scoping + PAM wiring (MIDP-06, MIDP-07)
+- [ ] 21-03-PLAN.md — Integration test suite + workspace regression gate (MIDP-01..08)
 
 ### Phase 22: Entra ID Integration
 **Goal**: Tokens issued by Azure Entra ID (RS256, bearer-only, tenant-specific issuer, UPN claim) authenticate successfully through the PAM module; the integration test runs in CI gated on secrets
@@ -135,7 +140,7 @@ Full details: see Phase Details section below (preserved for reference).
 | 18. Blocker Fixes + E2E Infrastructure | v2.1 | 0/? | Not started | - |
 | 19. Playwright Device Flow Automation | v2.1 | 0/? | Not started | - |
 | 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Not started | - |
-| 21. Multi-IdP Configuration | v2.1 | 0/? | Not started | - |
+| 21. Multi-IdP Configuration | v2.1 | 0/3 | Planned | - |
 | 22. Entra ID Integration | v2.1 | 0/? | Not started | - |
 
 ---
