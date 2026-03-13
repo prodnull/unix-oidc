@@ -236,3 +236,21 @@ Plans:
 | 14. Critical Integration Bug Fixes | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 15. Phase 11 Verification + Traceability Fix | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 3/3 | Complete | 2026-03-12 |
+| 17. P2 Enhancements | v2.0 | 0/3 | Planned | - |
+
+### Phase 17: P2 Enhancements: structured audit events, sudo session linking, session expiry sweep, mlock ML-DSA keys
+
+**Goal:** Agent daemon emits structured audit events for SIEM ingestion, sudo step-up sessions link to parent SSH sessions for end-to-end audit correlation, orphaned session records are automatically reaped, and ML-DSA key material is mlock'd to prevent swap exposure
+**Requirements**: OBS-1, OBS-3, SES-09, MEM-07
+**Depends on:** Phase 16
+**Success Criteria** (what must be TRUE):
+  1. Agent daemon emits `tracing::info!(target: "unix_oidc_audit", ...)` events at five event points (auth, refresh, session close, step-up initiate, step-up complete/timeout) with event_type, username, outcome fields
+  2. StepUp IPC carries optional parent_session_id from the SSH session; StepUpComplete echoes it back; step-up audit events include both sudo and parent session IDs
+  3. A background sweep task removes expired session records from /run/unix-oidc/sessions/ at a configurable interval (default 5 minutes); corrupt files are removed with a warning
+  4. HybridPqcSigner::generate() returns Box<Self> with mlock applied to the allocation; ML-DSA key bytes are verified to zero on drop
+**Plans:** 3 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — mlock ML-DSA key material in HybridPqcSigner (MEM-07)
+- [ ] 17-02-PLAN.md — Session expiry sweep background task + config (SES-09)
+- [ ] 17-03-PLAN.md — Structured audit events + sudo session linking (OBS-1, OBS-3)
