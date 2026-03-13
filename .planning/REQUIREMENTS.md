@@ -7,23 +7,23 @@
 
 ### Blocker Fixes
 
-- [ ] **BFIX-01**: Keycloak issuer URL aligned between token `iss` claim and PAM `OIDC_ISSUER` validation
-- [ ] **BFIX-02**: `unix-oidc-agent` binary installed and startable in test-host container
-- [ ] **BFIX-03**: Device flow token polling sends DPoP proof header per RFC 9449 §4.2
-- [ ] **BFIX-04**: IPC `notify_agent_session_closed()` sends newline terminator to prevent `read_line` hang
+- [x] **BFIX-01**: Keycloak issuer URL aligned between token `iss` claim and PAM `OIDC_ISSUER` validation
+- [x] **BFIX-02**: `unix-oidc-agent` binary installed and startable in test-host container
+- [x] **BFIX-03**: Device flow token polling sends DPoP proof header per RFC 9449 §4.2
+- [x] **BFIX-04**: IPC `notify_agent_session_closed()` sends newline terminator to prevent `read_line` hang
 
 ### E2E Infrastructure
 
-- [ ] **INFR-01**: New `docker-compose.e2e.yaml` with Keycloak 26.4+, no `UNIX_OIDC_TEST_MODE`, aligned issuer URLs
-- [ ] **INFR-02**: Keycloak health check uses `/health/ready` endpoint (not TCP port check)
-- [ ] **INFR-03**: Sentinel assertion at CI job start verifying `UNIX_OIDC_TEST_MODE` is NOT set
-- [ ] **INFR-04**: Realm JSON fixes (`deviceAuthorizationGrantEnabled` boolean, DPoP GA settings for Keycloak 26.4+)
+- [x] **INFR-01**: New `docker-compose.e2e.yaml` with Keycloak 26.4+, no `UNIX_OIDC_TEST_MODE`, aligned issuer URLs
+- [x] **INFR-02**: Keycloak health check uses `/health/ready` endpoint (not TCP port check)
+- [x] **INFR-03**: Sentinel assertion at CI job start verifying `UNIX_OIDC_TEST_MODE` is NOT set
+- [x] **INFR-04**: Realm JSON fixes (`deviceAuthorizationGrantEnabled` boolean, DPoP GA settings for Keycloak 26.4+)
 
 ### Playwright Automation
 
-- [ ] **PLAY-01**: Playwright spec automates Keycloak device flow consent (navigate to verification URI, fill credentials, grant)
-- [ ] **PLAY-02**: Tmpfile coordination between Playwright spec and shell poll loop for token handoff
-- [ ] **PLAY-03**: CI-compatible headless execution on GitHub Actions runners
+- [x] **PLAY-01**: Playwright spec automates Keycloak device flow consent (navigate to verification URI, fill credentials, grant)
+- [x] **PLAY-02**: Tmpfile coordination between Playwright spec and shell poll loop for token handoff
+- [x] **PLAY-03**: CI-compatible headless execution on GitHub Actions runners
 
 ### SSH E2E Test
 
@@ -93,17 +93,17 @@ Every requirement above must have corresponding tests that cover:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BFIX-01 | Phase 18 | Pending |
-| BFIX-02 | Phase 18 | Pending |
-| BFIX-03 | Phase 18 | Pending |
-| BFIX-04 | Phase 18 | Pending |
-| INFR-01 | Phase 18 | Pending |
-| INFR-02 | Phase 18 | Pending |
-| INFR-03 | Phase 18 | Pending |
-| INFR-04 | Phase 18 | Pending |
-| PLAY-01 | Phase 19 | Pending |
-| PLAY-02 | Phase 19 | Pending |
-| PLAY-03 | Phase 19 | Pending |
+| BFIX-01 | Phase 18 | Complete |
+| BFIX-02 | Phase 18 | Complete |
+| BFIX-03 | Phase 18 | Complete |
+| BFIX-04 | Phase 18 | Complete |
+| INFR-01 | Phase 18 | Complete |
+| INFR-02 | Phase 18 | Complete |
+| INFR-03 | Phase 18 | Complete |
+| INFR-04 | Phase 18 | Complete |
+| PLAY-01 | Phase 19 | Complete |
+| PLAY-02 | Phase 19 | Complete |
+| PLAY-03 | Phase 19 | Complete |
 | E2E-01 | Phase 20 | Pending |
 | E2E-02 | Phase 20 | Pending |
 | E2E-03 | Phase 20 | Pending |
@@ -126,7 +126,8 @@ Every requirement above must have corresponding tests that cover:
 
 **Coverage:**
 - v2.1 requirements: 30 total
-- Mapped to phases: 30
+- Complete: 25 (BFIX-01..04, INFR-01..04, PLAY-01..03, MIDP-01..08, ENTR-01..05, CI-03)
+- Pending: 5 (E2E-01..03, CI-01, CI-02)
 - Unmapped: 0
 
 ---

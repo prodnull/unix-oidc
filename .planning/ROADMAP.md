@@ -47,9 +47,9 @@ Full details: see Phase Details section below (preserved for reference).
 
 **Testing mandate:** Every phase must include watertight test coverage: happy path, negative/adversarial inputs (malformed tokens, replayed proofs, wrong issuers, forged claims), degraded mode (IdP unreachable, missing optional claims, clock skew), and observability (all auth events produce structured audit events).
 
-- [ ] **Phase 18: Blocker Fixes + E2E Infrastructure** - Fix four pre-existing bugs and stand up the real-signature compose stack
-- [ ] **Phase 19: Playwright Device Flow Automation** - Automate Keycloak browser consent for headless CI
-- [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Complete the milestone deliverable: real-signature SSH auth chain in CI
+- [x] **Phase 18: Blocker Fixes + E2E Infrastructure** - Fix four pre-existing bugs and stand up the real-signature compose stack (completed 2026-03-13)
+- [x] **Phase 19: Playwright Device Flow Automation** - Automate Keycloak browser consent for headless CI (completed 2026-03-13)
+- [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Partial: token test exists but SSH→PAM chain, audit log verification, negative E2E tests, and CI job not yet wired
 - [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
 - [x] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping (completed 2026-03-13)
 - [ ] **Phase 23: Integration Gap Fixes** - Multi-issuer DPoP nonce consumption + Entra policy fixture test coverage (gap closure from v2.1 audit)
@@ -153,11 +153,11 @@ Plans:
 | 15. Phase 11 Verification + Traceability Fix | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 3/3 | Complete | 2026-03-12 |
 | 17. P2 Enhancements | v2.0 | 3/3 | Complete | 2026-03-13 |
-| 18. Blocker Fixes + E2E Infrastructure | v2.1 | 0/? | Not started | - |
-| 19. Playwright Device Flow Automation | v2.1 | 0/? | Not started | - |
-| 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Not started | - |
-| 21. Multi-IdP Configuration | 3/3 | Complete    | 2026-03-13 | - |
-| 22. Entra ID Integration | 3/3 | Complete    | 2026-03-13 | - |
+| 18. Blocker Fixes + E2E Infrastructure | v2.1 | N/A (single commit) | Complete | 2026-03-13 |
+| 19. Playwright Device Flow Automation | v2.1 | N/A (single commit) | Complete | 2026-03-13 |
+| 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Partial (E2E stubs, no CI job) | - |
+| 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
+| 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 0/? | Not started | - |
 
 ---
