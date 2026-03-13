@@ -66,10 +66,7 @@ Full details: see Phase Details section below (preserved for reference).
   3. The device flow token polling loop sends a fresh `DPoP:` proof header per poll iteration; a token acquired via device flow within the compose network contains a `cnf.jkt` claim (DPoP-bound, not plain bearer)
   4. `pam_sm_close_session` sends the `SessionClosed` IPC message with a trailing newline; the agent's `read_line` unblocks immediately instead of hanging until the 2-second timeout
   5. A sentinel CI step (`docker exec test-host-e2e env | grep UNIX_OIDC_TEST_MODE` exits non-zero) confirms TEST_MODE is absent from the real-signature test environment
-**Plans:** 1 plan
-
-Plans:
-- [ ] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
+**Plans**: N/A (implemented in single commit 9bfd4d3)
 
 ### Phase 19: Playwright Device Flow Automation
 **Goal**: The Device Authorization Grant browser consent step is automated headlessly so CI can complete device flow without human interaction
@@ -79,10 +76,7 @@ Plans:
   1. Running `npx playwright test tests/device-flow.spec.ts` against a live Keycloak 26.4 instance navigates to the verification URI, submits credentials, and exits 0 after Keycloak confirms device activation — without any human interaction
   2. The Playwright spec and the shell token poll loop coordinate via a tmpfile: the shell writes the `verification_uri_complete`, Playwright polls for the file, navigates, and completes consent; the shell poll loop then receives the token
   3. The same spec runs unmodified on a GitHub Actions ubuntu-latest runner in headless mode without `--no-sandbox` flags (Playwright runs on the GHA host, not inside Docker)
-**Plans:** 1 plan
-
-Plans:
-- [ ] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
+**Plans**: N/A (implemented in single commit 9bfd4d3)
 
 ### Phase 20: Full SSH E2E Test + CI Integration
 **Goal**: A complete SSH authentication chain — device flow token acquisition, agent serve, SSH with SSH_ASKPASS, PAM conversation, JWKS signature verification, session open — runs without TEST_MODE and is gated in CI
@@ -93,10 +87,7 @@ Plans:
   2. The auth log inside the test-host container contains a structured audit event with `event_type=auth_success` and `issuer=http://keycloak:8080/realms/unix-oidc` for the successful authentication
   3. Negative tests confirm the security perimeter: a token signed with a wrong key is rejected (`Authentication failed`); a token from a wrong issuer is rejected; a replayed DPoP proof on the second SSH attempt is rejected
   4. The `keycloak-e2e` CI job in `.github/workflows/ci.yml` depends on `build-matrix`, restores the release artifact, starts the e2e stack, runs the SSH E2E test, and reports pass/fail on every push to main
-**Plans:** 1 plan
-
-Plans:
-- [ ] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
+**Plans**: Partial (E2E stubs exist, CI job and full SSH chain TBD)
 
 ### Phase 21: Multi-IdP Configuration
 **Goal**: The PAM module supports multiple OIDC issuers simultaneously, each with independent DPoP enforcement, claim mapping, ACR mapping, and group mapping; unknown issuers are rejected; missing optional fields fall back safely
