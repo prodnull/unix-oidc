@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Production Hardening & Enterprise Readiness
 status: verifying
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-03-13T04:39:01.526Z"
+stopped_at: Completed 17-03-PLAN.md
+last_updated: "2026-03-13T04:49:50.537Z"
 last_activity: 2026-03-12 — Phase 15 Plan 01 complete; all three test scripts verified passing locally against live Keycloak 26.2; CI check job unblocked from formatting/compilation errors; CI token-exchange job pending resolution of pre-existing unwrap_used violations
 progress:
   total_phases: 12
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 31
-  completed_plans: 27
+  completed_plans: 28
   percent: 100
 ---
 
@@ -78,6 +78,7 @@ Progress: [██████████] 100%
 | Phase 15 P02 | 3 | 2 tasks | 3 files |
 | Phase 17-p2-enhancements P02 | 4 | 2 tasks | 5 files |
 | Phase 17-p2-enhancements P01 | 5 | 1 tasks | 3 files |
+| Phase 17-p2-enhancements P03 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -152,6 +153,9 @@ Recent decisions affecting current work:
 - [Phase 17-02]: sweep_expired_sessions parses session files as serde_json::Value to avoid cross-crate SessionRecord dependency and stay resilient to schema evolution
 - [Phase 17-02]: sweep_interval minimum 60s in TimeoutsConfig::validate() prevents I/O thrashing; AgentServer sweep fields default to None (opt-in)
 - [Phase 17-01]: HybridPqcSigner::generate() and from_key_bytes() return Box<Self> — MEM-05 invariant; MlockGuard/try_mlock made pub(crate) for reuse; mlock covers full Box allocation; Arc::new(*pqc) dereferences Box before coercion to Arc<dyn DPoPSigner>
+- [Phase 17-03]: session_id='n/a' for GetProof and background refresh: pam_sm_open_session runs after auth; no session_id exists in agent at proof-issue time
+- [Phase 17-03]: parent_session_id threaded through poll_ciba() as a new parameter; avoids PendingStepUp lookup in the inner async task
+- [Phase 17-03]: 9 audit event emission points cover all GetProof failure paths plus 4 event types for complete audit coverage
 
 ### Pending Todos
 
@@ -169,6 +173,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-13T04:39:01.524Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-03-13T04:49:50.534Z
+Stopped at: Completed 17-03-PLAN.md
 Resume file: None

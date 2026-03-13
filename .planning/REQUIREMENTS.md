@@ -81,8 +81,8 @@ Requirements for production hardening and enterprise readiness. Each maps to roa
 
 ### Observability
 
-- [ ] **OBS-1**: Agent-side structured audit events (target: unix_oidc_audit) for authentication, token refresh, session close, and step-up operations with event_type, timestamp, session_id, username, and outcome fields
-- [ ] **OBS-3**: Sudo step-up session linking — parent_session_id propagated through StepUp IPC for end-to-end audit correlation between SSH sessions and sudo privilege escalation
+- [x] **OBS-1**: Agent-side structured audit events (target: unix_oidc_audit) for authentication, token refresh, session close, and step-up operations with event_type, timestamp, session_id, username, and outcome fields
+- [x] **OBS-3**: Sudo step-up session linking — parent_session_id propagated through StepUp IPC for end-to-end audit correlation between SSH sessions and sudo privilege escalation
 
 ### Memory Protection
 
