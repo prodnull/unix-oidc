@@ -93,42 +93,42 @@ Every requirement above must have corresponding tests that cover:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BFIX-01 | — | Pending |
-| BFIX-02 | — | Pending |
-| BFIX-03 | — | Pending |
-| BFIX-04 | — | Pending |
-| INFR-01 | — | Pending |
-| INFR-02 | — | Pending |
-| INFR-03 | — | Pending |
-| INFR-04 | — | Pending |
-| PLAY-01 | — | Pending |
-| PLAY-02 | — | Pending |
-| PLAY-03 | — | Pending |
-| E2E-01 | — | Pending |
-| E2E-02 | — | Pending |
-| E2E-03 | — | Pending |
-| CI-01 | — | Pending |
-| CI-02 | — | Pending |
-| CI-03 | — | Pending |
-| MIDP-01 | — | Pending |
-| MIDP-02 | — | Pending |
-| MIDP-03 | — | Pending |
-| MIDP-04 | — | Pending |
-| MIDP-05 | — | Pending |
-| MIDP-06 | — | Pending |
-| MIDP-07 | — | Pending |
-| MIDP-08 | — | Pending |
-| ENTR-01 | — | Pending |
-| ENTR-02 | — | Pending |
-| ENTR-03 | — | Pending |
-| ENTR-04 | — | Pending |
-| ENTR-05 | — | Pending |
+| BFIX-01 | Phase 18 | Pending |
+| BFIX-02 | Phase 18 | Pending |
+| BFIX-03 | Phase 18 | Pending |
+| BFIX-04 | Phase 18 | Pending |
+| INFR-01 | Phase 18 | Pending |
+| INFR-02 | Phase 18 | Pending |
+| INFR-03 | Phase 18 | Pending |
+| INFR-04 | Phase 18 | Pending |
+| PLAY-01 | Phase 19 | Pending |
+| PLAY-02 | Phase 19 | Pending |
+| PLAY-03 | Phase 19 | Pending |
+| E2E-01 | Phase 20 | Pending |
+| E2E-02 | Phase 20 | Pending |
+| E2E-03 | Phase 20 | Pending |
+| CI-01 | Phase 20 | Pending |
+| CI-02 | Phase 20 | Pending |
+| CI-03 | Phase 22 | Pending |
+| MIDP-01 | Phase 21 | Pending |
+| MIDP-02 | Phase 21 | Pending |
+| MIDP-03 | Phase 21 | Pending |
+| MIDP-04 | Phase 21 | Pending |
+| MIDP-05 | Phase 21 | Pending |
+| MIDP-06 | Phase 21 | Pending |
+| MIDP-07 | Phase 21 | Pending |
+| MIDP-08 | Phase 21 | Pending |
+| ENTR-01 | Phase 22 | Pending |
+| ENTR-02 | Phase 22 | Pending |
+| ENTR-03 | Phase 22 | Pending |
+| ENTR-04 | Phase 22 | Pending |
+| ENTR-05 | Phase 22 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30
+- Mapped to phases: 30
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after initial definition*
+*Last updated: 2026-03-13 after v2.1 roadmap creation*
