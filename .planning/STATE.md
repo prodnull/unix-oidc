@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Integration Testing Infrastructure
-status: planning
-stopped_at: "Completed 22-01-PLAN.md"
-last_updated: "2026-03-13T21:06:47Z"
-last_activity: 2026-03-13 — Phase 22 Plan 01 complete; IssuerConfig extended with expected_audience + allow_unsafe_identity_pipeline; Entra fixture + setup guide created
+status: executing
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-03-13T21:13:00Z"
+last_activity: 2026-03-13 — Phase 22 Plan 02 complete; 9 live Entra integration tests (RS256, UPN mapping, bearer-only, adversarial)
 progress:
   total_phases: 16
   completed_phases: 11
-  total_plans: 34
-  completed_plans: 32
-  percent: 3
+  total_plans: 37
+  completed_plans: 33
+  percent: 0
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 22 of 22 (Entra ID Integration)
-Plan: 01 of ? complete
+Plan: 02 of 02 complete
 Status: In progress
-Last activity: 2026-03-13 — Phase 22 Plan 01 complete; Entra IssuerConfig fields + fixture + setup guide
+Last activity: 2026-03-13 — Phase 22 Plan 02 complete; 9 live Entra integration tests (RS256, UPN mapping, bearer-only, adversarial)
 
-Progress: [░░░░░░░░░░] 0% (v2.1)
+Progress: [█████████░] 92% (v2.1)
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 - Total execution time: ~58h (v2.0)
 
 **Recent Trend:**
-- Last 5 plans: Phase 22-01 (6m), Phase 21-03 (3m), Phase 21-02 (10m), Phase 21-01 (6m), Phase 17-03 (8m)
+- Last 5 plans: Phase 22-02 (3m), Phase 22-01 (6m), Phase 21-03 (3m), Phase 21-02 (10m), Phase 21-01 (6m)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -50,6 +50,8 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 ### Key Decisions Affecting v2.1
 
 - [22-01]: expected_audience is Option<String> with serde(default) — None falls back to client_id (RFC 7519 §4.1.3); supports Entra api:// audience URIs
+- [22-02]: reqwest blocking client required in tests — pam-unix-oidc uses reqwest 0.11 blocking-only; no tokio in dev-deps; async test annotations fail to compile
+- [22-02]: UserNotFound/IdentityMapping/UserResolution all accepted as terminal states in bearer test — SSSD absent in test env; all three confirm DPoP gate was passed
 - [22-01]: allow_unsafe_identity_pipeline bypass logs tracing::warn at auth time — operator intent is auditable; false by default (safe)
 - [21-03]: GroupMappingConfig::default_claim() is serde-only; Rust Default yields empty string — test verifies serde path via figment round-trip; documented in test comments
 - [21-02]: JWKS_REGISTRY is static Lazy<IssuerJwksRegistry> in lib.rs for cache persistence across PAM calls without a persistent daemon struct
@@ -81,6 +83,6 @@ Progress: [░░░░░░░░░░] 0% (v2.1)
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:06:47Z
-Stopped at: Completed 22-01-PLAN.md
-Resume file: .planning/phases/22-entra-id-integration/22-01-SUMMARY.md
+Last session: 2026-03-13T21:12:52Z
+Stopped at: Completed 22-02-PLAN.md
+Resume file: .planning/phases/22-entra-id-integration/22-02-SUMMARY.md
