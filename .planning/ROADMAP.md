@@ -236,7 +236,7 @@ Plans:
 | 14. Critical Integration Bug Fixes | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 15. Phase 11 Verification + Traceability Fix | v2.0 | 2/2 | Complete | 2026-03-12 |
 | 16. Rigorous Integration Testing (Gap Closure) | v2.0 | 3/3 | Complete | 2026-03-12 |
-| 17. P2 Enhancements | 3/3 | Complete   | 2026-03-13 | - |
+| 17. P2 Enhancements | 3/3 | Complete    | 2026-03-13 | - |
 
 ### Phase 17: P2 Enhancements: structured audit events, sudo session linking, session expiry sweep, mlock ML-DSA keys
 
