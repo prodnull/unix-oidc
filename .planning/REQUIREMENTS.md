@@ -1,135 +1,146 @@
-# Requirements: unix-oidc v2.1 Integration Testing Infrastructure
+# Requirements: unix-oidc v2.2 Hardening & Conformance
 
-**Defined:** 2026-03-13
-**Core Value:** DPoP private keys must be protected at rest, in memory, and on deletion — and integration tests must verify this with real cryptographic validation, not TEST_MODE bypasses.
+**Defined:** 2026-03-14
+**Core Value:** DPoP private keys must be protected at rest, in memory, and on deletion — and every security finding, tech debt item, and observability gap must be closed before shipping new capabilities.
 
-## v2.1 Requirements
+## v2.2 Requirements
 
-### Blocker Fixes
+### Security Bug Fixes
 
-- [x] **BFIX-01**: Keycloak issuer URL aligned between token `iss` claim and PAM `OIDC_ISSUER` validation
-- [x] **BFIX-02**: `unix-oidc-agent` binary installed and startable in test-host container
-- [x] **BFIX-03**: Device flow token polling sends DPoP proof header per RFC 9449 §4.2
-- [x] **BFIX-04**: IPC `notify_agent_session_closed()` sends newline terminator to prevent `read_line` hang
+- [ ] **SBUG-01**: `source_ip` passed as `oidc_issuer` in all `token_validation_failed()` call sites is corrected — forensic attribution works
+- [ ] **SBUG-02**: `BreakGlassConfig.alert_on_use` wired to runtime syslog elevation — operators get the elevated severity they configured
+- [ ] **SBUG-03**: `TokenClaims.preferred_username` is `Option<String>` per OIDC Core §5.1 — tokens from Google/Azure without the claim don't panic
 
-### E2E Infrastructure
+### Security Hardening
 
-- [x] **INFR-01**: New `docker-compose.e2e.yaml` with Keycloak 26.4+, no `UNIX_OIDC_TEST_MODE`, aligned issuer URLs
-- [x] **INFR-02**: Keycloak health check uses `/health/ready` endpoint (not TCP port check)
-- [x] **INFR-03**: Sentinel assertion at CI job start verifying `UNIX_OIDC_TEST_MODE` is NOT set
-- [x] **INFR-04**: Realm JSON fixes (`deviceAuthorizationGrantEnabled` boolean, DPoP GA settings for Keycloak 26.4+)
+- [ ] **SHRD-01**: Algorithm comparison in `validation.rs` uses explicit enum match, not Debug format strings
+- [ ] **SHRD-02**: Algorithm allowlist enforced when JWKS key omits `alg` field — HS256-with-RSA-public-key attack prevented
+- [ ] **SHRD-03**: Syslog severity mapped to audit event severity — `BREAK_GLASS_AUTH` logged at CRITICAL, not INFO
+- [ ] **SHRD-04**: HTTPS scheme validated for OIDC issuer URL at config load time and for device flow `verification_uri`
+- [ ] **SHRD-05**: Terminal escape sequences sanitized in IdP-supplied `verification_uri` before display
+- [ ] **SHRD-06**: D-Bus Secret Service rejects plain (unencrypted) sessions; `reject_plain_dbus_sessions: strict/warn/disabled` config toggle
 
-### Playwright Automation
+### Tech Debt
 
-- [x] **PLAY-01**: Playwright spec automates Keycloak device flow consent (navigate to verification URI, fill credentials, grant)
-- [x] **PLAY-02**: Tmpfile coordination between Playwright spec and shell poll loop for token handoff
-- [x] **PLAY-03**: CI-compatible headless execution on GitHub Actions runners
+- [ ] **DEBT-01**: All `unwrap_used`/`expect_used` lint violations fixed across pam-unix-oidc (audit.rs, ciba/client.rs, ciba/types.rs, device_flow/client.rs, approval/provider.rs, sudo.rs) — token-exchange CI job unblocked
+- [ ] **DEBT-02**: ACR mapping enforcement wired in multi-issuer auth path (currently `required_acr: None`)
+- [ ] **DEBT-03**: `GroupSource::TokenClaim` path exercised in auth pipeline or dead code removed
+- [ ] **DEBT-04**: `effective_issuers()` backward-compat function wired into production dispatch or removed
+- [ ] **DEBT-05**: JWKS TTL and HTTP timeout configurable per-issuer (currently hardcoded 300s/10s)
+- [ ] **DEBT-06**: Entra CI ROPC token step has fallback diagnostic if Conditional Access blocks ROPC
+- [ ] **DEBT-07**: Minor v2.0 residuals cleaned up (socket.rs unwrap, clippy test annotations)
+- [ ] **DEBT-08**: `secure_delete.rs` primary citation updated from DoD 5220.22-M to NIST SP 800-88 Rev 1 §2.4
 
-### SSH E2E Test
+### Multi-IdP Advanced
 
-- [x] **E2E-01**: Full auth chain: `agent login` → `agent serve` → SSH with `SSH_ASKPASS` → PAM conversation (3 rounds) → JWKS signature verification → shell access
-- [x] **E2E-02**: Auth log verification confirms structured audit event for successful authentication
-- [x] **E2E-03**: Negative tests: expired token rejected, wrong issuer rejected, replayed DPoP proof rejected
+- [ ] **MIDP-09**: IdP priority ordering — issuers tried in configured order
+- [ ] **MIDP-10**: IdP health monitoring — issuer marked degraded if JWKS fetch fails, with recovery
+- [ ] **MIDP-11**: Hot-reload of issuer config without daemon restart
 
-### CI Integration
+### Observability & Compliance
 
-- [x] **CI-01**: `keycloak-e2e` GitHub Actions job depending on build-matrix artifact
-- [x] **CI-02**: Parallel Playwright + shell test execution within the job
-- [x] **CI-03**: Entra ID secrets-gated CI job (`entra-integration`)
+- [ ] **OBS-02**: No-token authentication attempts produce structured audit events
+- [ ] **OBS-04**: Key lifecycle events (generation, loading, destruction) are structured audit events, not tracing-only
+- [ ] **OBS-05**: Log retention controls and logrotate integration documented and shipped
+- [ ] **OBS-06**: Audit log tamper-evidence via hash chain or HMAC
+- [ ] **OBS-07**: OCSF schema fields in audit events for SIEM interoperability
+- [ ] **OBS-08**: IPC session-close failures audited (missed revocations no longer silently dropped)
+- [ ] **OBS-09**: GDPR Article 17 erasure path documented with implementation guidance
 
-### Multi-IdP Configuration
+### Documentation & Conformance
 
-- [x] **MIDP-01**: `issuers[]` array in policy.yaml with per-issuer config blocks (issuer_url, client_id, client_secret)
-- [x] **MIDP-02**: Per-issuer DPoP enforcement mode (strict/warn/disabled)
-- [x] **MIDP-03**: Per-issuer claim mapping rules (username extraction, strip-domain, regex)
-- [x] **MIDP-04**: Per-issuer ACR value mapping (e.g., Keycloak `urn:keycloak:acr:loa2` vs Entra `c1`/`c2`)
-- [x] **MIDP-05**: Per-issuer group mapping (token claim path vs NSS-only, group name translation)
-- [x] **MIDP-06**: PAM module matches incoming token `iss` to configured issuer; rejects unknown issuers
-- [x] **MIDP-07**: JWKS cache keyed by issuer URL (multi-issuer concurrent caching)
-- [x] **MIDP-08**: Graceful degradation: missing optional per-issuer fields fall back to safe defaults with WARN logging
+- [ ] **DOC-01**: Standards compliance matrix at `docs/standards-compliance-matrix.md` — RFC-to-file mapping, NIST/SOC2 cross-refs, implementation status
+- [ ] **DOC-02**: Identity rationalization guide — FreeIPA + Entra coexistence patterns, UPN-to-uid mapping, group sync
+- [ ] **DOC-03**: JTI cache architecture documented — per-process cache in forked-sshd model, DPoP nonces as actual replay defense
 
-### Entra ID Integration
+### E2E Test Coverage
 
-- [x] **ENTR-01**: Entra app registration with device code flow enabled (public client)
-- [x] **ENTR-02**: OIDC discovery + JWKS endpoint validation against live Entra tenant
-- [x] **ENTR-03**: RS256 token signature verification through PAM module (not just ES256)
-- [x] **ENTR-04**: UPN claim mapping (`alice@corp.com` → `alice`) validated end-to-end
-- [x] **ENTR-05**: Bearer-only mode (DPoP disabled) produces successful auth with full audit trail
+- [ ] **E2ET-01**: Automated DPoP nonce two-round keyboard-interactive flow over SSH with replay rejection
+- [ ] **E2ET-02**: Break-glass end-to-end PAM flow with real NSS group policy denial
+- [ ] **E2ET-03**: PAM putenv/getenv cross-fork session ID correlation + SessionClosed IPC roundtrip + auto-refresh
+- [ ] **E2ET-04**: Full CIBA flow against real IdP + FIDO2 ACR delegation E2E + concurrent step-up guard
+- [ ] **E2ET-05**: systemd socket activation E2E + launchd install/uninstall + JSON log under journald + graceful shutdown
 
-## Testing Coverage Requirements
+## Future Requirements (v3.0+)
 
-Every requirement above must have corresponding tests that cover:
-- **Happy path**: Feature works as designed
-- **Negative/adversarial**: Malformed input, expired tokens, wrong issuers, replayed proofs, forged claims
-- **Degraded mode**: IdP unreachable, missing optional claims, clock skew, partial config
-- **Cross-IdP**: Features that interact with multi-IdP config tested with at least 2 issuers
-- **Observability**: All auth events (success AND failure) produce structured audit events
+### Capabilities (v3.0)
 
-## Future Requirements (v2.2+)
+- **CAP-01**: SCIM integration for user provisioning
+- **CAP-02**: AI Agent Delegation — parse `act`/`azp` claims, scope-limited auth (RFC 8693 Token Exchange)
+- **CAP-03**: Hardware key attestation
+- **CAP-04**: Centralized audit log shipping
+- **CAP-05**: Pentest automation suite (token manipulation, PAM memory safety, network/TLS, rate limiting)
+- **CAP-06**: FIPS-validated Rust crypto libraries / OpenSSL FIPS module
+- **CAP-07**: PAM binary signing (MITRE ATT&CK T1556 mitigation)
+- **CAP-08**: Push notification step-up method
+- **CAP-09**: FIDO2/WebAuthn step-up method (beyond ACR enforcement)
+- **CAP-10**: Break-glass with offline YubiKey OTP
+- **CAP-11**: CIBA `login_hint_claim` config for IdPs expecting email
+- **CAP-12**: Blocking HTTP offload to agent daemon (ARCH-3)
 
-### Additional IdP Integrations
+### External IdP Integration Testing (v3.1)
 
 - **IDPX-01**: Okta integration tests (CIBA push-only mode detection)
 - **IDPX-02**: Auth0 integration tests (device flow + token validation)
 - **IDPX-03**: Google Cloud Identity integration tests
 
-### Multi-IdP Advanced
-
-- **MIDP-09**: IdP priority ordering (try issuers in configured order)
-- **MIDP-10**: IdP health monitoring (mark issuer degraded if JWKS fetch fails)
-- **MIDP-11**: Hot-reload of issuer config without daemon restart
-
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Multi-IdP federation (Keycloak federating Entra) | Deployment architecture, not unix-oidc config — documented in ops guide |
+| Distributed JTI cache (Redis) | Separate scalability milestone |
+| VDI/agent forwarding | Anti-feature: breaks PAM non-interactive model and threat model |
+| Interactive PIN during PAM auth | Anti-feature: PAM is non-interactive by design |
 | SAML integration | unix-oidc is OIDC-only by design |
-| DPoP with Entra ID | Entra uses proprietary SHR, not RFC 9449 — no interop path exists |
-| reqwest 0.11→0.13 upgrade | Separate hardening task, not integration testing |
-| SCIM provisioning | Separate provisioning milestone |
+| reqwest 0.11→0.13 upgrade | Separate hardening task (TLS layer audit required) |
+| New product capabilities (SCIM, AI Agent, etc.) | v3.0 milestone |
+| External IdP live tests (Okta, Auth0, Google) | v3.1 milestone |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BFIX-01 | Phase 18 | Complete |
-| BFIX-02 | Phase 18 | Complete |
-| BFIX-03 | Phase 18 | Complete |
-| BFIX-04 | Phase 18 | Complete |
-| INFR-01 | Phase 18 | Complete |
-| INFR-02 | Phase 18 | Complete |
-| INFR-03 | Phase 18 | Complete |
-| INFR-04 | Phase 18 | Complete |
-| PLAY-01 | Phase 19 | Complete |
-| PLAY-02 | Phase 19 | Complete |
-| PLAY-03 | Phase 19 | Complete |
-| E2E-01 | Phase 20 | Complete |
-| E2E-02 | Phase 20 | Complete |
-| E2E-03 | Phase 20 | Complete |
-| CI-01 | Phase 20 | Complete |
-| CI-02 | Phase 20 | Complete |
-| CI-03 | Phase 22 | Complete |
-| MIDP-01 | Phase 21 | Complete |
-| MIDP-02 | Phase 21 | Complete |
-| MIDP-03 | Phase 21 | Complete |
-| MIDP-04 | Phase 21 | Complete |
-| MIDP-05 | Phase 21 | Complete |
-| MIDP-06 | Phase 21 | Complete |
-| MIDP-07 | Phase 21 | Complete |
-| MIDP-08 | Phase 21 | Complete |
-| ENTR-01 | Phase 22 | Complete |
-| ENTR-02 | Phase 22 | Complete |
-| ENTR-03 | Phase 22 | Complete |
-| ENTR-04 | Phase 22 | Complete |
-| ENTR-05 | Phase 22 | Complete |
+| SBUG-01 | — | Pending |
+| SBUG-02 | — | Pending |
+| SBUG-03 | — | Pending |
+| SHRD-01 | — | Pending |
+| SHRD-02 | — | Pending |
+| SHRD-03 | — | Pending |
+| SHRD-04 | — | Pending |
+| SHRD-05 | — | Pending |
+| SHRD-06 | — | Pending |
+| DEBT-01 | — | Pending |
+| DEBT-02 | — | Pending |
+| DEBT-03 | — | Pending |
+| DEBT-04 | — | Pending |
+| DEBT-05 | — | Pending |
+| DEBT-06 | — | Pending |
+| DEBT-07 | — | Pending |
+| DEBT-08 | — | Pending |
+| MIDP-09 | — | Pending |
+| MIDP-10 | — | Pending |
+| MIDP-11 | — | Pending |
+| OBS-02 | — | Pending |
+| OBS-04 | — | Pending |
+| OBS-05 | — | Pending |
+| OBS-06 | — | Pending |
+| OBS-07 | — | Pending |
+| OBS-08 | — | Pending |
+| OBS-09 | — | Pending |
+| DOC-01 | — | Pending |
+| DOC-02 | — | Pending |
+| DOC-03 | — | Pending |
+| E2ET-01 | — | Pending |
+| E2ET-02 | — | Pending |
+| E2ET-03 | — | Pending |
+| E2ET-04 | — | Pending |
+| E2ET-05 | — | Pending |
 
 **Coverage:**
-- v2.1 requirements: 30 total
-- Complete: 30 (all requirements satisfied)
-- Pending: 0
-- Unmapped: 0
+- v2.2 requirements: 33 total
+- Mapped to phases: 0
+- Unmapped: 33 (awaiting roadmap)
 
 ---
-*Requirements defined: 2026-03-13*
-*Last updated: 2026-03-14 after Phase 20+23 completion*
+*Requirements defined: 2026-03-14*
+*Last updated: 2026-03-14 after initial definition*
