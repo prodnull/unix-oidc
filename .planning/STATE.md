@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Integration Testing Infrastructure
 status: completed
-stopped_at: Completed 22-03-PLAN.md
-last_updated: "2026-03-13T21:22:13.164Z"
-last_activity: 2026-03-13 — Phase 22 Plan 03 complete; ROPC token script and Entra secrets-gated CI job in provider-tests.yml
+stopped_at: Completed 23-01-PLAN.md
+last_updated: "2026-03-14T00:55:54.657Z"
+last_activity: 2026-03-14 — Phase 23 Plan 01 complete; DPoP nonce replay fix in multi-issuer path + non-ignored Entra fixture test
 progress:
-  total_phases: 16
-  completed_phases: 12
-  total_plans: 37
-  completed_plans: 34
-  percent: 94
+  total_phases: 17
+  completed_phases: 13
+  total_plans: 38
+  completed_plans: 35
+  percent: 97
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 
 ## Current Position
 
-Phase: 22 of 22 (Entra ID Integration)
-Plan: 03 of 03 complete
-Status: Phase 22 complete — all plans done
-Last activity: 2026-03-13 — Phase 22 Plan 03 complete; ROPC token script and Entra secrets-gated CI job in provider-tests.yml
+Phase: 23 of 23 (Integration Gap Fixes)
+Plan: 01 of 01 complete
+Status: Phase 23 complete — all plans done
+Last activity: 2026-03-14 — Phase 23 Plan 01 complete; DPoP nonce replay fix in multi-issuer path + non-ignored Entra fixture test
 
-Progress: [█████████░] 94% (v2.1)
+Progress: [██████████] 97% (v2.1)
 
 ## Performance Metrics
 
@@ -49,6 +49,8 @@ Progress: [█████████░] 94% (v2.1)
 
 ### Key Decisions Affecting v2.1
 
+- [23-01]: dpop_nonce_enforcement sourced from policy.effective_security_modes().dpop_required in apply_per_issuer_dpop — consistent with JTI enforcement plumbing pattern
+- [23-01]: Nonce consumption block placed inside validate_and_enforce_nonce closure so both DPoP-bound and unbound-with-proof paths consume nonces via single code path
 - [22-03]: Entra CI scopes limited to openid+profile+email; User.Read excluded to keep aud as tenant-specific URI (not graph.microsoft.com) — PAM audience validation requires tenant aud
 - [22-03]: Entra CI job is optional in provider-summary — non-blocking if secrets absent; matches Auth0/Google treatment
 - [22-01]: expected_audience is Option<String> with serde(default) — None falls back to client_id (RFC 7519 §4.1.3); supports Entra api:// audience URIs
@@ -85,6 +87,6 @@ Progress: [█████████░] 94% (v2.1)
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:17:00Z
-Stopped at: Completed 22-03-PLAN.md
-Resume file: .planning/phases/22-entra-id-integration/22-03-SUMMARY.md
+Last session: 2026-03-14T00:55:54.655Z
+Stopped at: Completed 23-01-PLAN.md
+Resume file: None
