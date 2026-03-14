@@ -27,14 +27,14 @@
 
 ### SSH E2E Test
 
-- [ ] **E2E-01**: Full auth chain: `agent login` → `agent serve` → SSH with `SSH_ASKPASS` → PAM conversation (3 rounds) → JWKS signature verification → shell access
-- [ ] **E2E-02**: Auth log verification confirms structured audit event for successful authentication
-- [ ] **E2E-03**: Negative tests: expired token rejected, wrong issuer rejected, replayed DPoP proof rejected
+- [x] **E2E-01**: Full auth chain: `agent login` → `agent serve` → SSH with `SSH_ASKPASS` → PAM conversation (3 rounds) → JWKS signature verification → shell access
+- [x] **E2E-02**: Auth log verification confirms structured audit event for successful authentication
+- [x] **E2E-03**: Negative tests: expired token rejected, wrong issuer rejected, replayed DPoP proof rejected
 
 ### CI Integration
 
-- [ ] **CI-01**: `keycloak-e2e` GitHub Actions job depending on build-matrix artifact
-- [ ] **CI-02**: Parallel Playwright + shell test execution within the job
+- [x] **CI-01**: `keycloak-e2e` GitHub Actions job depending on build-matrix artifact
+- [x] **CI-02**: Parallel Playwright + shell test execution within the job
 - [x] **CI-03**: Entra ID secrets-gated CI job (`entra-integration`)
 
 ### Multi-IdP Configuration
@@ -104,11 +104,11 @@ Every requirement above must have corresponding tests that cover:
 | PLAY-01 | Phase 19 | Complete |
 | PLAY-02 | Phase 19 | Complete |
 | PLAY-03 | Phase 19 | Complete |
-| E2E-01 | Phase 20 | Pending |
-| E2E-02 | Phase 20 | Pending |
-| E2E-03 | Phase 20 | Pending |
-| CI-01 | Phase 20 | Pending |
-| CI-02 | Phase 20 | Pending |
+| E2E-01 | Phase 20 | Complete |
+| E2E-02 | Phase 20 | Complete |
+| E2E-03 | Phase 20 | Complete |
+| CI-01 | Phase 20 | Complete |
+| CI-02 | Phase 20 | Complete |
 | CI-03 | Phase 22 | Complete |
 | MIDP-01 | Phase 21 | Complete |
 | MIDP-02 | Phase 21 | Complete |
@@ -126,10 +126,10 @@ Every requirement above must have corresponding tests that cover:
 
 **Coverage:**
 - v2.1 requirements: 30 total
-- Complete: 25 (BFIX-01..04, INFR-01..04, PLAY-01..03, MIDP-01..08, ENTR-01..05, CI-03)
-- Pending: 5 (E2E-01..03, CI-01, CI-02)
+- Complete: 30 (all requirements satisfied)
+- Pending: 0
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after v2.1 roadmap creation*
+*Last updated: 2026-03-14 after Phase 20+23 completion*

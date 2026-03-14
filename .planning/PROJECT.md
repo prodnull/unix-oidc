@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A PAM authentication module and client agent that brings OIDC single sign-on to Linux SSH, with DPoP (RFC 9449) token binding to prevent token theft. The agent daemon manages DPoP keys, OAuth tokens, and hardware signer backends with defense-in-depth credential protection.
+A PAM authentication module and client agent that brings OIDC single sign-on to Linux SSH, with DPoP (RFC 9449) token binding to prevent token theft. The agent daemon manages DPoP keys, OAuth tokens, and hardware signer backends with defense-in-depth credential protection. Supports multiple OIDC issuers (Keycloak, Azure Entra ID) with per-issuer policy configuration.
 
 ## Core Value
 
@@ -23,28 +23,51 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 - ✓ Hardware key backends (YubiKey PKCS#11, TPM tss-esapi) via optional cargo features — v1.0
 - ✓ Keyring as default storage with headless keyutils fallback and file-to-keyring migration — v1.0
 - ✓ OAuth tokens wrapped in SecretString with expose_secret() audit boundaries — v1.0
+- ✓ PAM panic elimination with deny(clippy::unwrap_used) lint — v2.0
+- ✓ DPoP nonce issuance with single-use nonce cache — v2.0
+- ✓ Username mapping, group policy, break-glass bypass — v2.0
+- ✓ Token introspection, session lifecycle, auto-refresh — v2.0
+- ✓ CIBA step-up authentication with FIDO2 via ACR delegation — v2.0
+- ✓ Operational hardening (systemd/launchd, peer-auth IPC, structured tracing) — v2.0
+- ✓ ML-DSA-65+ES256 hybrid PQC DPoP — v2.0
+- ✓ Multi-IdP configuration with per-issuer policy — v2.1
+- ✓ Azure Entra ID bearer-only integration — v2.1
+- ✓ Full SSH E2E test chain with real JWKS verification — v2.1
+- ✓ keycloak-e2e CI job with Playwright device flow automation — v2.1
 
 ### Active
 
-## Current Milestone: v2.1 Integration Testing Infrastructure
+See `.planning/REQUIREMENTS.md` for v2.2 requirements.
 
-**Goal:** Full E2E integration testing with real signature verification and real IdP integration — no TEST_MODE bypasses.
+## Current Milestone: v2.2 Hardening & Conformance
+
+**Goal:** Every security audit finding fixed, all tech debt resolved, full observability coverage, standards conformance documented, and automated E2E coverage for every human-verification gap — making unix-oidc audit-ready and production-bulletproof.
 
 **Target features:**
-- Fix issuer URL mismatch, agent binary in test-host, DPoP binding in device flow token request
-- Real-signature integration tests (Keycloak, no TEST_MODE)
-- Full SSH E2E: agent login → serve → SSH_ASKPASS → PAM conversation → JWKS verify
-- Playwright-based device flow automation for CI
-- Azure Entra ID integration tests (app registration, token validation, JWKS, claim mapping)
+- Security audit bug fixes (source_ip/issuer swap, dead break-glass config, optional preferred_username)
+- Security hardening (algorithm allowlist, terminal escape sanitization, D-Bus transport hardening, HTTPS issuer validation)
+- Tech debt elimination (lint violations, dead code, hardcoded config values)
+- Multi-IdP advanced features (priority ordering, health monitoring, hot-reload)
+- Observability & compliance (no-token audit, key lifecycle events, log retention, tamper-evidence, OCSF schema)
+- Documentation (standards compliance matrix, identity rationalization guide, JTI architecture docs)
+- E2E test coverage for all prior human-verification gaps
+
+## Future Milestones
+
+### v3.0 Capabilities
+
+New product features: SCIM provisioning, AI Agent Delegation (RFC 8693), hardware key attestation, centralized audit log shipping, pentest automation suite, FIPS crypto prep, PAM binary signing, push notification / FIDO2 step-up, break-glass with offline YubiKey OTP, blocking HTTP offload to agent daemon.
+
+### v3.1 External IdP Integration Testing
+
+Live integration tests for Okta (IDPX-01), Auth0 (IDPX-02), Google Cloud Identity (IDPX-03).
 
 ### Out of Scope
 
 - Distributed JTI cache (Redis) — separate scalability milestone
-- Token exchange use cases — separate v2.1+ milestone
 - VDI/agent forwarding — anti-feature: breaks PAM non-interactive model and threat model
 - Interactive PIN during PAM auth — anti-feature: PAM is non-interactive by design
-- SCIM provisioning — separate provisioning milestone
-- Post-quantum migration — watching NIST standardization timeline
+- SAML integration — unix-oidc is OIDC-only by design
 
 ## Context
 
@@ -53,6 +76,8 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 - **Storage**: Three-tier fallback — Secret Service/Keychain → keyutils @u → file (0600)
 - **Signers**: Three backends via DPoPSigner trait — SoftwareSigner (default), YubiKeySigner (--features yubikey), TpmSigner (--features tpm)
 - **Security**: Core dumps disabled, key pages mlock'd, tokens in SecretString, secure delete with CoW/SSD advisories
+- **Test infrastructure**: Keycloak 26.4 E2E compose stack, Playwright device flow automation, Entra secrets-gated CI
+- **Shipped milestones**: v1.0 (key protection), v2.0 (production hardening), v2.1 (integration testing)
 
 ## Key Decisions
 
@@ -65,6 +90,8 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 | cryptoki 0.7 instead of planned 0.12 | 0.12 not available; 0.7 fully supports PKCS#11 P-256 operations | ⚠️ Revisit — upgrade when 0.12+ available |
 | Three-pass DoD 5220.22-M overwrite | Stronger than single-pass; documented CoW/SSD limitations | ✓ Good — with clear advisory logging |
 | Box-only ProtectedSigningKey constructors | Prevents stack copies of key material | ✓ Good — compile-time enforcement |
+| Groups resolved from SSSD/NSS, not token claims | FreeIPA is Unix realm authority; avoids Entra overage/GUID issues | ✓ Good — v2.0 Phase 8 |
+| Multi-IdP via issuers[] array, not federation | Each issuer independently configured; no cross-IdP trust assumptions | ✓ Good — v2.1 Phase 21 |
 
 ## Constraints
 
@@ -74,4 +101,4 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 - **Hardware**: YubiKey requires pcscd; TPM requires tpm2-abrmd; both Linux-only for TPM
 
 ---
-*Last updated: 2026-03-13 after v2.1 milestone start*
+*Last updated: 2026-03-14 after v2.2 milestone start*
