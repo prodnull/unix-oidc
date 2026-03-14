@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 Client-Side Key Protection Hardening** — Phases 1-5 (shipped 2026-03-10)
 - ✅ **v2.0 Production Hardening & Enterprise Readiness** — Phases 6-17 (shipped 2026-03-13)
-- 🚧 **v2.1 Integration Testing Infrastructure** — Phases 18-22 (in progress)
+- ✅ **v2.1 Integration Testing Infrastructure** — Phases 18-23 (shipped 2026-03-13)
 
 ## Phases
 
@@ -41,7 +41,7 @@ Full details: see Phase Details section below (preserved for reference).
 
 </details>
 
-### 🚧 v2.1 Integration Testing Infrastructure (In Progress)
+### ✅ v2.1 Integration Testing Infrastructure (Complete)
 
 **Milestone Goal:** Full E2E integration tests with real OIDC signature verification and real IdP integration — no TEST_MODE bypasses anywhere in the critical path.
 
@@ -49,7 +49,7 @@ Full details: see Phase Details section below (preserved for reference).
 
 - [x] **Phase 18: Blocker Fixes + E2E Infrastructure** - Fix four pre-existing bugs and stand up the real-signature compose stack (completed 2026-03-13)
 - [x] **Phase 19: Playwright Device Flow Automation** - Automate Keycloak browser consent for headless CI (completed 2026-03-13)
-- [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Partial: token test exists but SSH→PAM chain, audit log verification, negative E2E tests, and CI job not yet wired
+- [x] **Phase 20: Full SSH E2E Test + CI Integration** - SSH→PAM→JWKS chain, audit log verification, negative security tests, keycloak-e2e CI job (completed 2026-03-13)
 - [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
 - [x] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping (completed 2026-03-13)
 - [x] **Phase 23: Integration Gap Fixes** - Multi-issuer DPoP nonce consumption + Entra policy fixture test coverage (gap closure from v2.1 audit) (completed 2026-03-14)
@@ -87,7 +87,10 @@ Full details: see Phase Details section below (preserved for reference).
   2. The auth log inside the test-host container contains a structured audit event with `event_type=auth_success` and `issuer=http://keycloak:8080/realms/unix-oidc` for the successful authentication
   3. Negative tests confirm the security perimeter: a token signed with a wrong key is rejected (`Authentication failed`); a token from a wrong issuer is rejected; a replayed DPoP proof on the second SSH attempt is rejected
   4. The `keycloak-e2e` CI job in `.github/workflows/ci.yml` depends on `build-matrix`, restores the release artifact, starts the e2e stack, runs the SSH E2E test, and reports pass/fail on every push to main
-**Plans**: Partial (E2E stubs exist, CI job and full SSH chain TBD)
+**Plans**: 1/1 plans complete
+
+Plans:
+- [x] 20-01 — SSH→PAM chain test, audit log verification, negative security tests, keycloak-e2e CI job (E2E-01, E2E-02, E2E-03, CI-01, CI-02)
 
 ### Phase 21: Multi-IdP Configuration
 **Goal**: The PAM module supports multiple OIDC issuers simultaneously, each with independent DPoP enforcement, claim mapping, ACR mapping, and group mapping; unknown issuers are rejected; missing optional fields fall back safely
@@ -102,9 +105,9 @@ Full details: see Phase Details section below (preserved for reference).
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 21-01-PLAN.md — IssuerConfig types + JWKS registry + config validation (MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-08)
-- [ ] 21-02-PLAN.md — Multi-issuer auth routing + JTI scoping + PAM wiring (MIDP-06, MIDP-07)
-- [ ] 21-03-PLAN.md — Integration test suite + workspace regression gate (MIDP-01..08)
+- [x] 21-01-PLAN.md — IssuerConfig types + JWKS registry + config validation (MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-08)
+- [x] 21-02-PLAN.md — Multi-issuer auth routing + JTI scoping + PAM wiring (MIDP-06, MIDP-07)
+- [x] 21-03-PLAN.md — Integration test suite + workspace regression gate (MIDP-01..08)
 
 ### Phase 22: Entra ID Integration
 **Goal**: Tokens issued by Azure Entra ID (RS256, bearer-only, tenant-specific issuer, UPN claim) authenticate successfully through the PAM module; the integration test runs in CI gated on secrets
@@ -118,9 +121,9 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 22-01-PLAN.md — expected_audience + allow_unsafe_identity_pipeline + Entra fixture + setup guide (ENTR-01, ENTR-03, ENTR-04)
-- [ ] 22-02-PLAN.md — Entra live integration test suite (ENTR-02, ENTR-03, ENTR-04, ENTR-05)
-- [ ] 22-03-PLAN.md — ROPC token script + CI job in provider-tests.yml (CI-03, ENTR-05)
+- [x] 22-01-PLAN.md — expected_audience + allow_unsafe_identity_pipeline + Entra fixture + setup guide (ENTR-01, ENTR-03, ENTR-04)
+- [x] 22-02-PLAN.md — Entra live integration test suite (ENTR-02, ENTR-03, ENTR-04, ENTR-05)
+- [x] 22-03-PLAN.md — ROPC token script + CI job in provider-tests.yml (CI-03, ENTR-05)
 
 ### Phase 23: Integration Gap Fixes (Multi-Issuer Nonce + Entra Fixture)
 **Goal**: Fix two cross-phase integration bugs found by v2.1 milestone audit: multi-issuer DPoP nonce consumption (security) and Entra policy fixture test coverage
@@ -133,7 +136,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
+- [x] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
 
 ## Progress
 
@@ -158,10 +161,10 @@ Plans:
 | 17. P2 Enhancements | v2.0 | 3/3 | Complete | 2026-03-13 |
 | 18. Blocker Fixes + E2E Infrastructure | v2.1 | N/A (single commit) | Complete | 2026-03-13 |
 | 19. Playwright Device Flow Automation | v2.1 | N/A (single commit) | Complete | 2026-03-13 |
-| 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Partial (E2E stubs, no CI job) | - |
+| 20. Full SSH E2E Test + CI Integration | v2.1 | 1/1 | Complete | 2026-03-13 |
 | 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
-| 23. Integration Gap Fixes | 1/1 | Complete    | 2026-03-14 | - |
+| 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
 
 ---
 
