@@ -5,6 +5,7 @@
 - ✅ **v1.0 Client-Side Key Protection Hardening** — Phases 1-5 (shipped 2026-03-10)
 - ✅ **v2.0 Production Hardening & Enterprise Readiness** — Phases 6-17 (shipped 2026-03-13)
 - ✅ **v2.1 Integration Testing Infrastructure** — Phases 18-23 (shipped 2026-03-13)
+- 🚧 **v2.2 Hardening & Conformance** — Phases 24-28 (in progress)
 
 ## Phases
 
@@ -41,102 +42,97 @@ Full details: see Phase Details section below (preserved for reference).
 
 </details>
 
-### ✅ v2.1 Integration Testing Infrastructure (Complete)
+<details>
+<summary>✅ v2.1 Integration Testing Infrastructure (Phases 18-23) — SHIPPED 2026-03-14</summary>
 
-**Milestone Goal:** Full E2E integration tests with real OIDC signature verification and real IdP integration — no TEST_MODE bypasses anywhere in the critical path.
+- [x] Phase 18: Blocker Fixes + E2E Infrastructure — completed 2026-03-13
+- [x] Phase 19: Playwright Device Flow Automation — completed 2026-03-13
+- [x] Phase 20: Full SSH E2E Test + CI Integration (1/1 plan) — completed 2026-03-13
+- [x] Phase 21: Multi-IdP Configuration (3/3 plans) — completed 2026-03-13
+- [x] Phase 22: Entra ID Integration (3/3 plans) — completed 2026-03-13
+- [x] Phase 23: Integration Gap Fixes (1/1 plan) — completed 2026-03-14
 
-**Testing mandate:** Every phase must include watertight test coverage: happy path, negative/adversarial inputs (malformed tokens, replayed proofs, wrong issuers, forged claims), degraded mode (IdP unreachable, missing optional claims, clock skew), and observability (all auth events produce structured audit events).
+Full details: see Phase Details section below (preserved for reference).
 
-- [x] **Phase 18: Blocker Fixes + E2E Infrastructure** - Fix four pre-existing bugs and stand up the real-signature compose stack (completed 2026-03-13)
-- [x] **Phase 19: Playwright Device Flow Automation** - Automate Keycloak browser consent for headless CI (completed 2026-03-13)
-- [x] **Phase 20: Full SSH E2E Test + CI Integration** - SSH→PAM→JWKS chain, audit log verification, negative security tests, keycloak-e2e CI job (completed 2026-03-13)
-- [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
-- [x] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping (completed 2026-03-13)
-- [x] **Phase 23: Integration Gap Fixes** - Multi-issuer DPoP nonce consumption + Entra policy fixture test coverage (gap closure from v2.1 audit) (completed 2026-03-14)
+</details>
+
+### 🚧 v2.2 Hardening & Conformance (In Progress)
+
+**Milestone Goal:** Every security audit finding fixed, all tech debt resolved, full observability coverage, standards conformance documented, and automated E2E coverage for every human-verification gap — making unix-oidc audit-ready and production-bulletproof.
+
+- [ ] **Phase 24: Security Bug Fixes + Lint Foundation** - Correct forensic attribution bugs, wire break-glass alerts, fix optional preferred_username, and eliminate all unwrap_used lint violations that block CI
+- [ ] **Phase 25: Security Hardening** - Enforce algorithm allowlists, validate HTTPS issuer URLs, sanitize terminal escape sequences, and harden D-Bus transport sessions
+- [ ] **Phase 26: Tech Debt Resolution** - Wire dead multi-IdP config paths, make JWKS TTL/timeout configurable per-issuer, update citations, and clean CI diagnostic gaps
+- [ ] **Phase 27: Multi-IdP Advanced + Observability** - Add IdP priority ordering, health monitoring, hot-reload, and full structured audit event coverage for compliance
+- [ ] **Phase 28: Documentation + E2E Test Coverage** - Standards compliance matrix, identity rationalization guide, JTI architecture docs, and automated E2E for every prior human-verification gap
 
 ## Phase Details
 
-### Phase 18: Blocker Fixes + E2E Infrastructure
-**Goal**: All pre-existing bugs that prevent real-signature testing are fixed; the real-signature compose stack is running with correct issuer alignment, no TEST_MODE, and a verified agent binary
-**Depends on**: Phase 17 (v2.0 complete)
-**Requirements**: BFIX-01, BFIX-02, BFIX-03, BFIX-04, INFR-01, INFR-02, INFR-03, INFR-04
+### Phase 24: Security Bug Fixes + Lint Foundation
+**Goal**: All security bugs producing incorrect forensic data or silent failures are corrected; the token-exchange CI job is unblocked by eliminating all unwrap_used lint violations in pam-unix-oidc
+**Depends on**: Phase 23 (v2.1 complete)
+**Requirements**: SBUG-01, SBUG-02, SBUG-03, DEBT-01, DEBT-07
 **Success Criteria** (what must be TRUE):
-  1. Running `docker compose -f docker-compose.e2e.yaml up` brings Keycloak 26.4 to healthy state; a token acquired from within the compose network carries `iss: http://keycloak:8080/realms/unix-oidc` (verified via `jq -r '.iss'` on the decoded access token)
-  2. `docker compose exec test-host-e2e unix-oidc-agent --version` exits 0; the binary is on PATH inside the test-host container
-  3. The device flow token polling loop sends a fresh `DPoP:` proof header per poll iteration; a token acquired via device flow within the compose network contains a `cnf.jkt` claim (DPoP-bound, not plain bearer)
-  4. `pam_sm_close_session` sends the `SessionClosed` IPC message with a trailing newline; the agent's `read_line` unblocks immediately instead of hanging until the 2-second timeout
-  5. A sentinel CI step (`docker exec test-host-e2e env | grep UNIX_OIDC_TEST_MODE` exits non-zero) confirms TEST_MODE is absent from the real-signature test environment
-**Plans**: N/A (implemented in single commit 9bfd4d3)
+  1. A token validation failure audit event records the correct OIDC issuer, not the client source IP — a security audit of auth logs shows accurate forensic attribution
+  2. An operator who sets `alert_on_use: true` on the break-glass config sees the authentication event at syslog CRITICAL severity, not INFO
+  3. A token from Google or Azure that omits `preferred_username` authenticates successfully (or fails for a different reason) without a panic or unwrap crash
+  4. `cargo clippy -p pam-unix-oidc` passes with no unwrap_used or expect_used warnings; the token-exchange CI job no longer fails at the lint gate
+**Plans**: TBD
 
-### Phase 19: Playwright Device Flow Automation
-**Goal**: The Device Authorization Grant browser consent step is automated headlessly so CI can complete device flow without human interaction
-**Depends on**: Phase 18
-**Requirements**: PLAY-01, PLAY-02, PLAY-03
+### Phase 25: Security Hardening
+**Goal**: Algorithm confusion attacks are blocked by an explicit allowlist; HTTPS is enforced for all OIDC endpoints at config load time; terminal escape sequences from IdP-supplied URIs cannot reach user terminals; D-Bus Secret Service sessions require encryption
+**Depends on**: Phase 24
+**Requirements**: SHRD-01, SHRD-02, SHRD-03, SHRD-04, SHRD-05, SHRD-06
 **Success Criteria** (what must be TRUE):
-  1. Running `npx playwright test tests/device-flow.spec.ts` against a live Keycloak 26.4 instance navigates to the verification URI, submits credentials, and exits 0 after Keycloak confirms device activation — without any human interaction
-  2. The Playwright spec and the shell token poll loop coordinate via a tmpfile: the shell writes the `verification_uri_complete`, Playwright polls for the file, navigates, and completes consent; the shell poll loop then receives the token
-  3. The same spec runs unmodified on a GitHub Actions ubuntu-latest runner in headless mode without `--no-sandbox` flags (Playwright runs on the GHA host, not inside Docker)
-**Plans**: N/A (implemented in single commit 9bfd4d3)
+  1. A JWKS entry that omits the `alg` field and would be matched to HS256 is rejected at validation time — the HS256-with-RSA-key attack vector is closed
+  2. Algorithm comparison in validation.rs uses an explicit enum match, not Debug-format string comparison — a `cargo test` on the validation module confirms the new code path
+  3. A config file specifying `http://` (not `https://`) for an issuer URL or a device flow `verification_uri` is rejected at load time with a clear error message
+  4. A verification URI containing ANSI escape sequences is displayed with those sequences stripped — the terminal shows only printable characters
+  5. A D-Bus Secret Service session attempted without encryption is rejected when `reject_plain_dbus_sessions: strict` is configured; setting `warn` logs and continues
+  6. `BREAK_GLASS_AUTH` events appear at syslog CRITICAL severity in the auth log when break-glass is used
+**Plans**: TBD
 
-### Phase 20: Full SSH E2E Test + CI Integration
-**Goal**: A complete SSH authentication chain — device flow token acquisition, agent serve, SSH with SSH_ASKPASS, PAM conversation, JWKS signature verification, session open — runs without TEST_MODE and is gated in CI
-**Depends on**: Phase 18, Phase 19
-**Requirements**: E2E-01, E2E-02, E2E-03, CI-01, CI-02
+### Phase 26: Tech Debt Resolution
+**Goal**: All dead multi-IdP wiring paths are either connected to the production auth pipeline or removed; JWKS TTL and HTTP timeout are configurable per-issuer; the Entra CI diagnostic is improved; code citations are accurate
+**Depends on**: Phase 24
+**Requirements**: DEBT-02, DEBT-03, DEBT-04, DEBT-05, DEBT-06, DEBT-08
 **Success Criteria** (what must be TRUE):
-  1. `test/tests/test_keycloak_real_sig.sh` completes the full chain (agent login via device flow + Playwright → agent serve → `SSH_ASKPASS=unix-oidc-agent` → SSH → PAM validates real EC signature from Keycloak 26.4 JWKS → shell access granted) and exits 0
-  2. The auth log inside the test-host container contains a structured audit event with `event_type=auth_success` and `issuer=http://keycloak:8080/realms/unix-oidc` for the successful authentication
-  3. Negative tests confirm the security perimeter: a token signed with a wrong key is rejected (`Authentication failed`); a token from a wrong issuer is rejected; a replayed DPoP proof on the second SSH attempt is rejected
-  4. The `keycloak-e2e` CI job in `.github/workflows/ci.yml` depends on `build-matrix`, restores the release artifact, starts the e2e stack, runs the SSH E2E test, and reports pass/fail on every push to main
-**Plans**: 1/1 plans complete
+  1. ACR mapping enforcement is active in the multi-issuer auth path — an issuer with `required_acr` set rejects tokens whose `acr` claim does not match
+  2. `GroupSource::TokenClaim` either routes through the auth pipeline in an integration test, or the dead-code path is removed and the variant is gone from the enum
+  3. `effective_issuers()` is either called in production dispatch (with a test demonstrating backward compat) or removed from the codebase
+  4. Setting `jwks_cache_ttl_secs: 600` and `http_timeout_secs: 30` on an issuer config takes effect — structured logs show the issuer using those values instead of the old hardcoded defaults
+  5. The Entra CI ROPC step logs a diagnostic message when Conditional Access blocks ROPC, instead of producing an opaque failure
+  6. `secure_delete.rs` cites NIST SP 800-88 Rev 1 §2.4 as the primary reference; DoD 5220.22-M appears only as a historical note
+**Plans**: TBD
 
-Plans:
-- [x] 20-01 — SSH→PAM chain test, audit log verification, negative security tests, keycloak-e2e CI job (E2E-01, E2E-02, E2E-03, CI-01, CI-02)
-
-### Phase 21: Multi-IdP Configuration
-**Goal**: The PAM module supports multiple OIDC issuers simultaneously, each with independent DPoP enforcement, claim mapping, ACR mapping, and group mapping; unknown issuers are rejected; missing optional fields fall back safely
-**Depends on**: Phase 18
-**Requirements**: MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-06, MIDP-07, MIDP-08
+### Phase 27: Multi-IdP Advanced + Observability
+**Goal**: Issuers are tried in operator-configured priority order; degraded issuers are automatically quarantined and recovered; issuer config can be reloaded without a daemon restart; all authentication outcomes and key lifecycle events produce structured audit events suitable for SIEM ingestion
+**Depends on**: Phase 26
+**Requirements**: MIDP-09, MIDP-10, MIDP-11, OBS-02, OBS-04, OBS-05, OBS-06, OBS-07, OBS-08, OBS-09
 **Success Criteria** (what must be TRUE):
-  1. A `policy.yaml` with two `issuers[]` entries (Keycloak and a second issuer) loads without error; tokens from either issuer authenticate successfully; a token from a third unlisted issuer is rejected with a logged "unknown issuer" error
-  2. Setting `dpop_enforcement: strict` on one issuer and `dpop_enforcement: disabled` on another causes DPoP-bound tokens to be required only from the strict issuer; the disabled issuer accepts plain bearer tokens
-  3. A user whose Keycloak `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the issuer's claim mapping sets `strip_domain: true`; a second issuer with no strip_domain config uses the raw claim value unchanged
-  4. The JWKS cache maintains independent entries keyed by issuer URL; fetching a JWKS for one issuer does not evict or overwrite the cache entry for another issuer
-  5. An `issuers[]` entry that omits optional fields (no `acr_mapping`, no `group_mapping`) loads successfully with safe defaults and logs a WARN; authentication against that issuer still succeeds
-**Plans:** 3/3 plans complete
+  1. With two issuers configured, the issuer listed first in `issuers[]` is tried first; the second is tried only when the first cannot service the token — observable via structured log events showing issuer selection order
+  2. After three consecutive JWKS fetch failures, an issuer is marked degraded and skipped; it is automatically retried after a configurable recovery interval; a successful JWKS fetch clears the degraded state
+  3. Updating `policy.yaml` and sending SIGHUP (or equivalent) reloads issuer config without restarting the daemon — new issuers take effect for the next authentication attempt
+  4. An authentication attempt with no token present produces a structured audit event with `event_type=auth_no_token` — no-token attempts are distinguishable from failed token validations in SIEM queries
+  5. Key generation, loading, and destruction each produce structured audit events (not only tracing spans) — a key lifecycle audit query returns these events from the audit log
+  6. IPC session-close failures produce an audit event — missed revocations are no longer silently dropped
+  7. Audit events include OCSF schema fields (`category_uid`, `class_uid`, `severity_id`) enabling SIEM ingestion without custom field mapping
+**Plans**: TBD
 
-Plans:
-- [x] 21-01-PLAN.md — IssuerConfig types + JWKS registry + config validation (MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-08)
-- [x] 21-02-PLAN.md — Multi-issuer auth routing + JTI scoping + PAM wiring (MIDP-06, MIDP-07)
-- [x] 21-03-PLAN.md — Integration test suite + workspace regression gate (MIDP-01..08)
-
-### Phase 22: Entra ID Integration
-**Goal**: Tokens issued by Azure Entra ID (RS256, bearer-only, tenant-specific issuer, UPN claim) authenticate successfully through the PAM module; the integration test runs in CI gated on secrets
-**Depends on**: Phase 20, Phase 21
-**Requirements**: ENTR-01, ENTR-02, ENTR-03, ENTR-04, ENTR-05, CI-03
+### Phase 28: Documentation + E2E Test Coverage
+**Goal**: The standards compliance matrix, identity rationalization guide, and JTI cache architecture are documented and published; every human-verification gap from prior milestones has automated E2E test coverage
+**Depends on**: Phase 27
+**Requirements**: DOC-01, DOC-02, DOC-03, E2ET-01, E2ET-02, E2ET-03, E2ET-04, E2ET-05
 **Success Criteria** (what must be TRUE):
-  1. OIDC discovery against the Entra tenant endpoint returns a valid JWKS URI; the PAM module fetches the JWKS and validates an RS256-signed Entra access token without error
-  2. A user whose Entra `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the Entra issuer config sets `strip_domain: true`; the full auth chain produces a structured audit event with the mapped username
-  3. Bearer-only mode (no `cnf.jkt` assertion, `dpop_required: off` in the Entra issuer config) produces a successful authentication with a complete audit trail; no DPoP-related errors appear in the log
-  4. The `entra-integration` CI job in `provider-tests.yml` runs only when `secrets.ENTRA_TENANT_ID` is available; it exits 0 on a successful auth and reports structured results; negative test confirms a token from a different tenant is rejected
-**Plans:** 3/3 plans complete
-
-Plans:
-- [x] 22-01-PLAN.md — expected_audience + allow_unsafe_identity_pipeline + Entra fixture + setup guide (ENTR-01, ENTR-03, ENTR-04)
-- [x] 22-02-PLAN.md — Entra live integration test suite (ENTR-02, ENTR-03, ENTR-04, ENTR-05)
-- [x] 22-03-PLAN.md — ROPC token script + CI job in provider-tests.yml (CI-03, ENTR-05)
-
-### Phase 23: Integration Gap Fixes (Multi-Issuer Nonce + Entra Fixture)
-**Goal**: Fix two cross-phase integration bugs found by v2.1 milestone audit: multi-issuer DPoP nonce consumption (security) and Entra policy fixture test coverage
-**Depends on**: Phase 21, Phase 22
-**Requirements**: MIDP-02 (integration fix), ENTR-01 (integration fix)
-**Gap Closure:** Closes 2 integration gaps from v2.1 audit
-**Success Criteria** (what must be TRUE):
-  1. `apply_per_issuer_dpop()` calls `global_nonce_cache().consume()` for the multi-issuer path; a replayed DPoP proof in the multi-issuer auth flow is rejected even when its `iat`/`exp` and JTI are valid
-  2. A non-`#[ignore]` integration test loads `policy-entra.yaml` via `PolicyConfig::load_from()` and validates deserialization; breaking the YAML structure causes a test failure
-**Plans:** 1/1 plans complete
-
-Plans:
-- [x] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
+  1. `docs/standards-compliance-matrix.md` exists with RFC-to-file mapping, NIST SP references, SOC2 cross-references, and implementation status for every protocol claim made in the project
+  2. `docs/identity-rationalization-guide.md` exists with FreeIPA + Entra coexistence patterns, UPN-to-uid mapping examples, and group sync strategies
+  3. JTI cache architecture is documented — the per-process-per-fork model, why it is sufficient for the sshd fork model, and how DPoP nonces serve as the actual replay defense
+  4. The DPoP nonce two-round keyboard-interactive SSH flow runs automated with replay rejection verified — no human needed to verify the nonce exchange protocol
+  5. Break-glass PAM flow runs automated with NSS group policy denial confirmed — no human needed to verify break-glass bypasses group policy correctly
+  6. PAM putenv/getenv session ID correlation, SessionClosed IPC roundtrip, and auto-refresh all run in a single automated E2E test without human verification
+  7. CIBA flow runs automated against a real IdP with FIDO2 ACR delegation confirmed and concurrent step-up guard verified
+  8. systemd socket activation and launchd install/uninstall run automated with JSON log format under journald confirmed and graceful shutdown verified
+**Plans**: TBD
 
 ## Progress
 
@@ -165,6 +161,11 @@ Plans:
 | 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
+| 24. Security Bug Fixes + Lint Foundation | v2.2 | 0/TBD | Not started | - |
+| 25. Security Hardening | v2.2 | 0/TBD | Not started | - |
+| 26. Tech Debt Resolution | v2.2 | 0/TBD | Not started | - |
+| 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
+| 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
 
 ---
 
@@ -350,3 +351,87 @@ Plans:
 - [x] 17-01-PLAN.md — mlock ML-DSA key material in HybridPqcSigner (MEM-07)
 - [x] 17-02-PLAN.md — Session expiry sweep background task + config (SES-09)
 - [x] 17-03-PLAN.md — Structured audit events + sudo session linking (OBS-1, OBS-3)
+
+## v2.1 Phase Details (Reference — Shipped 2026-03-14)
+
+### Phase 18: Blocker Fixes + E2E Infrastructure
+**Goal**: All pre-existing bugs that prevent real-signature testing are fixed; the real-signature compose stack is running with correct issuer alignment, no TEST_MODE, and a verified agent binary
+**Depends on**: Phase 17 (v2.0 complete)
+**Requirements**: BFIX-01, BFIX-02, BFIX-03, BFIX-04, INFR-01, INFR-02, INFR-03, INFR-04
+**Success Criteria** (what must be TRUE):
+  1. Running `docker compose -f docker-compose.e2e.yaml up` brings Keycloak 26.4 to healthy state; a token acquired from within the compose network carries `iss: http://keycloak:8080/realms/unix-oidc` (verified via `jq -r '.iss'` on the decoded access token)
+  2. `docker compose exec test-host-e2e unix-oidc-agent --version` exits 0; the binary is on PATH inside the test-host container
+  3. The device flow token polling loop sends a fresh `DPoP:` proof header per poll iteration; a token acquired via device flow within the compose network contains a `cnf.jkt` claim (DPoP-bound, not plain bearer)
+  4. `pam_sm_close_session` sends the `SessionClosed` IPC message with a trailing newline; the agent's `read_line` unblocks immediately instead of hanging until the 2-second timeout
+  5. A sentinel CI step (`docker exec test-host-e2e env | grep UNIX_OIDC_TEST_MODE` exits non-zero) confirms TEST_MODE is absent from the real-signature test environment
+**Plans**: N/A (implemented in single commit 9bfd4d3)
+
+### Phase 19: Playwright Device Flow Automation
+**Goal**: The Device Authorization Grant browser consent step is automated headlessly so CI can complete device flow without human interaction
+**Depends on**: Phase 18
+**Requirements**: PLAY-01, PLAY-02, PLAY-03
+**Success Criteria** (what must be TRUE):
+  1. Running `npx playwright test tests/device-flow.spec.ts` against a live Keycloak 26.4 instance navigates to the verification URI, submits credentials, and exits 0 after Keycloak confirms device activation — without any human interaction
+  2. The Playwright spec and the shell token poll loop coordinate via a tmpfile: the shell writes the `verification_uri_complete`, Playwright polls for the file, navigates, and completes consent; the shell poll loop then receives the token
+  3. The same spec runs unmodified on a GitHub Actions ubuntu-latest runner in headless mode without `--no-sandbox` flags (Playwright runs on the GHA host, not inside Docker)
+**Plans**: N/A (implemented in single commit 9bfd4d3)
+
+### Phase 20: Full SSH E2E Test + CI Integration
+**Goal**: A complete SSH authentication chain — device flow token acquisition, agent serve, SSH with SSH_ASKPASS, PAM conversation, JWKS signature verification, session open — runs without TEST_MODE and is gated in CI
+**Depends on**: Phase 18, Phase 19
+**Requirements**: E2E-01, E2E-02, E2E-03, CI-01, CI-02
+**Success Criteria** (what must be TRUE):
+  1. `test/tests/test_keycloak_real_sig.sh` completes the full chain (agent login via device flow + Playwright → agent serve → `SSH_ASKPASS=unix-oidc-agent` → SSH → PAM validates real EC signature from Keycloak 26.4 JWKS → shell access granted) and exits 0
+  2. The auth log inside the test-host container contains a structured audit event with `event_type=auth_success` and `issuer=http://keycloak:8080/realms/unix-oidc` for the successful authentication
+  3. Negative tests confirm the security perimeter: a token signed with a wrong key is rejected (`Authentication failed`); a token from a wrong issuer is rejected; a replayed DPoP proof on the second SSH attempt is rejected
+  4. The `keycloak-e2e` CI job in `.github/workflows/ci.yml` depends on `build-matrix`, restores the release artifact, starts the e2e stack, runs the SSH E2E test, and reports pass/fail on every push to main
+**Plans**: 1/1 plans complete
+
+Plans:
+- [x] 20-01 — SSH→PAM chain test, audit log verification, negative security tests, keycloak-e2e CI job (E2E-01, E2E-02, E2E-03, CI-01, CI-02)
+
+### Phase 21: Multi-IdP Configuration
+**Goal**: The PAM module supports multiple OIDC issuers simultaneously, each with independent DPoP enforcement, claim mapping, ACR mapping, and group mapping; unknown issuers are rejected; missing optional fields fall back safely
+**Depends on**: Phase 18
+**Requirements**: MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-06, MIDP-07, MIDP-08
+**Success Criteria** (what must be TRUE):
+  1. A `policy.yaml` with two `issuers[]` entries (Keycloak and a second issuer) loads without error; tokens from either issuer authenticate successfully; a token from a third unlisted issuer is rejected with a logged "unknown issuer" error
+  2. Setting `dpop_enforcement: strict` on one issuer and `dpop_enforcement: disabled` on another causes DPoP-bound tokens to be required only from the strict issuer; the disabled issuer accepts plain bearer tokens
+  3. A user whose Keycloak `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the issuer's claim mapping sets `strip_domain: true`; a second issuer with no strip_domain config uses the raw claim value unchanged
+  4. The JWKS cache maintains independent entries keyed by issuer URL; fetching a JWKS for one issuer does not evict or overwrite the cache entry for another issuer
+  5. An `issuers[]` entry that omits optional fields (no `acr_mapping`, no `group_mapping`) loads successfully with safe defaults and logs a WARN; authentication against that issuer still succeeds
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 21-01-PLAN.md — IssuerConfig types + JWKS registry + config validation (MIDP-01, MIDP-02, MIDP-03, MIDP-04, MIDP-05, MIDP-08)
+- [x] 21-02-PLAN.md — Multi-issuer auth routing + JTI scoping + PAM wiring (MIDP-06, MIDP-07)
+- [x] 21-03-PLAN.md — Integration test suite + workspace regression gate (MIDP-01..08)
+
+### Phase 22: Entra ID Integration
+**Goal**: Tokens issued by Azure Entra ID (RS256, bearer-only, tenant-specific issuer, UPN claim) authenticate successfully through the PAM module; the integration test runs in CI gated on secrets
+**Depends on**: Phase 20, Phase 21
+**Requirements**: ENTR-01, ENTR-02, ENTR-03, ENTR-04, ENTR-05, CI-03
+**Success Criteria** (what must be TRUE):
+  1. OIDC discovery against the Entra tenant endpoint returns a valid JWKS URI; the PAM module fetches the JWKS and validates an RS256-signed Entra access token without error
+  2. A user whose Entra `preferred_username` is `alice@corp.example` authenticates as local user `alice` when the Entra issuer config sets `strip_domain: true`; the full auth chain produces a structured audit event with the mapped username
+  3. Bearer-only mode (no `cnf.jkt` assertion, `dpop_required: off` in the Entra issuer config) produces a successful authentication with a complete audit trail; no DPoP-related errors appear in the log
+  4. The `entra-integration` CI job in `provider-tests.yml` runs only when `secrets.ENTRA_TENANT_ID` is available; it exits 0 on a successful auth and reports structured results; negative test confirms a token from a different tenant is rejected
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 22-01-PLAN.md — expected_audience + allow_unsafe_identity_pipeline + Entra fixture + setup guide (ENTR-01, ENTR-03, ENTR-04)
+- [x] 22-02-PLAN.md — Entra live integration test suite (ENTR-02, ENTR-03, ENTR-04, ENTR-05)
+- [x] 22-03-PLAN.md — ROPC token script + CI job in provider-tests.yml (CI-03, ENTR-05)
+
+### Phase 23: Integration Gap Fixes (Multi-Issuer Nonce + Entra Fixture)
+**Goal**: Fix two cross-phase integration bugs found by v2.1 milestone audit: multi-issuer DPoP nonce consumption (security) and Entra policy fixture test coverage
+**Depends on**: Phase 21, Phase 22
+**Requirements**: MIDP-02 (integration fix), ENTR-01 (integration fix)
+**Gap Closure:** Closes 2 integration gaps from v2.1 audit
+**Success Criteria** (what must be TRUE):
+  1. `apply_per_issuer_dpop()` calls `global_nonce_cache().consume()` for the multi-issuer path; a replayed DPoP proof in the multi-issuer auth flow is rejected even when its `iat`/`exp` and JTI are valid
+  2. A non-`#[ignore]` integration test loads `policy-entra.yaml` via `PolicyConfig::load_from()` and validates deserialization; breaking the YAML structure causes a test failure
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)

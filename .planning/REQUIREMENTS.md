@@ -100,47 +100,47 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SBUG-01 | — | Pending |
-| SBUG-02 | — | Pending |
-| SBUG-03 | — | Pending |
-| SHRD-01 | — | Pending |
-| SHRD-02 | — | Pending |
-| SHRD-03 | — | Pending |
-| SHRD-04 | — | Pending |
-| SHRD-05 | — | Pending |
-| SHRD-06 | — | Pending |
-| DEBT-01 | — | Pending |
-| DEBT-02 | — | Pending |
-| DEBT-03 | — | Pending |
-| DEBT-04 | — | Pending |
-| DEBT-05 | — | Pending |
-| DEBT-06 | — | Pending |
-| DEBT-07 | — | Pending |
-| DEBT-08 | — | Pending |
-| MIDP-09 | — | Pending |
-| MIDP-10 | — | Pending |
-| MIDP-11 | — | Pending |
-| OBS-02 | — | Pending |
-| OBS-04 | — | Pending |
-| OBS-05 | — | Pending |
-| OBS-06 | — | Pending |
-| OBS-07 | — | Pending |
-| OBS-08 | — | Pending |
-| OBS-09 | — | Pending |
-| DOC-01 | — | Pending |
-| DOC-02 | — | Pending |
-| DOC-03 | — | Pending |
-| E2ET-01 | — | Pending |
-| E2ET-02 | — | Pending |
-| E2ET-03 | — | Pending |
-| E2ET-04 | — | Pending |
-| E2ET-05 | — | Pending |
+| SBUG-01 | Phase 24 | Pending |
+| SBUG-02 | Phase 24 | Pending |
+| SBUG-03 | Phase 24 | Pending |
+| SHRD-01 | Phase 25 | Pending |
+| SHRD-02 | Phase 25 | Pending |
+| SHRD-03 | Phase 25 | Pending |
+| SHRD-04 | Phase 25 | Pending |
+| SHRD-05 | Phase 25 | Pending |
+| SHRD-06 | Phase 25 | Pending |
+| DEBT-01 | Phase 24 | Pending |
+| DEBT-02 | Phase 26 | Pending |
+| DEBT-03 | Phase 26 | Pending |
+| DEBT-04 | Phase 26 | Pending |
+| DEBT-05 | Phase 26 | Pending |
+| DEBT-06 | Phase 26 | Pending |
+| DEBT-07 | Phase 24 | Pending |
+| DEBT-08 | Phase 26 | Pending |
+| MIDP-09 | Phase 27 | Pending |
+| MIDP-10 | Phase 27 | Pending |
+| MIDP-11 | Phase 27 | Pending |
+| OBS-02 | Phase 27 | Pending |
+| OBS-04 | Phase 27 | Pending |
+| OBS-05 | Phase 27 | Pending |
+| OBS-06 | Phase 27 | Pending |
+| OBS-07 | Phase 27 | Pending |
+| OBS-08 | Phase 27 | Pending |
+| OBS-09 | Phase 27 | Pending |
+| DOC-01 | Phase 28 | Pending |
+| DOC-02 | Phase 28 | Pending |
+| DOC-03 | Phase 28 | Pending |
+| E2ET-01 | Phase 28 | Pending |
+| E2ET-02 | Phase 28 | Pending |
+| E2ET-03 | Phase 28 | Pending |
+| E2ET-04 | Phase 28 | Pending |
+| E2ET-05 | Phase 28 | Pending |
 
 **Coverage:**
-- v2.2 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33 (awaiting roadmap)
+- v2.2 requirements: 35 total (SBUG x3, SHRD x6, DEBT x8, MIDP x3, OBS x7, DOC x3, E2ET x5)
+- Mapped to phases: 35
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-14 after initial definition*
+*Last updated: 2026-03-14 — traceability complete after roadmap creation*
