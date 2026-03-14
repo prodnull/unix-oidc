@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-14T03:00:00.000Z"
-last_activity: 2026-03-14 — v2.2 roadmap created; Phase 24 ready to plan
+status: executing
+stopped_at: Completed 24-02-PLAN.md (DEBT-01/07 lint fixes)
+last_updated: "2026-03-14T15:42:36.270Z"
+last_activity: 2026-03-14 — Plan 24-01 complete (SBUG-01/02/03 security bug fixes)
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 22
+  completed_phases: 14
+  total_plans: 40
+  completed_plans: 37
+  percent: 3
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 24 of 28 (Security Bug Fixes + Lint Foundation)
-Plan: 1 of 3
+Plan: 2 of 3
 Status: In progress
-Last activity: 2026-03-14 — Plan 24-01 complete (SBUG-01/02/03 security bug fixes)
+Last activity: 2026-03-14 — Plan 24-02 complete (DEBT-01/07 lint fixes, CI unblocked)
 
 Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
@@ -45,8 +45,8 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
 ### Blockers/Concerns
 
-- [v2.0 carry-forward]: unwrap_used/expect_used violations in pam-unix-oidc (audit.rs, ciba/client.rs, ciba/types.rs, device_flow/client.rs, approval/provider.rs, sudo.rs) block CI — Phase 24 closes this
-- [v2.1 carry-forward]: DEBT-01 was the precondition for the token-exchange CI job; no additional blockers known
+- RESOLVED: unwrap_used/expect_used violations cleared; CI check job unblocked (24-02)
+- No additional blockers known
 
 ### Pending Todos
 
@@ -59,9 +59,11 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 24-01 | BreakGlassAuth.severity changed from &'static str to String for runtime CRITICAL/INFO selection based on alert_on_use |
 | 24-01 | SBUG-01 uses pre-auth extract_iss_for_routing() to capture issuer for forensic audit before auth call |
 | 24-01 | SBUG-03 sudo fallback to claims.sub when preferred_username absent — graceful mismatch vs separate error |
+| 24-02 | field_reassign_with_default fixed via struct literal + ..Default::default() pattern throughout test helpers |
+| 24-02 | DEBT-01 closed: crate-level deny(clippy::unwrap_used, clippy::expect_used) at lib.rs:19 enforces production code cleanliness |
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:35:00.000Z
-Stopped at: Completed 24-01-PLAN.md (SBUG-01, SBUG-02, SBUG-03)
+Last session: 2026-03-14T15:42:36.267Z
+Stopped at: Completed 24-02-PLAN.md (DEBT-01/07 lint fixes)
 Resume file: None

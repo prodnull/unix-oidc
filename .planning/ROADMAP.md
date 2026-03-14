@@ -60,7 +60,7 @@ Full details: see Phase Details section below (preserved for reference).
 
 **Milestone Goal:** Every security audit finding fixed, all tech debt resolved, full observability coverage, standards conformance documented, and automated E2E coverage for every human-verification gap — making unix-oidc audit-ready and production-bulletproof.
 
-- [ ] **Phase 24: Security Bug Fixes + Lint Foundation** - Correct forensic attribution bugs, wire break-glass alerts, fix optional preferred_username, and eliminate all unwrap_used lint violations that block CI
+- [x] **Phase 24: Security Bug Fixes + Lint Foundation** - Correct forensic attribution bugs, wire break-glass alerts, fix optional preferred_username, and eliminate all unwrap_used lint violations that block CI (completed 2026-03-14)
 - [ ] **Phase 25: Security Hardening** - Enforce algorithm allowlists, validate HTTPS issuer URLs, sanitize terminal escape sequences, and harden D-Bus transport sessions
 - [ ] **Phase 26: Tech Debt Resolution** - Wire dead multi-IdP config paths, make JWKS TTL/timeout configurable per-issuer, update citations, and clean CI diagnostic gaps
 - [ ] **Phase 27: Multi-IdP Advanced + Observability** - Add IdP priority ordering, health monitoring, hot-reload, and full structured audit event coverage for compliance
@@ -77,7 +77,7 @@ Full details: see Phase Details section below (preserved for reference).
   2. An operator who sets `alert_on_use: true` on the break-glass config sees the authentication event at syslog CRITICAL severity, not INFO
   3. A token from Google or Azure that omits `preferred_username` authenticates successfully (or fails for a different reason) without a panic or unwrap crash
   4. `cargo clippy -p pam-unix-oidc` passes with no unwrap_used or expect_used warnings; the token-exchange CI job no longer fails at the lint gate
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 24-01-PLAN.md — Fix forensic attribution (SBUG-01), break-glass alert_on_use wiring (SBUG-02), preferred_username graceful handling (SBUG-03)
@@ -165,7 +165,7 @@ Plans:
 | 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
-| 24. Security Bug Fixes + Lint Foundation | 1/2 | In Progress|  | - |
+| 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete   | 2026-03-14 | - |
 | 25. Security Hardening | v2.2 | 0/TBD | Not started | - |
 | 26. Tech Debt Resolution | v2.2 | 0/TBD | Not started | - |
 | 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
