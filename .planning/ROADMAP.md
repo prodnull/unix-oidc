@@ -52,7 +52,7 @@ Full details: see Phase Details section below (preserved for reference).
 - [ ] **Phase 20: Full SSH E2E Test + CI Integration** - Partial: token test exists but SSH→PAM chain, audit log verification, negative E2E tests, and CI job not yet wired
 - [x] **Phase 21: Multi-IdP Configuration** - PAM module supports multiple issuers with per-issuer policy config (completed 2026-03-13)
 - [x] **Phase 22: Entra ID Integration** - Azure Entra bearer-only integration with RS256 validation and UPN mapping (completed 2026-03-13)
-- [ ] **Phase 23: Integration Gap Fixes** - Multi-issuer DPoP nonce consumption + Entra policy fixture test coverage (gap closure from v2.1 audit)
+- [x] **Phase 23: Integration Gap Fixes** - Multi-issuer DPoP nonce consumption + Entra policy fixture test coverage (gap closure from v2.1 audit) (completed 2026-03-14)
 
 ## Phase Details
 
@@ -130,7 +130,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `apply_per_issuer_dpop()` calls `global_nonce_cache().consume()` for the multi-issuer path; a replayed DPoP proof in the multi-issuer auth flow is rejected even when its `iat`/`exp` and JTI are valid
   2. A non-`#[ignore]` integration test loads `policy-entra.yaml` via `PolicyConfig::load_from()` and validates deserialization; breaking the YAML structure causes a test failure
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 23-01-PLAN.md — Multi-issuer DPoP nonce consumption fix + Entra fixture deserialization test (MIDP-02, ENTR-01)
@@ -161,7 +161,7 @@ Plans:
 | 20. Full SSH E2E Test + CI Integration | v2.1 | 0/? | Partial (E2E stubs, no CI job) | - |
 | 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
-| 23. Integration Gap Fixes | v2.1 | 0/1 | Planned | - |
+| 23. Integration Gap Fixes | 1/1 | Complete    | 2026-03-14 | - |
 
 ---
 

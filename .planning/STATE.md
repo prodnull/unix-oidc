@@ -4,7 +4,7 @@ milestone: v2.1
 milestone_name: Integration Testing Infrastructure
 status: completed
 stopped_at: Completed 23-01-PLAN.md
-last_updated: "2026-03-14T00:55:54.657Z"
+last_updated: "2026-03-14T01:00:52.619Z"
 last_activity: 2026-03-14 — Phase 23 Plan 01 complete; DPoP nonce replay fix in multi-issuer path + non-ignored Entra fixture test
 progress:
   total_phases: 17
