@@ -77,7 +77,11 @@ Full details: see Phase Details section below (preserved for reference).
   2. An operator who sets `alert_on_use: true` on the break-glass config sees the authentication event at syslog CRITICAL severity, not INFO
   3. A token from Google or Azure that omits `preferred_username` authenticates successfully (or fails for a different reason) without a panic or unwrap crash
   4. `cargo clippy -p pam-unix-oidc` passes with no unwrap_used or expect_used warnings; the token-exchange CI job no longer fails at the lint gate
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 24-01-PLAN.md — Fix forensic attribution (SBUG-01), break-glass alert_on_use wiring (SBUG-02), preferred_username graceful handling (SBUG-03)
+- [ ] 24-02-PLAN.md — Fix clippy lint violations blocking CI (DEBT-01, DEBT-07)
 
 ### Phase 25: Security Hardening
 **Goal**: Algorithm confusion attacks are blocked by an explicit allowlist; HTTPS is enforced for all OIDC endpoints at config load time; terminal escape sequences from IdP-supplied URIs cannot reach user terminals; D-Bus Secret Service sessions require encryption
@@ -161,7 +165,7 @@ Full details: see Phase Details section below (preserved for reference).
 | 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
-| 24. Security Bug Fixes + Lint Foundation | v2.2 | 0/TBD | Not started | - |
+| 24. Security Bug Fixes + Lint Foundation | v2.2 | 0/2 | Not started | - |
 | 25. Security Hardening | v2.2 | 0/TBD | Not started | - |
 | 26. Tech Debt Resolution | v2.2 | 0/TBD | Not started | - |
 | 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
