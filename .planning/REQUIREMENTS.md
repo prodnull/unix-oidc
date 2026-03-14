@@ -7,9 +7,9 @@
 
 ### Security Bug Fixes
 
-- [ ] **SBUG-01**: `source_ip` passed as `oidc_issuer` in all `token_validation_failed()` call sites is corrected — forensic attribution works
-- [ ] **SBUG-02**: `BreakGlassConfig.alert_on_use` wired to runtime syslog elevation — operators get the elevated severity they configured
-- [ ] **SBUG-03**: `TokenClaims.preferred_username` is `Option<String>` per OIDC Core §5.1 — tokens from Google/Azure without the claim don't panic
+- [x] **SBUG-01**: `source_ip` passed as `oidc_issuer` in all `token_validation_failed()` call sites is corrected — forensic attribution works
+- [x] **SBUG-02**: `BreakGlassConfig.alert_on_use` wired to runtime syslog elevation — operators get the elevated severity they configured
+- [x] **SBUG-03**: `TokenClaims.preferred_username` is `Option<String>` per OIDC Core §5.1 — tokens from Google/Azure without the claim don't panic
 
 ### Security Hardening
 
@@ -100,9 +100,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SBUG-01 | Phase 24 | Pending |
-| SBUG-02 | Phase 24 | Pending |
-| SBUG-03 | Phase 24 | Pending |
+| SBUG-01 | Phase 24 | Complete |
+| SBUG-02 | Phase 24 | Complete |
+| SBUG-03 | Phase 24 | Complete |
 | SHRD-01 | Phase 25 | Pending |
 | SHRD-02 | Phase 25 | Pending |
 | SHRD-03 | Phase 25 | Pending |

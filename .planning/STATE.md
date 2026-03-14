@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 24 of 28 (Security Bug Fixes + Lint Foundation)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-14 — v2.2 roadmap written; starting Phase 24
+Plan: 1 of 3
+Status: In progress
+Last activity: 2026-03-14 — Plan 24-01 complete (SBUG-01/02/03 security bug fixes)
 
-Progress: [░░░░░░░░░░] 0% (v2.2, Phases 24-28)
+Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
 ## Accumulated Context
 
@@ -52,8 +52,16 @@ Progress: [░░░░░░░░░░] 0% (v2.2, Phases 24-28)
 
 - None (fresh milestone)
 
+## Key Decisions
+
+| Phase | Decision |
+|-------|----------|
+| 24-01 | BreakGlassAuth.severity changed from &'static str to String for runtime CRITICAL/INFO selection based on alert_on_use |
+| 24-01 | SBUG-01 uses pre-auth extract_iss_for_routing() to capture issuer for forensic audit before auth call |
+| 24-01 | SBUG-03 sudo fallback to claims.sub when preferred_username absent — graceful mismatch vs separate error |
+
 ## Session Continuity
 
-Last session: 2026-03-14T03:00:00.000Z
-Stopped at: Roadmap created; Phase 24 ready to plan
+Last session: 2026-03-14T00:35:00.000Z
+Stopped at: Completed 24-01-PLAN.md (SBUG-01, SBUG-02, SBUG-03)
 Resume file: None
