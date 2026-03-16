@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: executing
-stopped_at: "Completed 27-01-PLAN.md (re-executed: MIDP-09 priority ordering, MIDP-10 health monitoring, MIDP-11 config hot-reload)"
-last_updated: "2026-03-16T14:05:17.518Z"
-last_activity: 2026-03-16 — Plan 27-02 complete (KEY_GENERATED/KEY_LOADED/KEY_DESTROYED audit events on ProtectedSigningKey and HybridPqcSigner)
+stopped_at: "Completed 27-04-PLAN.md (OBS-02 AUTH_NO_TOKEN, OBS-07 OCSF fields on all 14 variants, OBS-08 SESSION_CLOSE_FAILED)"
+last_updated: "2026-03-16T14:19:30.420Z"
+last_activity: 2026-03-16 — Plan 27-05 complete (HMAC chain tamper-evidence + unix-oidc-audit-verify binary; OBS-06)
 progress:
   total_phases: 22
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 50
-  completed_plans: 45
-  percent: 86
+  completed_plans: 47
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 27 of 28 (Multi-IdP Advanced + Observability)
-Plan: 4 of 5 complete (01, 02, 03, done; 04 and 05 remaining)
-Status: In progress
-Last activity: 2026-03-16 — Plan 27-02 complete (KEY_GENERATED/KEY_LOADED/KEY_DESTROYED audit events on ProtectedSigningKey and HybridPqcSigner)
+Plan: 5 of 5 complete (01, 02, 03, 04, 05 — ALL DONE)
+Status: Phase complete
+Last activity: 2026-03-16 — Plan 27-05 complete (HMAC chain tamper-evidence + unix-oidc-audit-verify binary; OBS-06)
 
-Progress: [█████████░] 86% (v2.2, Phases 24-28)
+Progress: [█████████░] 94% (v2.2, Phases 24-28)
 
 ## Accumulated Context
 
@@ -82,9 +82,15 @@ Progress: [█████████░] 86% (v2.2, Phases 24-28)
 | 27-01 | Health state is file-based (/run/unix-oidc/issuer-health/) — each forked sshd process is ephemeral with no shared memory |
 | 27-01 | Only ValidationError::JwksFetchError counts as health failure — token errors (expired, bad audience) do not degrade issuer |
 | 27-01 | Config hot-reload uses UNIX_OIDC_POLICY env var; stat-based mtime check, no SIGHUP (already decided in Phase 27 planning) |
+| 27-04 | OCSF enrichment via EnrichedAuditEvent + serde(flatten) in log() — not per-variant fields — keeps variants slim and guarantees backward compatibility |
+| 27-04 | enriched_log_json() is canonical log() payload — HMAC chain covers OCSF-enriched JSON so OCSF fields are tamper-evident |
+| 27-04 | SESSION_CLOSE_FAILED username is empty string in notify_agent_session_closed — correlate via session_id with preceding SESSION_CLOSED in SIEM |
+| 27-05 | HMAC chain input is "{prev_hash}:{ocsf_enriched_json}" — covers all event fields including OCSF; modifying any field breaks chain |
+| 27-05 | audit_verify strips only prev_hash/chain_hash for recomputation; OCSF fields remain in verifiable payload |
+| 27-05 | Key absent or empty → WARNING log + graceful disable; never hard-failure (backward compatible with unchained deployments) |
 
 ## Session Continuity
 
-Last session: 2026-03-16T14:05:17.514Z
-Stopped at: Completed 27-01-PLAN.md (re-executed: MIDP-09 priority ordering, MIDP-10 health monitoring, MIDP-11 config hot-reload)
+Last session: 2026-03-16T14:17:50Z
+Stopped at: Completed 27-04-PLAN.md (OBS-02/07/08 — AUTH_NO_TOKEN, OCSF fields, SESSION_CLOSE_FAILED)
 Resume file: None

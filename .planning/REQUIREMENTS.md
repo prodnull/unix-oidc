@@ -42,7 +42,7 @@
 - [ ] **OBS-02**: No-token authentication attempts produce structured audit events
 - [x] **OBS-04**: Key lifecycle events (generation, loading, destruction) are structured audit events, not tracing-only
 - [x] **OBS-05**: Log retention controls and logrotate integration documented and shipped
-- [ ] **OBS-06**: Audit log tamper-evidence via hash chain or HMAC
+- [x] **OBS-06**: Audit log tamper-evidence via hash chain or HMAC
 - [ ] **OBS-07**: OCSF schema fields in audit events for SIEM interoperability
 - [ ] **OBS-08**: IPC session-close failures audited (missed revocations no longer silently dropped)
 - [x] **OBS-09**: GDPR Article 17 erasure path documented with implementation guidance
@@ -123,7 +123,7 @@
 | OBS-02 | Phase 27 | Pending |
 | OBS-04 | Phase 27 | Complete |
 | OBS-05 | Phase 27 | Complete |
-| OBS-06 | Phase 27 | Pending |
+| OBS-06 | Phase 27 | Complete |
 | OBS-07 | Phase 27 | Pending |
 | OBS-08 | Phase 27 | Pending |
 | OBS-09 | Phase 27 | Complete |

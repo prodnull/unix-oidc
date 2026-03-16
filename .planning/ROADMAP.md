@@ -63,7 +63,7 @@ Full details: see Phase Details section below (preserved for reference).
 - [x] **Phase 24: Security Bug Fixes + Lint Foundation** - Correct forensic attribution bugs, wire break-glass alerts, fix optional preferred_username, and eliminate all unwrap_used lint violations that block CI (completed 2026-03-14)
 - [x] **Phase 25: Security Hardening** - Enforce algorithm allowlists, validate HTTPS issuer URLs, sanitize terminal escape sequences, and harden D-Bus transport sessions (completed 2026-03-16)
 - [x] **Phase 26: Tech Debt Resolution** - Wire dead multi-IdP config paths, make JWKS TTL/timeout configurable per-issuer, update citations, and clean CI diagnostic gaps (completed 2026-03-16)
-- [ ] **Phase 27: Multi-IdP Advanced + Observability** - Add IdP priority ordering, health monitoring, hot-reload, and full structured audit event coverage for compliance
+- [x] **Phase 27: Multi-IdP Advanced + Observability** - Add IdP priority ordering, health monitoring, hot-reload, and full structured audit event coverage for compliance (completed 2026-03-16)
 - [ ] **Phase 28: Documentation + E2E Test Coverage** - Standards compliance matrix, identity rationalization guide, JTI architecture docs, and automated E2E for every prior human-verification gap
 
 ## Phase Details
@@ -187,7 +187,7 @@ Plans:
 | 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
 | 25. Security Hardening | 2/2 | Complete    | 2026-03-16 | - |
 | 26. Tech Debt Resolution | 3/3 | Complete    | 2026-03-16 | - |
-| 27. Multi-IdP Advanced + Observability | 3/5 | In Progress|  | - |
+| 27. Multi-IdP Advanced + Observability | 5/5 | Complete   | 2026-03-16 | - |
 | 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
 
 ---
@@ -204,7 +204,7 @@ Plans:
   3. An operator can set `jti_enforcement = "strict"` in `policy.yaml` and authentication with a missing JTI claim is rejected; setting `"warn"` logs a warning and passes
   4. A v1.0 `policy.yaml` file (no `[security_modes]` section) loads successfully against the v2.0 config struct with behavior identical to v1.0
   5. The JTI cache size is consistent between code and documentation (10k vs 100k discrepancy resolved and committed)
-**Plans:** 3/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md — parking_lot migration + panic elimination (SEC-01, SEC-07)
