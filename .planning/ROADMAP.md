@@ -130,12 +130,14 @@ Plans:
   5. Key generation, loading, and destruction each produce structured audit events (not only tracing spans) — a key lifecycle audit query returns these events from the audit log
   6. IPC session-close failures produce an audit event — missed revocations are no longer silently dropped
   7. Audit events include OCSF schema fields (`category_uid`, `class_uid`, `severity_id`) enabling SIEM ingestion without custom field mapping
-**Plans**: 3 plans
+**Plans**: 5 plans
 
 Plans:
-- [ ] 26-01-PLAN.md — Wire ACR mapping enforcement + per-issuer JWKS TTL/timeout into auth pipeline (DEBT-02, DEBT-05)
-- [ ] 26-02-PLAN.md — Remove GroupSource::TokenClaim + effective_issuers() dead code (DEBT-03, DEBT-04)
-- [ ] 26-03-PLAN.md — Entra CI ROPC Conditional Access diagnostic + NIST SP 800-88 citation update (DEBT-06, DEBT-08)
+- [ ] 27-01-PLAN.md — IdP priority ordering, health monitoring, config hot-reload (MIDP-09, MIDP-10, MIDP-11)
+- [ ] 27-02-PLAN.md — Agent key lifecycle audit events (OBS-04)
+- [ ] 27-03-PLAN.md — Logrotate config + log retention docs + GDPR erasure guide (OBS-05, OBS-09)
+- [ ] 27-04-PLAN.md — No-token and session-close-failed audit events + OCSF schema fields (OBS-02, OBS-07, OBS-08)
+- [ ] 27-05-PLAN.md — HMAC chain tamper-evidence + verification utility (OBS-06)
 
 ### Phase 28: Documentation + E2E Test Coverage
 **Goal**: The standards compliance matrix, identity rationalization guide, and JTI cache architecture are documented and published; every human-verification gap from prior milestones has automated E2E test coverage
@@ -150,12 +152,10 @@ Plans:
   6. PAM putenv/getenv session ID correlation, SessionClosed IPC roundtrip, and auto-refresh all run in a single automated E2E test without human verification
   7. CIBA flow runs automated against a real IdP with FIDO2 ACR delegation confirmed and concurrent step-up guard verified
   8. systemd socket activation and launchd install/uninstall run automated with JSON log format under journald confirmed and graceful shutdown verified
-**Plans**: 3 plans
+**Plans**: [To be planned]
 
 Plans:
-- [ ] 26-01-PLAN.md — Wire ACR mapping enforcement + per-issuer JWKS TTL/timeout into auth pipeline (DEBT-02, DEBT-05)
-- [ ] 26-02-PLAN.md — Remove GroupSource::TokenClaim + effective_issuers() dead code (DEBT-03, DEBT-04)
-- [ ] 26-03-PLAN.md — Entra CI ROPC Conditional Access diagnostic + NIST SP 800-88 citation update (DEBT-06, DEBT-08)
+- [To be planned]
 
 ## Progress
 
@@ -187,7 +187,7 @@ Plans:
 | 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
 | 25. Security Hardening | 2/2 | Complete    | 2026-03-16 | - |
 | 26. Tech Debt Resolution | 3/3 | Complete    | 2026-03-16 | - |
-| 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
+| 27. Multi-IdP Advanced + Observability | v2.2 | 0/5 | Not started | - |
 | 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
 
 ---
