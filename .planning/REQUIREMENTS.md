@@ -50,7 +50,7 @@
 ### Documentation & Conformance
 
 - [ ] **DOC-01**: Standards compliance matrix at `docs/standards-compliance-matrix.md` — RFC-to-file mapping, NIST/SOC2 cross-refs, implementation status
-- [ ] **DOC-02**: Identity rationalization guide — FreeIPA + Entra coexistence patterns, UPN-to-uid mapping, group sync
+- [x] **DOC-02**: Identity rationalization guide — FreeIPA + Entra coexistence patterns, UPN-to-uid mapping, group sync
 - [ ] **DOC-03**: JTI cache architecture documented — per-process cache in forked-sshd model, DPoP nonces as actual replay defense
 
 ### E2E Test Coverage
@@ -128,7 +128,7 @@
 | OBS-08 | Phase 27 | Complete |
 | OBS-09 | Phase 27 | Complete |
 | DOC-01 | Phase 28 | Pending |
-| DOC-02 | Phase 28 | Pending |
+| DOC-02 | Phase 28 | Complete |
 | DOC-03 | Phase 28 | Pending |
 | E2ET-01 | Phase 28 | Pending |
 | E2ET-02 | Phase 28 | Pending |
