@@ -49,17 +49,17 @@
 
 ### Documentation & Conformance
 
-- [ ] **DOC-01**: Standards compliance matrix at `docs/standards-compliance-matrix.md` — RFC-to-file mapping, NIST/SOC2 cross-refs, implementation status
+- [x] **DOC-01**: Standards compliance matrix at `docs/standards-compliance-matrix.md` — RFC-to-file mapping, NIST/SOC2 cross-refs, implementation status
 - [x] **DOC-02**: Identity rationalization guide — FreeIPA + Entra coexistence patterns, UPN-to-uid mapping, group sync
-- [ ] **DOC-03**: JTI cache architecture documented — per-process cache in forked-sshd model, DPoP nonces as actual replay defense
+- [x] **DOC-03**: JTI cache architecture documented — per-process cache in forked-sshd model, DPoP nonces as actual replay defense
 
 ### E2E Test Coverage
 
 - [x] **E2ET-01**: Automated DPoP nonce two-round keyboard-interactive flow over SSH with replay rejection
 - [x] **E2ET-02**: Break-glass end-to-end PAM flow with real NSS group policy denial
-- [ ] **E2ET-03**: PAM putenv/getenv cross-fork session ID correlation + SessionClosed IPC roundtrip + auto-refresh
+- [x] **E2ET-03**: PAM putenv/getenv cross-fork session ID correlation + SessionClosed IPC roundtrip + auto-refresh
 - [ ] **E2ET-04**: Full CIBA flow against real IdP + FIDO2 ACR delegation E2E + concurrent step-up guard
-- [ ] **E2ET-05**: systemd socket activation E2E + launchd install/uninstall + JSON log under journald + graceful shutdown
+- [x] **E2ET-05**: systemd socket activation E2E + launchd install/uninstall + JSON log under journald + graceful shutdown
 
 ## Future Requirements (v3.0+)
 
@@ -127,14 +127,14 @@
 | OBS-07 | Phase 27 | Complete |
 | OBS-08 | Phase 27 | Complete |
 | OBS-09 | Phase 27 | Complete |
-| DOC-01 | Phase 28 | Pending |
+| DOC-01 | Phase 28 | Complete |
 | DOC-02 | Phase 28 | Complete |
-| DOC-03 | Phase 28 | Pending |
+| DOC-03 | Phase 28 | Complete |
 | E2ET-01 | Phase 28 | Complete |
 | E2ET-02 | Phase 28 | Complete |
-| E2ET-03 | Phase 28 | Pending |
+| E2ET-03 | Phase 28 | Complete |
 | E2ET-04 | Phase 28 | Pending |
-| E2ET-05 | Phase 28 | Pending |
+| E2ET-05 | Phase 28 | Complete |
 
 **Coverage:**
 - v2.2 requirements: 35 total (SBUG x3, SHRD x6, DEBT x8, MIDP x3, OBS x7, DOC x3, E2ET x5)
