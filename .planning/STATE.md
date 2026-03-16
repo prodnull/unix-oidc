@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** v2.2 Phase 25 — Security Hardening
+**Current focus:** v2.2 Phase 26 — Tech Debt Resolution
 
 ## Current Position
 
-Phase: 25 of 28 (Security Hardening)
-Plan: 2 of 3
+Phase: 26 of 28 (Tech Debt Resolution)
+Plan: 3 of 3
 Status: In progress
-Last activity: 2026-03-16 — Plan 25-01 complete (algorithm allowlist, HTTPS enforcement, break-glass severity verification)
+Last activity: 2026-03-16 — Plan 26-03 complete (Entra CA diagnostic, NIST SP 800-88 citation update)
 
 Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
@@ -68,9 +68,11 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 25-01 | Allowlist DEFAULT_ALLOWED_ALGORITHMS replaces blocklist — fails safe when new algorithms added to crate |
 | 25-01 | HTTPS enforcement at config load time via validate_https_url() shared between config and device_flow |
 | 25-01 | SHRD-03 verified by existing Phase 24 tests — regression guard documentation added, no duplicate tests |
+| 26-03 | Bash source guard pattern (_ENTRA_TOKEN_SOURCED=1) enables function-level testing without executing main script body |
+| 26-03 | curl -s (not -sf) to capture error response body for Conditional Access diagnostic parsing |
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:40:39.148Z
-Stopped at: Phase 26 context gathered
+Last session: 2026-03-16T03:42:30Z
+Stopped at: Completed 26-03-PLAN.md
 Resume file: .planning/phases/26-tech-debt-resolution/26-CONTEXT.md

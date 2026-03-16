@@ -186,7 +186,7 @@ Plans:
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
 | 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
 | 25. Security Hardening | 2/2 | Complete    | 2026-03-16 | - |
-| 26. Tech Debt Resolution | v2.2 | 0/3 | In progress | - |
+| 26. Tech Debt Resolution | 1/3 | In Progress|  | - |
 | 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
 | 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
 
@@ -204,7 +204,7 @@ Plans:
   3. An operator can set `jti_enforcement = "strict"` in `policy.yaml` and authentication with a missing JTI claim is rejected; setting `"warn"` logs a warning and passes
   4. A v1.0 `policy.yaml` file (no `[security_modes]` section) loads successfully against the v2.0 config struct with behavior identical to v1.0
   5. The JTI cache size is consistent between code and documentation (10k vs 100k discrepancy resolved and committed)
-**Plans:** 2/2 plans complete
+**Plans:** 1/3 plans executed
 
 Plans:
 - [x] 06-01-PLAN.md — parking_lot migration + panic elimination (SEC-01, SEC-07)

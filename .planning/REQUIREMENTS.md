@@ -27,9 +27,9 @@
 - [ ] **DEBT-03**: `GroupSource::TokenClaim` path exercised in auth pipeline or dead code removed
 - [ ] **DEBT-04**: `effective_issuers()` backward-compat function wired into production dispatch or removed
 - [ ] **DEBT-05**: JWKS TTL and HTTP timeout configurable per-issuer (currently hardcoded 300s/10s)
-- [ ] **DEBT-06**: Entra CI ROPC token step has fallback diagnostic if Conditional Access blocks ROPC
+- [x] **DEBT-06**: Entra CI ROPC token step has fallback diagnostic if Conditional Access blocks ROPC
 - [x] **DEBT-07**: Minor v2.0 residuals cleaned up (socket.rs unwrap, clippy test annotations)
-- [ ] **DEBT-08**: `secure_delete.rs` primary citation updated from DoD 5220.22-M to NIST SP 800-88 Rev 1 §2.4
+- [x] **DEBT-08**: `secure_delete.rs` primary citation updated from DoD 5220.22-M to NIST SP 800-88 Rev 1 §2.4
 
 ### Multi-IdP Advanced
 
@@ -114,9 +114,9 @@
 | DEBT-03 | Phase 26 | Pending |
 | DEBT-04 | Phase 26 | Pending |
 | DEBT-05 | Phase 26 | Pending |
-| DEBT-06 | Phase 26 | Pending |
+| DEBT-06 | Phase 26 | Complete |
 | DEBT-07 | Phase 24 | Complete |
-| DEBT-08 | Phase 26 | Pending |
+| DEBT-08 | Phase 26 | Complete |
 | MIDP-09 | Phase 27 | Pending |
 | MIDP-10 | Phase 27 | Pending |
 | MIDP-11 | Phase 27 | Pending |
