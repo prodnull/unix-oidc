@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** v2.2 Phase 24 — Security Bug Fixes + Lint Foundation
+**Current focus:** v2.2 Phase 25 — Security Hardening
 
 ## Current Position
 
-Phase: 24 of 28 (Security Bug Fixes + Lint Foundation)
+Phase: 25 of 28 (Security Hardening)
 Plan: 2 of 3
 Status: In progress
-Last activity: 2026-03-14 — Plan 24-02 complete (DEBT-01/07 lint fixes, CI unblocked)
+Last activity: 2026-03-16 — Plan 25-02 complete (terminal sanitization, D-Bus encryption enforcement)
 
 Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
@@ -61,9 +61,12 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 24-01 | SBUG-03 sudo fallback to claims.sub when preferred_username absent — graceful mismatch vs separate error |
 | 24-02 | field_reassign_with_default fixed via struct literal + ..Default::default() pattern throughout test helpers |
 | 24-02 | DEBT-01 closed: crate-level deny(clippy::unwrap_used, clippy::expect_used) at lib.rs:19 enforces production code cleanliness |
+| 25-02 | Terminal sanitization strips-and-displays rather than rejecting URIs (graceful degradation) |
+| 25-02 | D-Bus encryption enforcement uses env var UNIX_OIDC_REJECT_PLAIN_DBUS (matches existing UNIX_OIDC_ pattern) |
+| 25-02 | D-Bus probe returns Unknown on non-Linux; zbus/oo7 actual probe deferred as architectural decision |
 
 ## Session Continuity
 
-Last session: 2026-03-16T00:55:23.050Z
-Stopped at: Phase 25 context gathered
-Resume file: .planning/phases/25-phase-25-security-hardening/25-CONTEXT.md
+Last session: 2026-03-16T02:12:37Z
+Stopped at: Plan 25-02 complete (terminal sanitization + D-Bus encryption enforcement)
+Resume file: .planning/phases/25-phase-25-security-hardening/25-02-SUMMARY.md

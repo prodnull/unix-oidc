@@ -17,8 +17,8 @@
 - [ ] **SHRD-02**: Algorithm allowlist enforced when JWKS key omits `alg` field — HS256-with-RSA-public-key attack prevented
 - [ ] **SHRD-03**: Syslog severity mapped to audit event severity — `BREAK_GLASS_AUTH` logged at CRITICAL, not INFO
 - [ ] **SHRD-04**: HTTPS scheme validated for OIDC issuer URL at config load time and for device flow `verification_uri`
-- [ ] **SHRD-05**: Terminal escape sequences sanitized in IdP-supplied `verification_uri` before display
-- [ ] **SHRD-06**: D-Bus Secret Service rejects plain (unencrypted) sessions; `reject_plain_dbus_sessions: strict/warn/disabled` config toggle
+- [x] **SHRD-05**: Terminal escape sequences sanitized in IdP-supplied `verification_uri` before display
+- [x] **SHRD-06**: D-Bus Secret Service rejects plain (unencrypted) sessions; `reject_plain_dbus_sessions: strict/warn/disabled` config toggle
 
 ### Tech Debt
 
@@ -107,8 +107,8 @@
 | SHRD-02 | Phase 25 | Pending |
 | SHRD-03 | Phase 25 | Pending |
 | SHRD-04 | Phase 25 | Pending |
-| SHRD-05 | Phase 25 | Pending |
-| SHRD-06 | Phase 25 | Pending |
+| SHRD-05 | Phase 25 | Complete |
+| SHRD-06 | Phase 25 | Complete |
 | DEBT-01 | Phase 24 | Complete |
 | DEBT-02 | Phase 26 | Pending |
 | DEBT-03 | Phase 26 | Pending |
