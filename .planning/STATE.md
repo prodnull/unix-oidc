@@ -4,7 +4,7 @@ milestone: v2.2
 milestone_name: Hardening & Conformance
 status: executing
 stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-03-16T03:51:38.601Z"
+last_updated: "2026-03-16T03:56:47.665Z"
 last_activity: "2026-03-16 — Plan 26-02 complete (GroupSource::TokenClaim and effective_issuers() dead code removal)"
 progress:
   total_phases: 22
