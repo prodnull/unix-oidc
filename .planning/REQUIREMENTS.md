@@ -55,8 +55,8 @@
 
 ### E2E Test Coverage
 
-- [ ] **E2ET-01**: Automated DPoP nonce two-round keyboard-interactive flow over SSH with replay rejection
-- [ ] **E2ET-02**: Break-glass end-to-end PAM flow with real NSS group policy denial
+- [x] **E2ET-01**: Automated DPoP nonce two-round keyboard-interactive flow over SSH with replay rejection
+- [x] **E2ET-02**: Break-glass end-to-end PAM flow with real NSS group policy denial
 - [ ] **E2ET-03**: PAM putenv/getenv cross-fork session ID correlation + SessionClosed IPC roundtrip + auto-refresh
 - [ ] **E2ET-04**: Full CIBA flow against real IdP + FIDO2 ACR delegation E2E + concurrent step-up guard
 - [ ] **E2ET-05**: systemd socket activation E2E + launchd install/uninstall + JSON log under journald + graceful shutdown
@@ -130,8 +130,8 @@
 | DOC-01 | Phase 28 | Pending |
 | DOC-02 | Phase 28 | Complete |
 | DOC-03 | Phase 28 | Pending |
-| E2ET-01 | Phase 28 | Pending |
-| E2ET-02 | Phase 28 | Pending |
+| E2ET-01 | Phase 28 | Complete |
+| E2ET-02 | Phase 28 | Complete |
 | E2ET-03 | Phase 28 | Pending |
 | E2ET-04 | Phase 28 | Pending |
 | E2ET-05 | Phase 28 | Pending |
