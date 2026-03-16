@@ -130,7 +130,7 @@ Plans:
   5. Key generation, loading, and destruction each produce structured audit events (not only tracing spans) — a key lifecycle audit query returns these events from the audit log
   6. IPC session-close failures produce an audit event — missed revocations are no longer silently dropped
   7. Audit events include OCSF schema fields (`category_uid`, `class_uid`, `severity_id`) enabling SIEM ingestion without custom field mapping
-**Plans**: 5 plans
+**Plans**: 6 plans (5 original + 1 gap closure)
 
 Plans:
 - [ ] 27-01-PLAN.md — IdP priority ordering, health monitoring, config hot-reload (MIDP-09, MIDP-10, MIDP-11)
@@ -138,6 +138,7 @@ Plans:
 - [ ] 27-03-PLAN.md — Logrotate config + log retention docs + GDPR erasure guide (OBS-05, OBS-09)
 - [ ] 27-04-PLAN.md — No-token and session-close-failed audit events + OCSF schema fields (OBS-02, OBS-07, OBS-08)
 - [ ] 27-05-PLAN.md — HMAC chain tamper-evidence + verification utility (OBS-06)
+- [ ] 27-06-PLAN.md — Gap closure: IssuerDegraded/IssuerRecovered as AuditEvent variants with OCSF + HMAC chain (MIDP-10, OBS-06, OBS-07)
 
 ### Phase 28: Documentation + E2E Test Coverage
 **Goal**: The standards compliance matrix, identity rationalization guide, and JTI cache architecture are documented and published; every human-verification gap from prior milestones has automated E2E test coverage
@@ -187,7 +188,7 @@ Plans:
 | 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
 | 25. Security Hardening | 2/2 | Complete    | 2026-03-16 | - |
 | 26. Tech Debt Resolution | 3/3 | Complete    | 2026-03-16 | - |
-| 27. Multi-IdP Advanced + Observability | 5/5 | Complete   | 2026-03-16 | - |
+| 27. Multi-IdP Advanced + Observability | 5/6 | Gap closure in progress | 2026-03-16 | - |
 | 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
 
 ---
