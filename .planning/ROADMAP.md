@@ -94,7 +94,11 @@ Plans:
   4. A verification URI containing ANSI escape sequences is displayed with those sequences stripped — the terminal shows only printable characters
   5. A D-Bus Secret Service session attempted without encryption is rejected when `reject_plain_dbus_sessions: strict` is configured; setting `warn` logs and continues
   6. `BREAK_GLASS_AUTH` events appear at syslog CRITICAL severity in the auth log when break-glass is used
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 25-01-PLAN.md — Algorithm enum match (TryFrom), per-issuer allowlist, HTTPS enforcement, break-glass severity verification (SHRD-01, SHRD-02, SHRD-03, SHRD-04)
+- [ ] 25-02-PLAN.md — Terminal escape sanitization, D-Bus Secret Service encryption enforcement (SHRD-05, SHRD-06)
 
 ### Phase 26: Tech Debt Resolution
 **Goal**: All dead multi-IdP wiring paths are either connected to the production auth pipeline or removed; JWKS TTL and HTTP timeout are configurable per-issuer; the Entra CI diagnostic is improved; code citations are accurate
@@ -166,7 +170,7 @@ Plans:
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
 | 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
-| 25. Security Hardening | v2.2 | 0/TBD | Not started | - |
+| 25. Security Hardening | v2.2 | 0/2 | Planned | - |
 | 26. Tech Debt Resolution | v2.2 | 0/TBD | Not started | - |
 | 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
 | 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
