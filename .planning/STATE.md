@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: executing
-stopped_at: Completed 27-02-PLAN.md
-last_updated: "2026-03-16T14:00:30.862Z"
+stopped_at: "Completed 27-01-PLAN.md (re-executed: MIDP-09 priority ordering, MIDP-10 health monitoring, MIDP-11 config hot-reload)"
+last_updated: "2026-03-16T14:05:17.518Z"
 last_activity: 2026-03-16 — Plan 27-02 complete (KEY_GENERATED/KEY_LOADED/KEY_DESTROYED audit events on ProtectedSigningKey and HybridPqcSigner)
 progress:
   total_phases: 22
   completed_phases: 16
   total_plans: 50
   completed_plans: 45
-  percent: 88
+  percent: 86
 ---
 
 # Project State
@@ -79,9 +79,12 @@ Progress: [█████████░] 86% (v2.2, Phases 24-28)
 | 27-02 | tracing-test no-env-filter feature required to assert on unix_oidc_audit target events (default filter only captures crate-name target) |
 | 27-02 | Drop impl emits KEY_DESTROYED before ZeroizeOnDrop — thumbprint still accessible in drop body (Rust drops fields after body) |
 | 27-02 | key_id = 8-char thumbprint prefix — sufficient for correlation without fingerprint leakage per security constraint |
+| 27-01 | Health state is file-based (/run/unix-oidc/issuer-health/) — each forked sshd process is ephemeral with no shared memory |
+| 27-01 | Only ValidationError::JwksFetchError counts as health failure — token errors (expired, bad audience) do not degrade issuer |
+| 27-01 | Config hot-reload uses UNIX_OIDC_POLICY env var; stat-based mtime check, no SIGHUP (already decided in Phase 27 planning) |
 
 ## Session Continuity
 
-Last session: 2026-03-16T14:00:30.859Z
-Stopped at: Completed 27-02-PLAN.md
+Last session: 2026-03-16T14:05:17.514Z
+Stopped at: Completed 27-01-PLAN.md (re-executed: MIDP-09 priority ordering, MIDP-10 health monitoring, MIDP-11 config hot-reload)
 Resume file: None

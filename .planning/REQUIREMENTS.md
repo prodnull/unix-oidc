@@ -33,9 +33,9 @@
 
 ### Multi-IdP Advanced
 
-- [ ] **MIDP-09**: IdP priority ordering — issuers tried in configured order
-- [ ] **MIDP-10**: IdP health monitoring — issuer marked degraded if JWKS fetch fails, with recovery
-- [ ] **MIDP-11**: Hot-reload of issuer config without daemon restart
+- [x] **MIDP-09**: IdP priority ordering — issuers tried in configured order
+- [x] **MIDP-10**: IdP health monitoring — issuer marked degraded if JWKS fetch fails, with recovery
+- [x] **MIDP-11**: Hot-reload of issuer config without daemon restart
 
 ### Observability & Compliance
 
@@ -117,9 +117,9 @@
 | DEBT-06 | Phase 26 | Complete |
 | DEBT-07 | Phase 24 | Complete |
 | DEBT-08 | Phase 26 | Complete |
-| MIDP-09 | Phase 27 | Pending |
-| MIDP-10 | Phase 27 | Pending |
-| MIDP-11 | Phase 27 | Pending |
+| MIDP-09 | Phase 27 | Complete |
+| MIDP-10 | Phase 27 | Complete |
+| MIDP-11 | Phase 27 | Complete |
 | OBS-02 | Phase 27 | Pending |
 | OBS-04 | Phase 27 | Complete |
 | OBS-05 | Phase 27 | Complete |
