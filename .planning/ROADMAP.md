@@ -170,7 +170,7 @@ Plans:
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
 | 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
-| 25. Security Hardening | 2/2 | Complete   | 2026-03-16 | - |
+| 25. Security Hardening | 2/2 | Complete    | 2026-03-16 | - |
 | 26. Tech Debt Resolution | v2.2 | 0/TBD | Not started | - |
 | 27. Multi-IdP Advanced + Observability | v2.2 | 0/TBD | Not started | - |
 | 28. Documentation + E2E Test Coverage | v2.2 | 0/TBD | Not started | - |
