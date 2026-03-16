@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: completed
-stopped_at: "Completed 27-06-PLAN.md (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log())"
-last_updated: "2026-03-16T15:05:34.732Z"
+stopped_at: Phase 28 context gathered
+last_updated: "2026-03-16T15:29:48.009Z"
 last_activity: "2026-03-16 — Plan 27-06 complete (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log(); OBS-06/OBS-07)"
 progress:
   total_phases: 22
@@ -94,6 +94,6 @@ Progress: [█████████░] 94% (v2.2, Phases 24-28)
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:00:27.682Z
-Stopped at: Completed 27-06-PLAN.md (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log())
-Resume file: None
+Last session: 2026-03-16T15:29:47.992Z
+Stopped at: Phase 28 context gathered
+Resume file: .planning/phases/28-documentation-e2e-test-coverage/28-CONTEXT.md
