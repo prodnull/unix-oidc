@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: completed
-stopped_at: Completed 28-05-PLAN.md — CIBA FIDO2 E2E test (E2ET-04)
-last_updated: "2026-03-16T17:39:05.674Z"
+stopped_at: Completed 28-06-PLAN.md — E2ET-02 NSS group policy denial gap closure
+last_updated: "2026-03-16T19:38:12.490Z"
 last_activity: "2026-03-16 — Plan 27-06 complete (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log(); OBS-06/OBS-07)"
 progress:
   total_phases: 22
   completed_phases: 18
-  total_plans: 56
-  completed_plans: 53
-  percent: 95
+  total_plans: 57
+  completed_plans: 54
+  percent: 94
 ---
 
 # Project State
@@ -96,6 +96,8 @@ Progress: [█████████░] 94% (v2.2, Phases 24-28)
 | 28-03 | Nonce replay assertion is unit-level: per-process cache makes cross-process replay architecturally impossible; E2E asserts auth_success |
 | 28-03 | || true guard on CI E2E test steps with TODO comment; removes once environment is confirmed passing |
 | 28-03 | testuser2 group policy denial test has TODO comment: requires compose stack configuration before it can assert |
+| 28-06 | testuser2 created with no supplemental groups; missing-user SKIP promoted to FAIL as build invariant (E2ET-02 closed) |
+| 28-06 | policy-break-glass-e2e.yaml volume-mounted at runtime (not baked in image) — policy scenario changes need no Dockerfile rebuild |
 | 28-04 | Session record file presence/absence is the observable artefact for putenv/getenv cross-fork correlation |
 | 28-05 | Keycloak LoA mapping uses short-form keys (phr/phrh) for ACR simulation; token acr claim matches map keys, not OpenID EAP URIs |
 | 28-05 | Concurrent step-up guard documented at unit level (socket.rs handle_step_up()); shell E2E tests Keycloak side only (no running agent daemon in CI) |
@@ -104,6 +106,6 @@ Progress: [█████████░] 94% (v2.2, Phases 24-28)
 
 ## Session Continuity
 
-Last session: 2026-03-16T17:39:05.671Z
-Stopped at: Completed 28-05-PLAN.md — CIBA FIDO2 E2E test (E2ET-04)
+Last session: 2026-03-16T19:38:12.487Z
+Stopped at: Completed 28-06-PLAN.md — E2ET-02 NSS group policy denial gap closure
 Resume file: None
