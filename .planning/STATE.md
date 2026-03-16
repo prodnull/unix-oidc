@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
-status: executing
-stopped_at: "Completed 27-04-PLAN.md (OBS-02 AUTH_NO_TOKEN, OBS-07 OCSF fields on all 14 variants, OBS-08 SESSION_CLOSE_FAILED)"
-last_updated: "2026-03-16T14:19:30.420Z"
+status: completed
+stopped_at: "Completed 27-06-PLAN.md (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log())"
+last_updated: "2026-03-16T15:00:27.685Z"
 last_activity: 2026-03-16 — Plan 27-05 complete (HMAC chain tamper-evidence + unix-oidc-audit-verify binary; OBS-06)
 progress:
   total_phases: 22
   completed_phases: 17
-  total_plans: 50
-  completed_plans: 47
+  total_plans: 51
+  completed_plans: 48
   percent: 94
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 27 of 28 (Multi-IdP Advanced + Observability)
-Plan: 5 of 5 complete (01, 02, 03, 04, 05 — ALL DONE)
+Plan: 6 of 6 complete (01, 02, 03, 04, 05, 06 — ALL DONE)
 Status: Phase complete
-Last activity: 2026-03-16 — Plan 27-05 complete (HMAC chain tamper-evidence + unix-oidc-audit-verify binary; OBS-06)
+Last activity: 2026-03-16 — Plan 27-06 complete (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log(); OBS-06/OBS-07)
 
 Progress: [█████████░] 94% (v2.2, Phases 24-28)
 
@@ -88,9 +88,12 @@ Progress: [█████████░] 94% (v2.2, Phases 24-28)
 | 27-05 | HMAC chain input is "{prev_hash}:{ocsf_enriched_json}" — covers all event fields including OCSF; modifying any field breaks chain |
 | 27-05 | audit_verify strips only prev_hash/chain_hash for recomputation; OCSF fields remain in verifiable payload |
 | 27-05 | Key absent or empty → WARNING log + graceful disable; never hard-failure (backward compatible with unchained deployments) |
+| 27-06 | IssuerDegraded/IssuerRecovered route through AuditEvent::log() for OCSF enrichment and HMAC chain coverage — closes OBS-06/OBS-07 gap |
+| 27-06 | IssuerDegraded syslog severity is Warning; IssuerRecovered is Info — consistent with failure/recovery semantic |
+| 27-06 | ocsf_fields() (99, 4) for IssuerDegraded (High) and (99, 1) for IssuerRecovered (Info) — activity_id 99 = Other |
 
 ## Session Continuity
 
-Last session: 2026-03-16T14:17:50Z
-Stopped at: Completed 27-04-PLAN.md (OBS-02/07/08 — AUTH_NO_TOKEN, OCSF fields, SESSION_CLOSE_FAILED)
+Last session: 2026-03-16T15:00:27.682Z
+Stopped at: Completed 27-06-PLAN.md (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log())
 Resume file: None
