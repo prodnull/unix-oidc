@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: executing
-stopped_at: Completed 27-03-PLAN.md
-last_updated: "2026-03-16T13:54:38.239Z"
-last_activity: "2026-03-16 — Plan 26-02 complete (GroupSource::TokenClaim and effective_issuers() dead code removal)"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-03-16T14:00:30.862Z"
+last_activity: 2026-03-16 — Plan 27-02 complete (KEY_GENERATED/KEY_LOADED/KEY_DESTROYED audit events on ProtectedSigningKey and HybridPqcSigner)
 progress:
   total_phases: 22
   completed_phases: 16
   total_plans: 50
-  completed_plans: 43
-  percent: 3
+  completed_plans: 45
+  percent: 88
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 27 of 28 (Multi-IdP Advanced + Observability)
-Plan: 3 of 5 complete
+Plan: 4 of 5 complete (01, 02, 03, done; 04 and 05 remaining)
 Status: In progress
-Last activity: 2026-03-16 — Plan 27-03 complete (logrotate config + log retention + GDPR erasure guide)
+Last activity: 2026-03-16 — Plan 27-02 complete (KEY_GENERATED/KEY_LOADED/KEY_DESTROYED audit events on ProtectedSigningKey and HybridPqcSigner)
 
 Progress: [█████████░] 86% (v2.2, Phases 24-28)
 
@@ -76,9 +76,12 @@ Progress: [█████████░] 86% (v2.2, Phases 24-28)
 | 27-03 | weekly + rotate 52 as logrotate default satisfies SOC2/PCI-DSS/FedRAMP; HIPAA 6-year override documented as rotate 312 |
 | 27-03 | 0640 root:adm on new log files — audit logs contain username/IP (GDPR Art 4(1) PII); world-readable violates Art 5(1)(e) |
 | 27-03 | GDPR Art 17(3)(b) retention exemption documented — SOC2/PCI-DSS-required audit logs have legal basis to retain |
+| 27-02 | tracing-test no-env-filter feature required to assert on unix_oidc_audit target events (default filter only captures crate-name target) |
+| 27-02 | Drop impl emits KEY_DESTROYED before ZeroizeOnDrop — thumbprint still accessible in drop body (Rust drops fields after body) |
+| 27-02 | key_id = 8-char thumbprint prefix — sufficient for correlation without fingerprint leakage per security constraint |
 
 ## Session Continuity
 
-Last session: 2026-03-16T13:54:38.236Z
-Stopped at: Completed 27-03-PLAN.md
+Last session: 2026-03-16T14:00:30.859Z
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None

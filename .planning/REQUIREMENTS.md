@@ -40,7 +40,7 @@
 ### Observability & Compliance
 
 - [ ] **OBS-02**: No-token authentication attempts produce structured audit events
-- [ ] **OBS-04**: Key lifecycle events (generation, loading, destruction) are structured audit events, not tracing-only
+- [x] **OBS-04**: Key lifecycle events (generation, loading, destruction) are structured audit events, not tracing-only
 - [x] **OBS-05**: Log retention controls and logrotate integration documented and shipped
 - [ ] **OBS-06**: Audit log tamper-evidence via hash chain or HMAC
 - [ ] **OBS-07**: OCSF schema fields in audit events for SIEM interoperability
@@ -121,7 +121,7 @@
 | MIDP-10 | Phase 27 | Pending |
 | MIDP-11 | Phase 27 | Pending |
 | OBS-02 | Phase 27 | Pending |
-| OBS-04 | Phase 27 | Pending |
+| OBS-04 | Phase 27 | Complete |
 | OBS-05 | Phase 27 | Complete |
 | OBS-06 | Phase 27 | Pending |
 | OBS-07 | Phase 27 | Pending |
