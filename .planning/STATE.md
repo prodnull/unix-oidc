@@ -4,8 +4,8 @@ milestone: v2.2
 milestone_name: Hardening & Conformance
 status: completed
 stopped_at: "Completed 27-06-PLAN.md (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log())"
-last_updated: "2026-03-16T15:00:27.685Z"
-last_activity: 2026-03-16 — Plan 27-05 complete (HMAC chain tamper-evidence + unix-oidc-audit-verify binary; OBS-06)
+last_updated: "2026-03-16T15:05:34.732Z"
+last_activity: "2026-03-16 — Plan 27-06 complete (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log(); OBS-06/OBS-07)"
 progress:
   total_phases: 22
   completed_phases: 17
