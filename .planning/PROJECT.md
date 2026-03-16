@@ -35,22 +35,23 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 - ✓ Full SSH E2E test chain with real JWKS verification — v2.1
 - ✓ keycloak-e2e CI job with Playwright device flow automation — v2.1
 
+- ✓ Security bug fixes (source_ip forensic attribution, break-glass alert wiring, optional preferred_username) — v2.2
+- ✓ Algorithm allowlist with per-issuer config, HTTPS enforcement, terminal escape sanitization, D-Bus encryption probe — v2.2
+- ✓ Tech debt elimination (dead code removal, per-issuer JWKS config, lint foundation, NIST citation update) — v2.2
+- ✓ IdP priority ordering, health monitoring with quarantine/recovery, stat-based config hot-reload — v2.2
+- ✓ OCSF 1.3.0 enriched audit events (16 variants), HMAC tamper-evidence chain, audit-verify CLI — v2.2
+- ✓ Key lifecycle audit events (DPoP + ML-DSA-65+ES256), no-token/session-close audit events — v2.2
+- ✓ Standards compliance matrix, identity rationalization guide, JTI cache architecture doc — v2.2
+- ✓ Automated E2E: DPoP nonce, break-glass, session lifecycle, systemd/launchd, CIBA FIDO2 ACR — v2.2
+- ✓ Log retention compliance (logrotate), GDPR Article 17 erasure guide — v2.2
+
 ### Active
 
-See `.planning/REQUIREMENTS.md` for v2.2 requirements.
+See `.planning/REQUIREMENTS.md` for current milestone requirements (created by `/gsd:new-milestone`).
 
-## Current Milestone: v2.2 Hardening & Conformance
+## Current Milestone: Planning Next
 
-**Goal:** Every security audit finding fixed, all tech debt resolved, full observability coverage, standards conformance documented, and automated E2E coverage for every human-verification gap — making unix-oidc audit-ready and production-bulletproof.
-
-**Target features:**
-- Security audit bug fixes (source_ip/issuer swap, dead break-glass config, optional preferred_username)
-- Security hardening (algorithm allowlist, terminal escape sanitization, D-Bus transport hardening, HTTPS issuer validation)
-- Tech debt elimination (lint violations, dead code, hardcoded config values)
-- Multi-IdP advanced features (priority ordering, health monitoring, hot-reload)
-- Observability & compliance (no-token audit, key lifecycle events, log retention, tamper-evidence, OCSF schema)
-- Documentation (standards compliance matrix, identity rationalization guide, JTI architecture docs)
-- E2E test coverage for all prior human-verification gaps
+v2.2 shipped. Next milestone TBD — run `/gsd:new-milestone` to start v3.0.
 
 ## Future Milestones
 
@@ -71,13 +72,13 @@ Live integration tests for Okta (IDPX-01), Auth0 (IDPX-02), Google Cloud Identit
 
 ## Context
 
-- **Codebase**: ~7,800 LOC Rust (unix-oidc-agent), PAM module in separate crate
+- **Codebase**: ~32,000 LOC Rust across pam-unix-oidc + unix-oidc-agent crates
 - **Tech stack**: Rust 1.88, p256 0.13, keyring 3.6.3, cryptoki 0.7 (yubikey), tss-esapi 7.6 (tpm), tokio, tracing
 - **Storage**: Three-tier fallback — Secret Service/Keychain → keyutils @u → file (0600)
 - **Signers**: Three backends via DPoPSigner trait — SoftwareSigner (default), YubiKeySigner (--features yubikey), TpmSigner (--features tpm)
-- **Security**: Core dumps disabled, key pages mlock'd, tokens in SecretString, secure delete with CoW/SSD advisories
-- **Test infrastructure**: Keycloak 26.4 E2E compose stack, Playwright device flow automation, Entra secrets-gated CI
-- **Shipped milestones**: v1.0 (key protection), v2.0 (production hardening), v2.1 (integration testing)
+- **Security**: Core dumps disabled, key pages mlock'd, tokens in SecretString, secure delete (NIST SP 800-88), OCSF audit events with HMAC chain
+- **Test infrastructure**: Keycloak E2E compose stack, Playwright device flow automation, Entra secrets-gated CI, 5 automated E2E suites, 410+ unit tests
+- **Shipped milestones**: v1.0 (key protection), v2.0 (production hardening), v2.1 (integration testing), v2.2 (hardening & conformance)
 
 ## Key Decisions
 
@@ -92,6 +93,10 @@ Live integration tests for Okta (IDPX-01), Auth0 (IDPX-02), Google Cloud Identit
 | Box-only ProtectedSigningKey constructors | Prevents stack copies of key material | ✓ Good — compile-time enforcement |
 | Groups resolved from SSSD/NSS, not token claims | FreeIPA is Unix realm authority; avoids Entra overage/GUID issues | ✓ Good — v2.0 Phase 8 |
 | Multi-IdP via issuers[] array, not federation | Each issuer independently configured; no cross-IdP trust assumptions | ✓ Good — v2.1 Phase 21 |
+| Algorithm allowlist (not blocklist) with per-issuer config | Positive security model; prevents HS256-with-RSA-key confusion | ✓ Good — v2.2 Phase 25 |
+| Stat-based config hot-reload, no SIGHUP | PAM in sshd process space; SIGHUP restarts sshd | ✓ Good — v2.2 Phase 27 |
+| HMAC chain over OCSF-enriched JSON | Composition: bare event → OCSF → HMAC; tamper-evidence for compliance | ✓ Good — v2.2 Phase 27 |
+| GroupSource::TokenClaim removed as dead code | SSSD-only confirmed; dead code in security path is risk | ✓ Good — v2.2 Phase 26 |
 
 ## Constraints
 
@@ -101,4 +106,4 @@ Live integration tests for Okta (IDPX-01), Auth0 (IDPX-02), Google Cloud Identit
 - **Hardware**: YubiKey requires pcscd; TPM requires tpm2-abrmd; both Linux-only for TPM
 
 ---
-*Last updated: 2026-03-14 after v2.2 milestone start*
+*Last updated: 2026-03-16 after v2.2 milestone complete*

@@ -1,5 +1,14 @@
 # Milestones
 
+## v2.2 Hardening & Conformance (Shipped: 2026-03-16)
+
+**Phases completed:** 21 phases, 57 plans, 29 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v2.1 Integration Testing Infrastructure (Shipped: 2026-03-14)
 
 **Phases completed:** 6 phases (18-23), 8 plans

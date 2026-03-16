@@ -4,7 +4,7 @@ milestone: v2.2
 milestone_name: Hardening & Conformance
 status: completed
 stopped_at: Completed 28-06-PLAN.md — E2ET-02 NSS group policy denial gap closure
-last_updated: "2026-03-16T20:49:10.432Z"
+last_updated: "2026-03-16T21:04:32.643Z"
 last_activity: "2026-03-16 — Plan 27-06 complete (gap closure: ISSUER_DEGRADED/ISSUER_RECOVERED via AuditEvent::log(); OBS-06/OBS-07)"
 progress:
   total_phases: 22
