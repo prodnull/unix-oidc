@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: executing
-stopped_at: Phase 27 context gathered
-last_updated: "2026-03-16T04:03:58.315Z"
+stopped_at: Completed 27-03-PLAN.md
+last_updated: "2026-03-16T13:54:38.239Z"
 last_activity: "2026-03-16 — Plan 26-02 complete (GroupSource::TokenClaim and effective_issuers() dead code removal)"
 progress:
   total_phases: 22
   completed_phases: 16
-  total_plans: 45
-  completed_plans: 42
+  total_plans: 50
+  completed_plans: 43
   percent: 3
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** DPoP private keys must be protected at rest, in memory, and on deletion
-**Current focus:** v2.2 Phase 26 — Tech Debt Resolution
+**Current focus:** v2.2 Phase 27 — Multi-IdP Advanced + Observability
 
 ## Current Position
 
-Phase: 26 of 28 (Tech Debt Resolution)
-Plan: 3 of 3
+Phase: 27 of 28 (Multi-IdP Advanced + Observability)
+Plan: 3 of 5 complete
 Status: In progress
-Last activity: 2026-03-16 — Plan 26-02 complete (GroupSource::TokenClaim and effective_issuers() dead code removal)
+Last activity: 2026-03-16 — Plan 27-03 complete (logrotate config + log retention + GDPR erasure guide)
 
-Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
+Progress: [█████████░] 86% (v2.2, Phases 24-28)
 
 ## Accumulated Context
 
@@ -73,9 +73,12 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 26-01 | required_acr added to AcrMappingConfig (not IssuerConfig) to keep ACR config co-located |
 | 26-01 | JWKS defaults 300s/10s preserved via serde default functions for backward compatibility |
 | 26-02 | GroupMappingConfig.claim field retained for forward compat; effective_issuers() removed entirely including OIDC_ISSUER legacy path |
+| 27-03 | weekly + rotate 52 as logrotate default satisfies SOC2/PCI-DSS/FedRAMP; HIPAA 6-year override documented as rotate 312 |
+| 27-03 | 0640 root:adm on new log files — audit logs contain username/IP (GDPR Art 4(1) PII); world-readable violates Art 5(1)(e) |
+| 27-03 | GDPR Art 17(3)(b) retention exemption documented — SOC2/PCI-DSS-required audit logs have legal basis to retain |
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:03:58.311Z
-Stopped at: Phase 27 context gathered
-Resume file: .planning/phases/27-multi-idp-advanced-observability/27-CONTEXT.md
+Last session: 2026-03-16T13:54:38.236Z
+Stopped at: Completed 27-03-PLAN.md
+Resume file: None
