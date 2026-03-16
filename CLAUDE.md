@@ -195,8 +195,9 @@ These invariants apply to the client-side agent daemon, where DPoP private keys 
 
 #### On-disk protection
 
-7. **File deletion uses three-pass DoD 5220.22-M overwrite** (MEM-05)
+7. **File deletion uses three-pass overwrite per NIST SP 800-88 Rev 1 SS2.4** (MEM-05)
    - Pass 1: random bytes + `sync_all()`. Pass 2: complement (XOR 0xFF) + `sync_all()`. Pass 3: new random bytes + `sync_all()`. Then `unlink`.
+   - Originally inspired by DoD 5220.22-M (retired by DoD in 2006). Current implementation follows NIST SP 800-88 Rev 1 SS2.4 (Clear method) as the authoritative media sanitization guidance.
    - Overwrite failures are best-effort: log at WARN, still unlink.
    - See `unix-oidc-agent/src/storage/secure_delete.rs`.
 
