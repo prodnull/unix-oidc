@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 Phase: 26 of 28 (Tech Debt Resolution)
 Plan: 3 of 3
 Status: In progress
-Last activity: 2026-03-16 — Plan 26-03 complete (Entra CA diagnostic, NIST SP 800-88 citation update)
+Last activity: 2026-03-16 — Plan 26-01 complete (ACR enforcement wiring, per-issuer JWKS config)
 
 Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
@@ -70,9 +70,11 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 25-01 | SHRD-03 verified by existing Phase 24 tests — regression guard documentation added, no duplicate tests |
 | 26-03 | Bash source guard pattern (_ENTRA_TOKEN_SOURCED=1) enables function-level testing without executing main script body |
 | 26-03 | curl -s (not -sf) to capture error response body for Conditional Access diagnostic parsing |
+| 26-01 | required_acr added to AcrMappingConfig (not IssuerConfig) to keep ACR config co-located |
+| 26-01 | JWKS defaults 300s/10s preserved via serde default functions for backward compatibility |
 
 ## Session Continuity
 
-Last session: 2026-03-16T03:42:30Z
-Stopped at: Completed 26-03-PLAN.md
+Last session: 2026-03-16T03:43:00Z
+Stopped at: Completed 26-01-PLAN.md
 Resume file: .planning/phases/26-tech-debt-resolution/26-CONTEXT.md
