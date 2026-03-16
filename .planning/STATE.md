@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Hardening & Conformance
 status: executing
-stopped_at: Phase 26 context gathered
-last_updated: "2026-03-16T02:40:39.151Z"
-last_activity: 2026-03-16 — Plan 25-01 complete (algorithm allowlist, HTTPS enforcement, break-glass severity verification)
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-03-16T03:51:38.601Z"
+last_activity: "2026-03-16 — Plan 26-02 complete (GroupSource::TokenClaim and effective_issuers() dead code removal)"
 progress:
   total_phases: 22
-  completed_phases: 15
-  total_plans: 42
-  completed_plans: 39
+  completed_phases: 16
+  total_plans: 45
+  completed_plans: 42
   percent: 3
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 Phase: 26 of 28 (Tech Debt Resolution)
 Plan: 3 of 3
 Status: In progress
-Last activity: 2026-03-16 — Plan 26-01 complete (ACR enforcement wiring, per-issuer JWKS config)
+Last activity: 2026-03-16 — Plan 26-02 complete (GroupSource::TokenClaim and effective_issuers() dead code removal)
 
 Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
@@ -72,9 +72,10 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 26-03 | curl -s (not -sf) to capture error response body for Conditional Access diagnostic parsing |
 | 26-01 | required_acr added to AcrMappingConfig (not IssuerConfig) to keep ACR config co-located |
 | 26-01 | JWKS defaults 300s/10s preserved via serde default functions for backward compatibility |
+| 26-02 | GroupMappingConfig.claim field retained for forward compat; effective_issuers() removed entirely including OIDC_ISSUER legacy path |
 
 ## Session Continuity
 
-Last session: 2026-03-16T03:43:00Z
-Stopped at: Completed 26-01-PLAN.md
+Last session: 2026-03-16T03:50:34Z
+Stopped at: Completed 26-02-PLAN.md
 Resume file: .planning/phases/26-tech-debt-resolution/26-CONTEXT.md

@@ -24,8 +24,8 @@
 
 - [x] **DEBT-01**: All `unwrap_used`/`expect_used` lint violations fixed across pam-unix-oidc (audit.rs, ciba/client.rs, ciba/types.rs, device_flow/client.rs, approval/provider.rs, sudo.rs) — token-exchange CI job unblocked
 - [x] **DEBT-02**: ACR mapping enforcement wired in multi-issuer auth path (currently `required_acr: None`)
-- [ ] **DEBT-03**: `GroupSource::TokenClaim` path exercised in auth pipeline or dead code removed
-- [ ] **DEBT-04**: `effective_issuers()` backward-compat function wired into production dispatch or removed
+- [x] **DEBT-03**: `GroupSource::TokenClaim` path exercised in auth pipeline or dead code removed
+- [x] **DEBT-04**: `effective_issuers()` backward-compat function wired into production dispatch or removed
 - [x] **DEBT-05**: JWKS TTL and HTTP timeout configurable per-issuer (currently hardcoded 300s/10s)
 - [x] **DEBT-06**: Entra CI ROPC token step has fallback diagnostic if Conditional Access blocks ROPC
 - [x] **DEBT-07**: Minor v2.0 residuals cleaned up (socket.rs unwrap, clippy test annotations)
@@ -111,8 +111,8 @@
 | SHRD-06 | Phase 25 | Complete |
 | DEBT-01 | Phase 24 | Complete |
 | DEBT-02 | Phase 26 | Complete |
-| DEBT-03 | Phase 26 | Pending |
-| DEBT-04 | Phase 26 | Pending |
+| DEBT-03 | Phase 26 | Complete |
+| DEBT-04 | Phase 26 | Complete |
 | DEBT-05 | Phase 26 | Complete |
 | DEBT-06 | Phase 26 | Complete |
 | DEBT-07 | Phase 24 | Complete |
