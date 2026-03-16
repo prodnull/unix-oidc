@@ -153,7 +153,7 @@ Plans:
   6. PAM putenv/getenv session ID correlation, SessionClosed IPC roundtrip, and auto-refresh all run in a single automated E2E test without human verification
   7. CIBA flow runs automated against a real IdP with FIDO2 ACR delegation confirmed and concurrent step-up guard verified
   8. systemd socket activation and launchd install/uninstall run automated with JSON log format under journald confirmed and graceful shutdown verified
-**Plans**: 5 plans
+**Plans**: 6 plans (5 original + 1 gap closure)
 
 Plans:
 - [ ] 28-01-PLAN.md — Standards compliance matrix v2.2 update (DOC-01) + JTI cache architecture doc (DOC-03)
@@ -161,6 +161,7 @@ Plans:
 - [ ] 28-03-PLAN.md — DPoP nonce two-round SSH E2E (E2ET-01) + break-glass + NSS group policy denial E2E (E2ET-02)
 - [ ] 28-04-PLAN.md — Session lifecycle E2E: putenv/getenv + SessionClosed IPC + auto-refresh (E2ET-03); systemd socket + journald + launchd E2E (E2ET-05)
 - [ ] 28-05-PLAN.md — CIBA full flow + FIDO2 ACR delegation + concurrent step-up guard E2E (E2ET-04)
+- [ ] 28-06-PLAN.md — Gap closure: testuser2 + unix_oidc_users group + policy fixture to activate E2ET-02 Test 2 NSS denial assertion (E2ET-02)
 
 ## Progress
 
