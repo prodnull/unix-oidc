@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 Phase: 25 of 28 (Security Hardening)
 Plan: 2 of 3
 Status: In progress
-Last activity: 2026-03-16 — Plan 25-02 complete (terminal sanitization, D-Bus encryption enforcement)
+Last activity: 2026-03-16 — Plan 25-01 complete (algorithm allowlist, HTTPS enforcement, break-glass severity verification)
 
 Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 
@@ -64,9 +64,13 @@ Progress: [█░░░░░░░░░] 3% (v2.2, Phases 24-28)
 | 25-02 | Terminal sanitization strips-and-displays rather than rejecting URIs (graceful degradation) |
 | 25-02 | D-Bus encryption enforcement uses env var UNIX_OIDC_REJECT_PLAIN_DBUS (matches existing UNIX_OIDC_ pattern) |
 | 25-02 | D-Bus probe returns Unknown on non-Linux; zbus/oo7 actual probe deferred as architectural decision |
+| 25-01 | Standalone function key_algorithm_to_algorithm() instead of TryFrom due to orphan rule (external types) |
+| 25-01 | Allowlist DEFAULT_ALLOWED_ALGORITHMS replaces blocklist — fails safe when new algorithms added to crate |
+| 25-01 | HTTPS enforcement at config load time via validate_https_url() shared between config and device_flow |
+| 25-01 | SHRD-03 verified by existing Phase 24 tests — regression guard documentation added, no duplicate tests |
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:12:37Z
-Stopped at: Plan 25-02 complete (terminal sanitization + D-Bus encryption enforcement)
-Resume file: .planning/phases/25-phase-25-security-hardening/25-02-SUMMARY.md
+Last session: 2026-03-16T02:17:38Z
+Stopped at: Plan 25-01 complete (algorithm allowlist, HTTPS enforcement, SHRD-03 verification)
+Resume file: .planning/phases/25-phase-25-security-hardening/25-01-SUMMARY.md
