@@ -6,6 +6,7 @@
 - ✅ **v2.0 Production Hardening & Enterprise Readiness** — Phases 6-17 (shipped 2026-03-13)
 - ✅ **v2.1 Integration Testing Infrastructure** — Phases 18-23 (shipped 2026-03-13)
 - ✅ **v2.2 Hardening & Conformance** — Phases 24-28 (shipped 2026-03-16)
+- 🚧 **v3.0 External IdP Integration & PoP Landscape** — Phases 29-32 (in progress)
 
 ## Phases
 
@@ -69,7 +70,84 @@ Full details: `.planning/milestones/v2.2-ROADMAP.md`
 
 </details>
 
+### 🚧 v3.0 External IdP Integration & PoP Landscape (In Progress)
+
+**Milestone Goal:** Validate unix-oidc works end-to-end against real commercial IdPs (Entra ID, Auth0) and document the DPoP/PoP deployment landscape for enterprise adopters.
+
+- [ ] **Phase 29: Keycloak DPoP Verification** - Explicitly verify DPoP-bound token issuance on device flow in existing CI, establishing the reference PoP implementation
+- [ ] **Phase 30: Entra ID Live E2E** - Live end-to-end authentication against Azure Entra ID with secrets-gated CI
+- [ ] **Phase 31: Auth0 Live E2E** - Live end-to-end authentication against Auth0 with secrets-gated CI
+- [ ] **Phase 32: PoP Landscape Documentation** - Synthesize integration findings into operator-facing PoP landscape docs
+
+## Phase Details
+
+### Phase 29: Keycloak DPoP Verification
+**Goal**: The existing Keycloak CI infrastructure explicitly proves that DPoP-bound tokens (cnf claim present) are issued via device flow and validate correctly through the PAM module, establishing the reference PoP implementation before testing commercial IdPs
+**Depends on**: Phase 28 (v2.2 complete)
+**Requirements**: KCDPOP-01, KCDPOP-02, KCDPOP-03
+**Success Criteria** (what must be TRUE):
+  1. The keycloak-e2e CI job asserts that the device-flow-acquired token carries a `cnf.jkt` claim — the assertion fails the job if the claim is absent
+  2. An explicit integration test sends a Keycloak device-flow-issued DPoP-bound token through the PAM validation path and verifies successful authentication with the `cnf` binding confirmed in the audit log
+  3. The Keycloak DPoP + Device Auth Grant configuration is documented as the reference implementation for full proof-of-possession, including the specific Keycloak realm settings required
+**Plans**: TBD
+
+Plans:
+- [ ] 29-01: Assert cnf.jkt presence in keycloak-e2e CI job + explicit DPoP binding integration test (KCDPOP-01, KCDPOP-02)
+- [ ] 29-02: Keycloak DPoP reference implementation documentation (KCDPOP-03)
+
+### Phase 30: Entra ID Live E2E
+**Goal**: A developer can authenticate to a Linux server via Azure Entra ID — completing the Device Authorization Grant flow, having the PAM module validate the RS256 token via live JWKS, and mapping UPN to a Unix username — with the full chain gated in CI
+**Depends on**: Phase 29
+**Requirements**: ENTRA-01, ENTRA-02, ENTRA-03, ENTRA-04, ENTRA-05, ENTRA-06, ENTRA-07, ENTRA-08
+**Success Criteria** (what must be TRUE):
+  1. A test user completes Device Authorization Grant against a live Entra tenant; the acquired token carries an RS256 signature verifiable against the Entra JWKS endpoint
+  2. SSH authentication succeeds with the Entra-issued token; the PAM module maps `preferred_username` (UPN format) to the correct local Unix username via strip-domain config
+  3. A token whose `uti` claim is present but `jti` is absent triggers a warn-and-allow log entry; authentication is not rejected
+  4. Both Entra v1.0 (`https://sts.windows.net/{tid}/`) and v2.0 (`https://login.microsoftonline.com/{tid}/v2.0`) issuer URL formats load and validate correctly in config
+  5. The secrets-gated `entra-e2e` CI job runs on push to main, skips cleanly when secrets are absent, and a negative test confirms tokens from a different tenant are rejected
+**Plans**: TBD
+
+Plans:
+- [ ] 30-01: Entra tenant setup guide — app registration, API permissions, device flow enablement, test user (ENTRA-08)
+- [ ] 30-02: Live Entra integration test suite — device flow, RS256 validation, UPN mapping, uti warn-and-allow, v1/v2 issuer formats (ENTRA-01, ENTRA-02, ENTRA-03, ENTRA-04, ENTRA-05, ENTRA-07)
+- [ ] 30-03: Secrets-gated entra-e2e CI job — skip-if-absent logic, negative tenant test (ENTRA-06, ENTRA-07)
+
+### Phase 31: Auth0 Live E2E
+**Goal**: A developer can authenticate to a Linux server via Auth0 — completing Device Authorization Grant, having the PAM module validate the token via live JWKS, and mapping Auth0 namespaced custom claims to Unix identity — with bearer-only mode confirmed and the full chain gated in CI
+**Depends on**: Phase 29
+**Requirements**: AUTH0-01, AUTH0-02, AUTH0-03, AUTH0-04, AUTH0-05, AUTH0-06, AUTH0-07
+**Success Criteria** (what must be TRUE):
+  1. A test user completes Device Authorization Grant against a live Auth0 tenant; the acquired token validates against the Auth0 JWKS endpoint
+  2. SSH authentication succeeds with the Auth0-issued token; namespaced custom claims (e.g., `https://example.com/username`) are mapped to the correct local Unix username
+  3. Bearer-only operation works with `dpop_required = false` in the Auth0 issuer config; no DPoP-related errors appear in the PAM log for a successful authentication
+  4. The secrets-gated `auth0-e2e` CI job runs on push to main, skips cleanly when secrets are absent, and a negative test confirms tokens from a different Auth0 tenant are rejected
+**Plans**: TBD
+
+Plans:
+- [ ] 31-01: Auth0 tenant setup guide — application config, API creation, device flow enablement, custom claim namespace (AUTH0-07)
+- [ ] 31-02: Live Auth0 integration test suite — device flow, JWKS validation, namespaced claim mapping, bearer-only mode (AUTH0-01, AUTH0-02, AUTH0-03, AUTH0-04, AUTH0-06)
+- [ ] 31-03: Secrets-gated auth0-e2e CI job — skip-if-absent logic, negative tenant test (AUTH0-05, AUTH0-06)
+
+### Phase 32: PoP Landscape Documentation
+**Goal**: An enterprise operator evaluating unix-oidc has a complete picture of the DPoP/PoP landscape — which commercial IdPs support what, three deployment patterns from bearer-only to full DPoP, a Token Exchange bridge architecture for IdPs without native DPoP support, and a provider quirks guide for day-two operations
+**Depends on**: Phase 30, Phase 31
+**Requirements**: DOC-01, DOC-02, DOC-03
+**Success Criteria** (what must be TRUE):
+  1. The PoP landscape document includes a provider matrix (Keycloak, Entra, Auth0, Okta, Google) with DPoP support status, device flow compatibility, and recommended deployment pattern for each
+  2. The Token Exchange (RFC 8693) bridge reference architecture document describes a concrete Keycloak-as-STS topology that enables DPoP for commercial IdPs lacking native device-flow DPoP, with a sequence diagram and configuration example
+  3. The provider quirks guide covers Entra, Auth0, and Keycloak with operator-facing callouts for claim differences, issuer URL formats, and configuration gotchas discovered during v3.0 integration work
+**Plans**: TBD
+
+Plans:
+- [ ] 32-01: PoP landscape document — provider matrix, three deployment patterns (DOC-01)
+- [ ] 32-02: Token Exchange RFC 8693 bridge reference architecture (DOC-02)
+- [ ] 32-03: Provider quirks guide — Entra, Auth0, Keycloak day-two operations (DOC-03)
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 29 → 30 → 31 → 32
+Note: Phase 30 (Entra) and Phase 31 (Auth0) both depend only on Phase 29 and may execute in parallel if desired.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -96,11 +174,15 @@ Full details: `.planning/milestones/v2.2-ROADMAP.md`
 | 21. Multi-IdP Configuration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 22. Entra ID Integration | v2.1 | 3/3 | Complete | 2026-03-13 |
 | 23. Integration Gap Fixes | v2.1 | 1/1 | Complete | 2026-03-14 |
-| 24. Security Bug Fixes + Lint Foundation | 2/2 | Complete    | 2026-03-14 | - |
-| 25. Security Hardening | 2/2 | Complete    | 2026-03-16 | - |
-| 26. Tech Debt Resolution | 3/3 | Complete    | 2026-03-16 | - |
-| 27. Multi-IdP Advanced + Observability | 6/6 | Complete    | 2026-03-16 | - |
-| 28. Documentation + E2E Test Coverage | 6/6 | Complete    | 2026-03-16 | - |
+| 24. Security Bug Fixes + Lint Foundation | v2.2 | 2/2 | Complete | 2026-03-14 |
+| 25. Security Hardening | v2.2 | 2/2 | Complete | 2026-03-16 |
+| 26. Tech Debt Resolution | v2.2 | 3/3 | Complete | 2026-03-16 |
+| 27. Multi-IdP Advanced + Observability | v2.2 | 6/6 | Complete | 2026-03-16 |
+| 28. Documentation + E2E Test Coverage | v2.2 | 6/6 | Complete | 2026-03-16 |
+| 29. Keycloak DPoP Verification | v3.0 | 0/2 | Not started | - |
+| 30. Entra ID Live E2E | v3.0 | 0/3 | Not started | - |
+| 31. Auth0 Live E2E | v3.0 | 0/3 | Not started | - |
+| 32. PoP Landscape Documentation | v3.0 | 0/3 | Not started | - |
 
 ---
 

@@ -65,33 +65,33 @@ Requirements for External IdP Integration & PoP Landscape milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENTRA-01 | — | Pending |
-| ENTRA-02 | — | Pending |
-| ENTRA-03 | — | Pending |
-| ENTRA-04 | — | Pending |
-| ENTRA-05 | — | Pending |
-| ENTRA-06 | — | Pending |
-| ENTRA-07 | — | Pending |
-| ENTRA-08 | — | Pending |
-| AUTH0-01 | — | Pending |
-| AUTH0-02 | — | Pending |
-| AUTH0-03 | — | Pending |
-| AUTH0-04 | — | Pending |
-| AUTH0-05 | — | Pending |
-| AUTH0-06 | — | Pending |
-| AUTH0-07 | — | Pending |
-| KCDPOP-01 | — | Pending |
-| KCDPOP-02 | — | Pending |
-| KCDPOP-03 | — | Pending |
-| DOC-01 | — | Pending |
-| DOC-02 | — | Pending |
-| DOC-03 | — | Pending |
+| KCDPOP-01 | Phase 29 | Pending |
+| KCDPOP-02 | Phase 29 | Pending |
+| KCDPOP-03 | Phase 29 | Pending |
+| ENTRA-01 | Phase 30 | Pending |
+| ENTRA-02 | Phase 30 | Pending |
+| ENTRA-03 | Phase 30 | Pending |
+| ENTRA-04 | Phase 30 | Pending |
+| ENTRA-05 | Phase 30 | Pending |
+| ENTRA-06 | Phase 30 | Pending |
+| ENTRA-07 | Phase 30 | Pending |
+| ENTRA-08 | Phase 30 | Pending |
+| AUTH0-01 | Phase 31 | Pending |
+| AUTH0-02 | Phase 31 | Pending |
+| AUTH0-03 | Phase 31 | Pending |
+| AUTH0-04 | Phase 31 | Pending |
+| AUTH0-05 | Phase 31 | Pending |
+| AUTH0-06 | Phase 31 | Pending |
+| AUTH0-07 | Phase 31 | Pending |
+| DOC-01 | Phase 32 | Pending |
+| DOC-02 | Phase 32 | Pending |
+| DOC-03 | Phase 32 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21 ⚠️
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation*
