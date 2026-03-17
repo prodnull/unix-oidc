@@ -49,19 +49,28 @@ DPoP private keys must be protected at rest, in memory, and on deletion — beca
 
 See `.planning/REQUIREMENTS.md` for current milestone requirements (created by `/gsd:new-milestone`).
 
-## Current Milestone: Planning Next
+## Current Milestone: v3.0 External IdP Integration & PoP Landscape
 
-v2.2 shipped. Next milestone TBD — run `/gsd:new-milestone` to start v3.0.
+**Goal:** Validate unix-oidc works end-to-end against real commercial IdPs (Entra ID, Auth0) and document the DPoP/PoP deployment landscape for enterprise adopters.
+
+**Target features:**
+- Live Entra ID E2E: Device Auth Grant → agent daemon → PAM validation (bearer-only, RS256, UPN mapping)
+- Live Auth0 E2E: Device Auth Grant → agent daemon → PAM validation (bearer-only, claim mapping)
+- Keycloak DPoP + Device Grant verification: explicit proof that DPoP-bound tokens work on device flow
+- PoP landscape documentation: deployment patterns, provider matrix, Token Exchange bridge reference architecture
+- CI integration: secrets-gated jobs for Entra and Auth0, runnable locally with env vars
+
+See `.planning/REQUIREMENTS.md` for current milestone requirements.
 
 ## Future Milestones
 
-### v3.0 Capabilities
+### v3.1 Capabilities
 
 New product features: SCIM provisioning, AI Agent Delegation (RFC 8693), hardware key attestation, centralized audit log shipping, pentest automation suite, FIPS crypto prep, PAM binary signing, push notification / FIDO2 step-up, break-glass with offline YubiKey OTP, blocking HTTP offload to agent daemon.
 
-### v3.1 External IdP Integration Testing
+### v3.2 Additional IdP Integration Testing
 
-Live integration tests for Okta (IDPX-01), Auth0 (IDPX-02), Google Cloud Identity (IDPX-03).
+Live integration tests for Okta, Google Cloud Identity.
 
 ### Out of Scope
 
@@ -106,4 +115,4 @@ Live integration tests for Okta (IDPX-01), Auth0 (IDPX-02), Google Cloud Identit
 - **Hardware**: YubiKey requires pcscd; TPM requires tpm2-abrmd; both Linux-only for TPM
 
 ---
-*Last updated: 2026-03-16 after v2.2 milestone complete*
+*Last updated: 2026-03-16 after v3.0 milestone started*
