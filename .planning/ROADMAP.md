@@ -89,7 +89,7 @@ Full details: `.planning/milestones/v2.2-ROADMAP.md`
   1. The keycloak-e2e CI job asserts that the device-flow-acquired token carries a `cnf.jkt` claim — the assertion fails the job if the claim is absent
   2. An explicit integration test sends a Keycloak device-flow-issued DPoP-bound token through the PAM validation path and verifies successful authentication with the `cnf` binding confirmed in the audit log
   3. The Keycloak DPoP + Device Auth Grant configuration is documented as the reference implementation for full proof-of-possession, including the specific Keycloak realm settings required
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 29-01: Assert cnf.jkt presence in keycloak-e2e CI job + explicit DPoP binding integration test (KCDPOP-01, KCDPOP-02)
@@ -105,7 +105,7 @@ Plans:
   3. A token whose `uti` claim is present but `jti` is absent triggers a warn-and-allow log entry; authentication is not rejected
   4. Both Entra v1.0 (`https://sts.windows.net/{tid}/`) and v2.0 (`https://login.microsoftonline.com/{tid}/v2.0`) issuer URL formats load and validate correctly in config
   5. The secrets-gated `entra-e2e` CI job runs on push to main, skips cleanly when secrets are absent, and a negative test confirms tokens from a different tenant are rejected
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 30-01: Entra tenant setup guide — app registration, API permissions, device flow enablement, test user (ENTRA-08)
@@ -121,7 +121,7 @@ Plans:
   2. SSH authentication succeeds with the Auth0-issued token; namespaced custom claims (e.g., `https://example.com/username`) are mapped to the correct local Unix username
   3. Bearer-only operation works with `dpop_required = false` in the Auth0 issuer config; no DPoP-related errors appear in the PAM log for a successful authentication
   4. The secrets-gated `auth0-e2e` CI job runs on push to main, skips cleanly when secrets are absent, and a negative test confirms tokens from a different Auth0 tenant are rejected
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 31-01: Auth0 tenant setup guide — application config, API creation, device flow enablement, custom claim namespace (AUTH0-07)
@@ -136,7 +136,7 @@ Plans:
   1. The PoP landscape document includes a provider matrix (Keycloak, Entra, Auth0, Okta, Google) with DPoP support status, device flow compatibility, and recommended deployment pattern for each
   2. The Token Exchange (RFC 8693) bridge reference architecture document describes a concrete Keycloak-as-STS topology that enables DPoP for commercial IdPs lacking native device-flow DPoP, with a sequence diagram and configuration example
   3. The provider quirks guide covers Entra, Auth0, and Keycloak with operator-facing callouts for claim differences, issuer URL formats, and configuration gotchas discovered during v3.0 integration work
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 32-01: PoP landscape document — provider matrix, three deployment patterns (DOC-01)
