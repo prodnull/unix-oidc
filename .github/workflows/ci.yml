@@ -143,7 +143,7 @@ jobs:
 
       - name: Upload build artifact (Linux)
         if: matrix.build_pam == true
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: unix-oidc-${{ matrix.name }}
           path: |
@@ -153,7 +153,7 @@ jobs:
 
       - name: Upload build artifact (macOS)
         if: matrix.build_pam == false
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: unix-oidc-${{ matrix.name }}
           path: |
@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: integration-logs
           path: integration-logs.txt
@@ -348,7 +348,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download release artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: unix-oidc-ubuntu-24.04
           path: target/release-linux
@@ -711,7 +711,7 @@ jobs:
           }
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: lcov.info
           fail_ci_if_error: false
@@ -747,7 +747,7 @@ jobs:
         run: cargo sbom --output-format spdx_json_2_3 > sbom-spdx.json
 
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: |
@@ -804,13 +804,13 @@ jobs:
           key: ${{ runner.os }}-dpop-rust-${{ hashFiles('dpop-cross-language-tests/rust-test/Cargo.lock') }}
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.21'
           cache-dependency-path: dpop-cross-language-tests/go-test/go.sum
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
