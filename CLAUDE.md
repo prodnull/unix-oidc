@@ -580,11 +580,12 @@ This allows enterprises to:
 
 ### Planned Enhancements
 
-- [ ] SCIM integration for user provisioning
+- [x] SCIM integration for user provisioning
 - [ ] Group-based access policies
 - [ ] Session management (revocation)
-- [ ] Hardware key attestation
+- [x] Hardware key attestation
 - [ ] Centralized audit log shipping
+- [x] Token exchange (RFC 8693) for multi-hop SSH delegation
 
 ## Working with This Codebase
 
