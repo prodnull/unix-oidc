@@ -272,6 +272,37 @@ These invariants apply to the client-side agent daemon's credential persistence 
 
 See `docs/storage-architecture.md` for deployment guide and troubleshooting.
 
+### IdP Failover Invariants (`unix-oidc-agent/src/failover.rs`, ADR-020)
+
+These invariants apply to the agent-side multi-IdP failover mechanism (Phase 41).
+
+1. **Failover is availability-only**
+   - Only connect timeout, TLS failure, DNS failure, and HTTP 5xx trigger failover
+   - Policy errors (4xx), crypto failures, malformed responses from reachable endpoints NEVER trigger failover
+   - This prevents failover from becoming a security bypass vector
+
+2. **JWKS caches remain issuer-scoped across failover**
+   - A JWKS key from issuer A must never validate tokens from issuer B
+   - MIDP-07 invariant is preserved — failover does not merge or share caches
+
+3. **In-flight requests never switch issuers mid-stream**
+   - If a device flow poll or CIBA poll is in progress against primary and primary fails, that request fails
+   - The next new request uses the failover target
+
+4. **PAM does not perform failover**
+   - PAM validates tokens against the token's own `iss` claim
+   - Both issuers in a failover pair must be in PAM's `issuers` array
+   - The agent owns all failover logic and OIDC endpoint selection
+
+5. **Exhausted state fails closed**
+   - When both primary and secondary are unavailable, authentication fails
+   - `IDP_FAILOVER_EXHAUSTED` audit event (OCSF severity Critical) must trigger SIEM alerting
+
+6. **Configuration validation at load time**
+   - Same URL as both primary and secondary: rejected
+   - Same URL as primary in multiple pairs: rejected
+   - Both URLs must reference known issuers
+
 ### PAM Module Constraints
 
 1. **No panics** - A panic in PAM can lock users out of their system
