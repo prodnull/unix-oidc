@@ -1,5 +1,5 @@
 # =============================================================================
-# unix-oidc AWS Testing Infrastructure
+# prmana AWS Testing Infrastructure
 # =============================================================================
 #
 # SECURITY MODEL:
@@ -44,7 +44,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "unix-oidc-ci"
+      Project     = "prmana-ci"
       ManagedBy   = "terraform"
       Repository  = var.github_repo
       Environment = "ci"
@@ -120,7 +120,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "github_actions" {
-  name                 = "unix-oidc-ci-github-actions"
+  name                 = "prmana-ci-github-actions"
   max_session_duration = var.max_session_duration_seconds
 
   # SECURITY: Trust policy restricts to specific repo and workflow_dispatch only
@@ -147,7 +147,7 @@ resource "aws_iam_role" "github_actions" {
   })
 
   tags = {
-    Name = "unix-oidc-ci-github-actions"
+    Name = "prmana-ci-github-actions"
   }
 }
 
@@ -156,7 +156,7 @@ resource "aws_iam_role" "github_actions" {
 # =============================================================================
 
 resource "aws_iam_role_policy" "github_actions" {
-  name = "unix-oidc-ci-permissions"
+  name = "prmana-ci-permissions"
   role = aws_iam_role.github_actions.id
 
   policy = jsonencode({
@@ -174,7 +174,7 @@ resource "aws_iam_role_policy" "github_actions" {
           StringEquals = {
             "ec2:InstanceMarketType" = "spot"
             # SECURITY: Must tag with project
-            "aws:RequestTag/Project" = "unix-oidc-ci"
+            "aws:RequestTag/Project" = "prmana-ci"
             # SECURITY: Only allowed instance types
             "ec2:InstanceType" = var.allowed_instance_types
           }
@@ -218,7 +218,7 @@ resource "aws_iam_role_policy" "github_actions" {
         Condition = {
           StringEquals = {
             # SECURITY: Can only manage instances we created
-            "aws:ResourceTag/Project" = "unix-oidc-ci"
+            "aws:ResourceTag/Project" = "prmana-ci"
           }
         }
       },
@@ -272,7 +272,7 @@ resource "aws_iam_role_policy" "github_actions" {
         ]
         Condition = {
           StringEquals = {
-            "aws:ResourceTag/Project" = "unix-oidc-ci"
+            "aws:ResourceTag/Project" = "prmana-ci"
           }
         }
       },
@@ -307,7 +307,7 @@ resource "aws_iam_role_policy" "github_actions" {
         ]
         Condition = {
           StringEquals = {
-            "aws:ResourceTag/Project" = "unix-oidc-ci"
+            "aws:ResourceTag/Project" = "prmana-ci"
           }
         }
       },
@@ -361,7 +361,7 @@ resource "aws_iam_role_policy" "github_actions" {
         Resource = "*"
         Condition = {
           StringEquals = {
-            "aws:ResourceTag/Project" = "unix-oidc-ci"
+            "aws:ResourceTag/Project" = "prmana-ci"
           }
         }
       },
@@ -393,7 +393,7 @@ resource "aws_iam_role_policy" "github_actions" {
 # =============================================================================
 
 resource "aws_iam_role" "ec2_instance" {
-  name = "unix-oidc-ci-ec2-instance"
+  name = "prmana-ci-ec2-instance"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -409,7 +409,7 @@ resource "aws_iam_role" "ec2_instance" {
   })
 
   tags = {
-    Name = "unix-oidc-ci-ec2-instance"
+    Name = "prmana-ci-ec2-instance"
   }
 }
 
@@ -419,7 +419,7 @@ resource "aws_iam_role_policy_attachment" "ec2_ssm" {
 }
 
 resource "aws_iam_instance_profile" "ec2_instance" {
-  name = "unix-oidc-ci-instance-profile"
+  name = "prmana-ci-instance-profile"
   role = aws_iam_role.ec2_instance.name
 }
 
@@ -432,8 +432,8 @@ data "aws_vpc" "default" {
 }
 
 resource "aws_security_group" "test_instances" {
-  name        = "unix-oidc-ci-test-instances"
-  description = "Security group for unix-oidc CI test instances"
+  name        = "prmana-ci-test-instances"
+  description = "Security group for prmana CI test instances"
   vpc_id      = data.aws_vpc.default.id
 
   # SECURITY: No inbound access - we use SSM only
@@ -449,7 +449,7 @@ resource "aws_security_group" "test_instances" {
   }
 
   tags = {
-    Name = "unix-oidc-ci-test-instances"
+    Name = "prmana-ci-test-instances"
   }
 }
 
@@ -458,10 +458,10 @@ resource "aws_security_group" "test_instances" {
 # =============================================================================
 
 resource "aws_sns_topic" "ci_notifications" {
-  name = "unix-oidc-ci-notifications"
+  name = "prmana-ci-notifications"
 
   tags = {
-    Name = "unix-oidc-ci-notifications"
+    Name = "prmana-ci-notifications"
   }
 }
 
@@ -476,7 +476,7 @@ resource "aws_sns_topic_subscription" "ci_email" {
 # =============================================================================
 
 resource "aws_budgets_budget" "ci_testing" {
-  name         = "unix-oidc-ci-budget"
+  name         = "prmana-ci-budget"
   budget_type  = "COST"
   limit_amount = tostring(var.budget_limit_usd)
   limit_unit   = "USD"
@@ -484,7 +484,7 @@ resource "aws_budgets_budget" "ci_testing" {
 
   cost_filter {
     name   = "TagKeyValue"
-    values = ["user:Project$unix-oidc-ci"]
+    values = ["user:Project     = "prmana-ci"]
   }
 
   notification {

@@ -1,6 +1,6 @@
 # AWS Testing Infrastructure
 
-Secure, cost-controlled infrastructure for testing unix-oidc on Amazon Linux and RHEL.
+Secure, cost-controlled infrastructure for testing prmana on Amazon Linux and RHEL.
 
 ## Security Model
 
@@ -190,20 +190,20 @@ Run these commands to verify the setup is secure:
 
 ```bash
 # Check IAM role trust policy
-aws iam get-role --role-name unix-oidc-ci-github-actions \
+aws iam get-role --role-name prmana-ci-github-actions \
   --query 'Role.AssumeRolePolicyDocument'
 
 # Check IAM permissions
-aws iam get-role-policy --role-name unix-oidc-ci-github-actions \
-  --policy-name unix-oidc-ci-permissions
+aws iam get-role-policy --role-name prmana-ci-github-actions \
+  --policy-name prmana-ci-permissions
 
 # List any running instances (should be empty)
 aws ec2 describe-instances \
-  --filters "Name=tag:Project,Values=unix-oidc-ci" \
+  --filters "Name=tag:Project     = "prmana-ci" \
   --query 'Reservations[].Instances[].{ID:InstanceId,State:State.Name}'
 
 # Check budget status
 aws budgets describe-budget \
   --account-id $(aws sts get-caller-identity --query Account --output text) \
-  --budget-name unix-oidc-ci-budget
+  --budget-name prmana-ci-budget
 ```

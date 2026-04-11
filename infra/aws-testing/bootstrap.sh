@@ -21,8 +21,8 @@
 set -euo pipefail
 
 # Configuration
-BUCKET_PREFIX="unix-oidc-terraform-state"
-DYNAMODB_TABLE="unix-oidc-terraform-locks"
+BUCKET_PREFIX="prmana-terraform-state"
+DYNAMODB_TABLE="prmana-terraform-locks"
 REGION="${AWS_REGION:-us-west-2}"
 
 # Get account ID
@@ -145,7 +145,7 @@ else
         --key-schema AttributeName=LockID,KeyType=HASH \
         --billing-mode PAY_PER_REQUEST \
         --region "${REGION}" \
-        --tags Key=Project,Value=unix-oidc-ci Key=ManagedBy,Value=bootstrap
+        --tags Key=Project     = "prmana-ci Key=ManagedBy,Value=bootstrap
 
     echo "Waiting for table to be active..."
     aws dynamodb wait table-exists --table-name "${DYNAMODB_TABLE}" --region "${REGION}"
@@ -162,7 +162,7 @@ echo ""
 echo "terraform {"
 echo "  backend \"s3\" {"
 echo "    bucket         = \"${BUCKET_NAME}\""
-echo "    key            = \"unix-oidc-ci/terraform.tfstate\""
+echo "    key            = \"prmana-ci/terraform.tfstate\""
 echo "    region         = \"${REGION}\""
 echo "    encrypt        = true"
 echo "    dynamodb_table = \"${DYNAMODB_TABLE}\""

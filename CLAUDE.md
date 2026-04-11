@@ -1,12 +1,12 @@
-# CLAUDE.md - AI Assistant Guide for unix-oidc
+# CLAUDE.md - AI Assistant Guide for prmana
 
-This document provides comprehensive context for AI assistants (Claude, Copilot, Cursor, etc.) working on the unix-oidc project. It captures our philosophy, architecture decisions, security invariants, and the reasoning behind key design choices.
+This document provides comprehensive context for AI assistants (Claude, Copilot, Cursor, etc.) working on the prmana project. It captures our philosophy, architecture decisions, security invariants, and the reasoning behind key design choices.
 
 ## Project Philosophy
 
 ### Security Should Not Be Annoying
 
-The fundamental premise of unix-oidc is that **security and usability are not opposing forces**. When security is annoying, people circumvent it. When it's an IT burden, organizations disable it. We believe:
+The fundamental premise of prmana is that **security and usability are not opposing forces**. When security is annoying, people circumvent it. When it's an IT burden, organizations disable it. We believe:
 
 - **Authentication should be invisible when possible** - Single sign-on means users authenticate once and work seamlessly
 - **Step-up authentication should feel natural** - When elevated privileges are needed, the flow should be quick and intuitive
@@ -35,7 +35,7 @@ Traditional Unix authentication has a fundamental disconnect with modern identit
 - **Enterprise MFA stops at the browser** - You need MFA for email but not for root access to production?
 - **Compliance is painful** - "Show me who accessed what" requires parsing logs from dozens of sources
 
-unix-oidc bridges this gap by bringing OIDC (the same protocol behind "Sign in with Google/Microsoft/Okta") to Linux PAM, with DPoP token binding to prevent token theft.
+prmana bridges this gap by bringing OIDC (the same protocol behind "Sign in with Google/Microsoft/Okta") to Linux PAM, with DPoP token binding to prevent token theft.
 
 ## Architecture Overview
 
@@ -54,7 +54,7 @@ unix-oidc bridges this gap by bringing OIDC (the same protocol behind "Sign in w
 │                         Linux Server                                 │
 │  ┌─────────────┐    ┌──────────────────┐    ┌───────────────────┐  │
 │  │   sshd      │───▶│  PAM Module      │───▶│ Token Validation  │  │
-│  └─────────────┘    │ (pam_unix_oidc)  │    │ + DPoP Verify     │  │
+│  └─────────────┘    │ (pam_prmana)  │    │ + DPoP Verify     │  │
 │                     └──────────────────┘    └───────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -63,7 +63,7 @@ unix-oidc bridges this gap by bringing OIDC (the same protocol behind "Sign in w
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| `pam-unix-oidc` | `/pam-unix-oidc/` | Core PAM module (Rust) |
+| `pam-prmana` | `/pam-prmana/` | Core PAM module (Rust) |
 | `oidc-ssh-agent` | `/oidc-ssh-agent/` | Client-side token acquisition |
 | DPoP Libraries | `/*-oauth-dpop/` | Cross-language DPoP implementation |
 
@@ -82,7 +82,7 @@ This is the same protection used by banking APIs and is critical for SSH where t
 
 These invariants MUST be maintained. Violating them is a security vulnerability.
 
-### DPoP Validation (`pam-unix-oidc/src/oidc/dpop.rs`)
+### DPoP Validation (`pam-prmana/src/oidc/dpop.rs`)
 
 1. **JWK thumbprint computation uses canonical values**
    ```rust
@@ -116,7 +116,7 @@ These invariants MUST be maintained. Violating them is a security vulnerability.
    - ID tokens should be validated against the algorithm specified in JWKS, not the token header
    - Never allow user-controlled algorithm selection
 
-### Token Validation (`pam-unix-oidc/src/oidc/validation.rs`)
+### Token Validation (`pam-prmana/src/oidc/validation.rs`)
 
 1. **Issuer validation** - Token must come from configured IdP
 2. **Audience validation** - Token must be intended for this service
@@ -159,7 +159,7 @@ Also add to HARD-FAIL table:
 
 | Key material zeroization on drop | Prevents key recovery from freed memory |
 
-### Memory Protection Invariants (`unix-oidc-agent/src/crypto/protected_key.rs`, `src/storage/secure_delete.rs`)
+### Memory Protection Invariants (`prmana-agent/src/crypto/protected_key.rs`, `src/storage/secure_delete.rs`)
 
 These invariants apply to the client-side agent daemon, where DPoP private keys and OAuth tokens are held in memory and stored on disk.
 
@@ -199,7 +199,7 @@ These invariants apply to the client-side agent daemon, where DPoP private keys 
    - Pass 1: random bytes + `sync_all()`. Pass 2: complement (XOR 0xFF) + `sync_all()`. Pass 3: new random bytes + `sync_all()`. Then `unlink`.
    - Originally inspired by DoD 5220.22-M (retired by DoD in 2006). Current implementation follows NIST SP 800-88 Rev 1 SS2.4 (Clear method) as the authoritative media sanitization guidance.
    - Overwrite failures are best-effort: log at WARN, still unlink.
-   - See `unix-oidc-agent/src/storage/secure_delete.rs`.
+   - See `prmana-agent/src/storage/secure_delete.rs`.
 
 8. **CoW filesystem advisory** (MEM-06)
    - `detect_cow_filesystem()` checks `statfs(2)` for btrfs (`BTRFS_SUPER_MAGIC` on Linux) and APFS (`f_fstypename == "apfs"` on macOS).
@@ -218,7 +218,7 @@ These invariants apply to the client-side agent daemon, where DPoP private keys 
 - Swap protection is best-effort (`mlock` failures are not fatal).
 - On CoW filesystems and SSDs, the three-pass overwrite is a signal of intent but not a guarantee. Full-disk encryption is the defense for those environments.
 
-### Storage Backend Invariants (`unix-oidc-agent/src/storage/router.rs`)
+### Storage Backend Invariants (`prmana-agent/src/storage/router.rs`)
 
 These invariants apply to the client-side agent daemon's credential persistence layer.
 
@@ -232,12 +232,12 @@ These invariants apply to the client-side agent daemon's credential persistence 
 2. **Priority chain (Linux)**: Secret Service → keyutils user keyring → file fallback.
    **Priority chain (macOS)**: macOS Keychain → file fallback.
 
-3. **Forced backend contract** — When `UNIX_OIDC_STORAGE_BACKEND` is set, probe only
+3. **Forced backend contract** — When `PRMANA_STORAGE_BACKEND` is set, probe only
    the requested backend and return `Err` on failure. Never fall through to the next
    backend. This ensures the operator's explicit choice is honored exactly.
 
 4. **Probe key uniqueness** — Each probe uses a key with a PID + atomic counter suffix
-   (`unix-oidc-probe-{pid}-{seq}`). This prevents collision between parallel probes
+   (`prmana-probe-{pid}-{seq}`). This prevents collision between parallel probes
    in tests or concurrent daemon starts.
 
 #### Migration
@@ -270,9 +270,14 @@ These invariants apply to the client-side agent daemon's credential persistence 
     full-disk encryption (NIST SP 800-88 Rev 1, §2.5) as the primary protection for
     at-rest key material, and should prefer a keyring backend over file storage.
 
+11. **Legacy key-name migration (prmana rename)** — `migrate_legacy_key_names()` runs at
+    startup and login. It reads `unix-oidc-*` keys from the active backend, writes the
+    same bytes under `prmana-*` names, and deletes the legacy keys only after the new-name
+    write succeeds. Idempotent, safe to re-run. No credential values are logged.
+
 See `docs/storage-architecture.md` for deployment guide and troubleshooting.
 
-### IdP Failover Invariants (`unix-oidc-agent/src/failover.rs`, ADR-020)
+### IdP Failover Invariants (`prmana-agent/src/failover.rs`, ADR-020)
 
 These invariants apply to the agent-side multi-IdP failover mechanism (Phase 41).
 
@@ -314,7 +319,7 @@ These invariants apply to the agent-side multi-IdP failover mechanism (Phase 41)
 
 > ⚠️ **NEVER ENABLE TEST MODE IN PRODUCTION** ⚠️
 
-The `test-mode` feature flag and `UNIX_OIDC_TEST_MODE` environment variable **completely bypass signature verification**. This allows ANY attacker to forge tokens with arbitrary claims.
+The `test-mode` feature flag and `PRMANA_TEST_MODE` environment variable **completely bypass signature verification**. This allows ANY attacker to forge tokens with arbitrary claims.
 
 ```rust
 // This function exists for testing ONLY
@@ -445,7 +450,7 @@ fn test_rejects_replayed_proof() {
 
 > ⚠️ **Never deploy OIDC authentication as the ONLY authentication path** ⚠️
 
-Before deploying unix-oidc to production servers:
+Before deploying prmana to production servers:
 
 1. **Configure a local break-glass account** - See `break_glass` in policy.yaml
 2. **Test break-glass access works** when OIDC is disabled/unreachable
@@ -475,10 +480,10 @@ tail -f /var/log/auth.log      # Debian/Ubuntu
 tail -f /var/log/secure        # RHEL/CentOS
 
 # Check PAM module is loaded
-grep pam_unix_oidc /etc/pam.d/sshd
+grep pam_prmana /etc/pam.d/sshd
 
 # Verify OIDC configuration
-cat /etc/unix-oidc/config.yaml
+cat /etc/prmana/config.yaml
 
 # Test IdP connectivity (from server)
 curl -v https://your-idp.com/.well-known/openid-configuration
@@ -493,12 +498,12 @@ If the PAM module has issues, quickly revert:
 
 ```bash
 # Option 1: Disable the PAM module (keeps it installed)
-# Edit /etc/pam.d/sshd and comment out the pam_unix_oidc line
-sudo sed -i 's/^auth.*pam_unix_oidc/#&/' /etc/pam.d/sshd
+# Edit /etc/pam.d/sshd and comment out the pam_prmana line
+sudo sed -i 's/^auth.*pam_prmana/#&/' /etc/pam.d/sshd
 
 # Option 2: Uninstall completely
-sudo rm /lib/security/pam_unix_oidc.so  # or /lib64/security/
-sudo rm /etc/pam.d/unix-oidc  # if using include
+sudo rm /lib/security/pam_prmana.so  # or /lib64/security/
+sudo rm /etc/pam.d/prmana  # if using include
 
 # Option 3: Use break-glass account to access and fix
 ssh breakglass@server  # Uses local password auth
@@ -630,7 +635,7 @@ cargo build --workspace
 cargo test --workspace
 
 # Run specific PAM module tests
-cargo test -p pam-unix-oidc
+cargo test -p pam-prmana
 
 # Check for security issues
 cargo audit
@@ -644,10 +649,10 @@ cargo fmt --all
 
 | File | Purpose | Security-Critical |
 |------|---------|-------------------|
-| `pam-unix-oidc/src/lib.rs` | PAM entry points | ⚠️ Yes |
-| `pam-unix-oidc/src/oidc/dpop.rs` | DPoP validation | ⚠️ Yes |
-| `pam-unix-oidc/src/oidc/validation.rs` | Token validation | ⚠️ Yes |
-| `pam-unix-oidc/src/config.rs` | Configuration parsing | Moderate |
+| `pam-prmana/src/lib.rs` | PAM entry points | ⚠️ Yes |
+| `pam-prmana/src/oidc/dpop.rs` | DPoP validation | ⚠️ Yes |
+| `pam-prmana/src/oidc/validation.rs` | Token validation | ⚠️ Yes |
+| `pam-prmana/src/config.rs` | Configuration parsing | Moderate |
 | `oidc-ssh-agent/src/main.rs` | Client CLI | Moderate |
 
 ### Common Tasks
@@ -722,4 +727,4 @@ When making decisions, remember:
 
 ---
 
-*This document is part of the unix-oidc project and should evolve with the codebase. When making significant architectural changes, please update this guide.*
+*This document is part of the prmana project and should evolve with the codebase. When making significant architectural changes, please update this guide.*
