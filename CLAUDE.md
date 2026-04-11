@@ -159,6 +159,41 @@ Also add to HARD-FAIL table:
 
 | Key material zeroization on drop | Prevents key recovery from freed memory |
 
+### kubectl Authentication Invariant (Phase DT-A onwards)
+
+**kubectl uses bearer tokens by design — do NOT claim DPoP protection.**
+
+The Kubernetes exec credential API (`client.authentication.k8s.io/v1`) returns a bearer
+token to kubectl. kubectl has no mechanism to inject per-request `DPoP` proof headers —
+there is no callback between "received credential" and "sent HTTP request." Populating
+`cnf.jkt` in a kubectl-issued token and claiming RFC 9449 protection would be security
+theater: no party in the request path verifies proof-of-possession.
+
+**Invariants for `prmana-kubectl` token issuance:**
+
+1. **NO `cnf` claim** — kubectl tokens must never carry a `cnf.jkt` thumbprint. If you
+   see `cnf` being populated in a `GetKubectlCredential` code path, it is a bug.
+
+2. **Audience isolation (HARD-FAIL)** — kubectl tokens use audience
+   `<cluster-id>.kube.prmana`. This audience MUST NOT be accepted by the SSH/PAM
+   validator (`pam-prmana/src/oidc/validation.rs`). A stolen kubectl token must
+   not allow SSH login. Enforce at every `aud` check point.
+
+3. **Short TTL** — 10 minutes maximum. The short window is the primary replay mitigation
+   in the absence of DPoP binding.
+
+4. **`expirationTimestamp` = JWT `exp` minus 30 seconds** — forces kubectl to re-invoke
+   the plugin before the token expires, preventing mid-request 401s.
+
+**Evolution path:** Phase DT-E upgrades kubectl auth to ephemeral mTLS client
+certificates (`clientCertificateData`/`clientKeyData` in ExecCredential). This provides
+real cryptographic key binding via native Kubernetes x509 authentication — no proxy, no
+custom authenticator, no security theater. Until DT-E ships, the honest marketing
+language is: "short-lived, IdP-issued, audience-scoped tokens — no long-lived
+kubeconfig credentials."
+
+**Reference:** Opus adversarial review 2026-04-11; RFC 9449 §4.1, §4.3, §7.
+
 ### Memory Protection Invariants (`prmana-agent/src/crypto/protected_key.rs`, `src/storage/secure_delete.rs`)
 
 These invariants apply to the client-side agent daemon, where DPoP private keys and OAuth tokens are held in memory and stored on disk.
